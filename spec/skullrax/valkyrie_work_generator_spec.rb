@@ -108,6 +108,26 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       expect(active_rights_terms).to include(generator.work.rights_statement.first)
       expect(active_resource_types).to include(generator.work.resource_type.first)
     end
+
+    context 'when the authority uses singular property names' do
+      it 'attempts to adjust for unconventional naming' do
+        resource_type_authority = Qa::Authorities::Local.subauthority_for('resource_types')
+        active_resource_types = resource_type_authority.all.select { |hash| hash[:active] }.pluck(:id)
+        allow(Qa::Authorities::Local)
+          .to receive(:subauthority_for).with('resource_types').and_raise(Qa::InvalidSubAuthority)
+        allow(Qa::Authorities::Local)
+          .to receive(:subauthority_for).with('resource_type').and_return(resource_type_authority)
+
+        generator = described_class.new
+        allow(generator)
+          .to receive(:required_properties).and_return(generator.send(:required_properties) << 'resource_type')
+
+        result = generator.create
+
+        expect(result).to be_success
+        expect(active_resource_types).to include(generator.work.resource_type.first)
+      end
+    end
   end
 
   context 'with files' do

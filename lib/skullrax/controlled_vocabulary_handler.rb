@@ -27,6 +27,9 @@ module Skullrax
 
     def authority
       @authority ||= Qa::Authorities::Local.subauthority_for(property.pluralize)
+    rescue Qa::InvalidSubAuthority
+      # Try singular if plural not found
+      @authority ||= Qa::Authorities::Local.subauthority_for(property)
     end
 
     def first_valid_term
