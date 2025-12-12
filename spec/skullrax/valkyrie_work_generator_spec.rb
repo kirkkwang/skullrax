@@ -131,10 +131,11 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
   end
 
   context 'with files' do
-    file1 = Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png')
-    file2 = Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt')
+    let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
+    let(:file2) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt') }
+    let(:remote_url) { 'https://example.com/remote_file.pdf' }
 
-    it 'uploads files and associates them with the work' do
+    it 'uploads local files and associates them with the work' do
       generator = described_class.new(file_paths: [file1, file2])
       result = generator.create
 
@@ -148,6 +149,32 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
 
       expect(result).to be_success
       expect(generator.work.member_ids.length).to eq 1
+    end
+
+    it 'downloads and uploads remote files from URLs' do
+      stub_request(:get, remote_url)
+        .to_return(
+          status: 200,
+          body: File.read(file1),
+          headers: { 'Content-Type' => 'application/pdf' }
+        )
+
+      generator = described_class.new(file_paths: remote_url)
+      result = generator.create
+
+      expect(result).to be_success
+      expect(generator.work.member_ids.length).to eq 1
+    end
+
+    it 'handles mixed local and remote files' do
+      stub_request(:get, remote_url)
+        .to_return(status: 200, body: 'fake pdf content')
+
+      generator = described_class.new(file_paths: [file1, remote_url])
+      result = generator.create
+
+      expect(result).to be_success
+      expect(generator.work.member_ids.length).to eq 2
     end
   end
 end

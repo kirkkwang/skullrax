@@ -26,6 +26,17 @@ require 'rspec/rails'
 
 require 'database_cleaner/active_record'
 require 'factory_bot'
+require 'webmock/rspec'
+WebMock.disable_net_connect!(
+  allow_localhost: true,
+  allow: [
+    'fcrepo:8080',
+    'solr:8983',
+    'redis:6379',
+    'postgres:5432'
+  ]
+)
+
 require Hyrax::Engine.root.join('lib', 'hyrax', 'specs', 'shared_specs', 'factories', 'users').to_s
 require Hyrax::Engine.root.join('spec', 'support', 'fakes', 'test_hydra_group_service').to_s
 

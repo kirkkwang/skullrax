@@ -20,10 +20,23 @@ module Skullrax
     private
 
     def create_uploaded_file(path)
-      Hyrax::UploadedFile.create(
-        file: File.open(path),
-        user:
-      )
+      file = path.to_s.start_with?('http') ? download_file(path) : File.open(path)
+
+      Hyrax::UploadedFile.create(file:, user:)
+    end
+
+    def download_file(url)
+      tempfile = Tempfile.new(['skullrax', File.extname(url)])
+      tempfile.binmode
+
+      uri = URI.parse(url)
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+        response = http.request_get(uri.path)
+        tempfile.write(response.body)
+      end
+
+      tempfile.rewind
+      tempfile
     end
   end
 end
