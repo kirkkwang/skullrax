@@ -7,8 +7,9 @@ module Skullrax
     attr_accessor :errors
     attr_reader :model, :kwargs
 
-    def initialize(model: nil, **kwargs)
+    def initialize(model: nil, file_paths: [], **kwargs)
       @model = model || default_model
+      @file_paths = Array.wrap(file_paths)
       @kwargs = kwargs
       @work = nil
       @errors = []
@@ -98,8 +99,16 @@ module Skullrax
       end
     end
 
+    attr_reader :file_paths
+
     def params
-      { param_key => param_hash }
+      base = { param_key => param_hash }
+      base[:uploaded_files] = file_uploader.uploaded_file_ids if file_paths.any?
+      base
+    end
+
+    def file_uploader
+      @file_uploader ||= FileUploader.new(file_paths, user)
     end
 
     def validate_form

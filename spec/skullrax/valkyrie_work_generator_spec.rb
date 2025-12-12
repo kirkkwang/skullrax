@@ -109,4 +109,25 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       expect(active_resource_types).to include(generator.work.resource_type.first)
     end
   end
+
+  context 'with files' do
+    file1 = Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png')
+    file2 = Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt')
+
+    it 'uploads files and associates them with the work' do
+      generator = described_class.new(file_paths: [file1, file2])
+      result = generator.create
+
+      expect(result).to be_success
+      expect(generator.work.member_ids.length).to eq 2
+    end
+
+    it 'can be called with a single file' do
+      generator = described_class.new(file_paths: file1)
+      result = generator.create
+
+      expect(result).to be_success
+      expect(generator.work.member_ids.length).to eq 1
+    end
+  end
 end
