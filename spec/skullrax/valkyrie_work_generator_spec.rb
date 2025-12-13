@@ -24,7 +24,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
   it 'returns a failure if there are errors' do
     generator = described_class.new
     # makes generate think there aren't any required properties
-    allow(generator).to receive(:required_properties).and_return([])
+    allow(generator.parameter_builder).to receive(:required_properties).and_return([])
 
     result = generator.create
 
@@ -70,7 +70,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
   context 'when properties are controlled vocabularies' do
     it 'sets properties from controlled vocabularies' do
       generator = described_class.new(license: ['https://creativecommons.org/licenses/by-nc/4.0/'])
-      allow(generator).to receive(:required_properties).and_return(generator.send(:required_properties) << 'license')
+      allow(generator.parameter_builder)
+        .to(receive(:required_properties)
+              .and_return(generator.parameter_builder.required_properties + ['license']))
 
       result = generator.create
 
@@ -80,7 +82,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
 
     it 'raises an error for invalid controlled vocabulary terms' do
       generator = described_class.new(license: ['Invalid License Term'])
-      allow(generator).to receive(:required_properties).and_return(['license'])
+      allow(generator.parameter_builder)
+        .to(receive(:required_properties)
+              .and_return(generator.parameter_builder.required_properties + ['license']))
 
       expect do
         generator.create
@@ -99,7 +103,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
 
       generator = described_class.new
       extra_fields = %w[license rights_statement resource_type]
-      allow(generator).to receive(:required_properties).and_return(generator.send(:required_properties) + extra_fields)
+      allow(generator.parameter_builder)
+        .to(receive(:required_properties)
+              .and_return(generator.parameter_builder.required_properties + extra_fields))
 
       result = generator.create
 
@@ -119,8 +125,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
           .to receive(:subauthority_for).with('resource_type').and_return(resource_type_authority)
 
         generator = described_class.new
-        allow(generator)
-          .to receive(:required_properties).and_return(generator.send(:required_properties) << 'resource_type')
+        allow(generator.parameter_builder)
+          .to(receive(:required_properties)
+                .and_return(generator.parameter_builder.required_properties + ['resource_type']))
 
         result = generator.create
 
