@@ -177,4 +177,30 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       expect(generator.work.member_ids.length).to eq 2
     end
   end
+
+  context 'with autofill true' do
+    it 'automatically fills in all settable properties' do
+      generator = described_class.new(autofill: true)
+      result = generator.create
+
+      expect(result).to be_success
+      expect(generator.work.title).to eq ['Test title']
+      expect(generator.work.creator).to eq ['Test creator']
+      expect(generator.work.description).to eq ['Test description']
+      expect(generator.work.based_near).to eq ['https://sws.geonames.org/5391811/']
+    end
+
+    context 'and except option' do
+      it 'omits the specified properties from being set' do
+        generator = described_class.new(autofill: true, except: %w[description based_near])
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.title).to eq ['Test title']
+        expect(generator.work.creator).to eq ['Test creator']
+        expect(generator.work.description).to be_empty
+        expect(generator.work.based_near).to be_empty
+      end
+    end
+  end
 end

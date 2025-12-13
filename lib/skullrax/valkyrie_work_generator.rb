@@ -5,11 +5,13 @@ module Skullrax
   class ValkyrieWorkGenerator
     attr_writer :work
     attr_accessor :errors
-    attr_reader :model, :kwargs
+    attr_reader :model, :autofill, :kwargs
 
-    def initialize(model: nil, file_paths: [], **kwargs)
+    def initialize(model: nil, file_paths: [], autofill: false, except: [], **kwargs)
       @model = model || default_model
       @file_paths = Array.wrap(file_paths)
+      @autofill = autofill
+      @except = Array.wrap(except).map(&:to_s)
       @kwargs = kwargs
       @work = nil
       @errors = []
@@ -53,8 +55,16 @@ module Skullrax
       model.model_name.param_key
     end
 
+    def properties
+      (autofill ? settable_properties : required_properties) - @except
+    end
+
     def required_properties
       model.schema.filter_map { |key| key.name.to_s if key.meta.dig('form', 'required') }
+    end
+
+    def settable_properties
+      model.schema.keys.filter_map { |schema_key| schema_key.name.to_s if schema_key.meta['form'].present? }
     end
 
     def param_hash
@@ -69,15 +79,26 @@ module Skullrax
     end
 
     def base_params
-      required_properties.each_with_object({}) do |property, hash|
-        hash[property] = param_value_for(property)
+      properties.each_with_object({}) do |property, hash|
+        key = property == 'based_near' ? 'based_near_attributes' : property
+        hash[key] = param_value_for(property)
       end
     end
 
     def param_value_for(property)
       return controlled_vocabulary_for(property) if controlled_property?(property)
+      return based_near_default if property == 'based_near' && kwargs[property].blank?
 
       ["Test #{property}"]
+    end
+
+    def based_near_default
+      {
+        '0' => {
+          'id' => 'https://sws.geonames.org/5391811/',
+          '_destroy' => 'false'
+        }
+      }
     end
 
     def controlled_property?(property)

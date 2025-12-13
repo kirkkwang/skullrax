@@ -10,11 +10,13 @@ module Skullrax
     end
 
     def self.controlled_properties
-      @controlled_properties ||= qa_registry.keys.map(&:singularize)
+      @controlled_properties ||= qa_registry.filter_map do |k, v|
+        k.singularize if v.klass == Qa::Authorities::Local::FileBasedAuthority
+      end
     end
 
     def self.qa_registry
-      @qa_registry ||= Qa::Authorities::Local.registry
+      @qa_registry ||= Qa::Authorities::Local.registry.instance_variable_get('@hash')
     end
 
     def validate
