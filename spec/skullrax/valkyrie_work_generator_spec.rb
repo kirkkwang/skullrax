@@ -210,4 +210,33 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       end
     end
   end
+
+  context 'with based_near property' do
+    it 'looks up place names via Geonames' do
+      url = 'http://api.geonames.org/searchJSON?q=san+diego&username=scientist&maxRows=1'
+      stub_request(:get, url)
+        .with(
+          headers: {
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+            'Host' => 'api.geonames.org',
+            'User-Agent' => 'Ruby'
+          }
+        )
+        .to_return(status: 200, body: '', headers: {})
+
+      generator = described_class.new(based_near: ['san diego'])
+      response = Net::HTTPSuccess.new('1.1', '200', 'OK')
+      allow(generator.parameter_builder)
+        .to(receive(:required_properties)
+              .and_return(generator.parameter_builder.required_properties + ['based_near']))
+      allow(response).to receive(:body).and_return('{"geonames":[{"geonameId":5391811}]}')
+      allow(Net::HTTP).to receive(:get_response).and_return(response)
+
+      result = generator.create
+
+      expect(result).to be_success
+      expect(generator.work.based_near).to eq ['https://sws.geonames.org/5391811/']
+    end
+  end
 end

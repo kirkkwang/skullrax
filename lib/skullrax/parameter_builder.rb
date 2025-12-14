@@ -14,7 +14,7 @@ module Skullrax
     def build
       base_params.tap do |hash|
         add_visibility(hash)
-        add_additional_attributes(hash)
+        add_custom_attributes(hash)
       end
     end
 
@@ -34,25 +34,31 @@ module Skullrax
 
     def base_params
       properties.each_with_object({}) do |property, hash|
-        key = property == 'based_near' ? 'based_near_attributes' : property
-        hash[key] = param_value_for(property)
+        hash[param_key_for(property)] = param_value_for(property)
       end
+    end
+
+    def param_key_for(property)
+      property == 'based_near' ? 'based_near_attributes' : property
     end
 
     def param_value_for(property)
       return controlled_vocabulary_for(property) if controlled_property?(property)
-      return based_near_default if property == 'based_near' && kwargs[property].blank?
+      return based_near_default if based_near_without_value?(property)
 
       ["Test #{property}"]
     end
 
+    def based_near_without_value?(property)
+      property == 'based_near' && kwargs[property].blank?
+    end
+
     def based_near_default
-      {
-        '0' => {
-          'id' => 'https://sws.geonames.org/5391811/',
-          '_destroy' => 'false'
-        }
-      }
+      { '0' => { 'id' => default_geonames_url, '_destroy' => 'false' } }
+    end
+
+    def default_geonames_url
+      'https://sws.geonames.org/5391811/'
     end
 
     def controlled_property?(property)
@@ -68,10 +74,18 @@ module Skullrax
       hash['visibility'] = visibility if visibility
     end
 
-    def add_additional_attributes(hash)
-      kwargs.each do |key, value|
-        hash[key] = value.is_a?(Array) ? value : [value]
-      end
+    def add_custom_attributes(hash)
+      kwargs.each { |key, value| hash[key] = process_attribute(key, value) }
+    end
+
+    def process_attribute(key, value)
+      return geonames_handler.process(value) if key.to_s == 'based_near'
+
+      Array.wrap(value)
+    end
+
+    def geonames_handler
+      GeonamesHandler
     end
   end
 end
