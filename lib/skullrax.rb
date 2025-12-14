@@ -7,6 +7,8 @@ require_relative 'skullrax/valkyrie_work_generator'
 require_relative 'skullrax/file_uploader'
 require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/based_near_handler'
+require_relative 'skullrax/file_set_params_builder'
+require_relative 'skullrax/transaction_executor'
 
 module Skullrax
   class Error < StandardError; end

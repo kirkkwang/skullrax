@@ -183,6 +183,77 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       expect(result).to be_success
       expect(generator.work.member_ids.length).to eq 2
     end
+
+    context 'with file set metadata' do
+      it 'can set properties' do
+        generator = described_class.new(
+          file_paths: [file1, file2],
+          file_set_params: [
+            { title: 'Some Image', keyword: 'example' },
+            { title: 'Some Text File', language: 'english' }
+          ]
+        )
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.member_ids.length).to eq 2
+
+        file_sets = generator.work.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
+        expect(file_sets.first.title).to eq ['Some Image']
+        expect(file_sets.first.keyword).to eq ['example']
+        expect(file_sets.last.title).to eq ['Some Text File']
+        expect(file_sets.last.language).to eq ['english']
+      end
+
+      it 'is very forgiving of missing metadata entries' do
+        generator = described_class.new(
+          file_paths: [file1, file2],
+          file_set_params: { title: 'Some Image' } # No metadata for second file sets
+        )
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.member_ids.length).to eq 2
+
+        file_sets = generator.work.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
+        expect(file_sets.first.title).to eq ['Some Image']
+        expect(file_sets.last.title).to be_empty
+      end
+
+      it 'ignores extra metadata entries beyond the number of files' do
+        generator = described_class.new(
+          file_paths: [file1],
+          file_set_params: [
+            { title: 'Some Image' },
+            { title: 'Extra Metadata' }
+          ]
+        )
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.member_ids.length).to eq 1
+
+        file_set = Hyrax.query_service.find_by(id: generator.work.member_ids.first)
+        expect(file_set.title).to eq ['Some Image']
+      end
+
+      it 'ignores unknown metadata properties' do
+        generator = described_class.new(
+          file_paths: [file1],
+          file_set_params: [
+            { title: 'Some Image', unknown_property: 'Some Value' }
+          ]
+        )
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.member_ids.length).to eq 1
+
+        file_set = Hyrax.query_service.find_by(id: generator.work.member_ids.first)
+        expect(file_set.title).to eq ['Some Image']
+        expect(file_set.respond_to?(:unknown_property)).to be false
+      end
+    end
   end
 
   context 'with autofill true' do

@@ -8,9 +8,10 @@ module Skullrax
 
     delegate :required_properties, :settable_properties, to: :parameter_builder
 
-    def initialize(model: nil, file_paths: [], autofill: false, except: [], **kwargs)
+    def initialize(model: nil, file_paths: [], file_set_params: [], autofill: false, except: [], **kwargs) # rubocop:disable Metrics/ParameterLists
       @model = model || default_model
-      @file_paths = Array.wrap(file_paths)
+      @file_paths = file_paths
+      @file_set_params = file_set_params
       @autofill = autofill
       @except = Array.wrap(except).map(&:to_s)
       @kwargs = kwargs
@@ -31,12 +32,7 @@ module Skullrax
     end
 
     def parameter_builder
-      @parameter_builder ||= ParameterBuilder.new(
-        model:,
-        autofill:,
-        except:,
-        **kwargs
-      )
+      @parameter_builder ||= ParameterBuilder.new(model:, autofill:, except:, **kwargs)
     end
 
     private
@@ -69,16 +65,20 @@ module Skullrax
       @param_hash ||= parameter_builder.build
     end
 
-    attr_reader :file_paths
-
     def params
-      base = { work_attributes_key => param_hash }
-      base[:uploaded_files] = file_uploader.uploaded_file_ids if file_paths.any?
-      base
+      builder = file_set_params_builder
+
+      work_params = param_hash
+
+      work_params[:file_set] = builder.formatted_file_set_params if builder.formatted_file_set_params.any?
+
+      result = { work_attributes_key => work_params }
+      result[:uploaded_files] = builder.uploaded_file_ids if builder.uploaded_file_ids.any?
+      result
     end
 
-    def file_uploader
-      @file_uploader ||= FileUploader.new(file_paths, user)
+    def file_set_params_builder
+      @file_set_params_builder ||= FileSetParamsBuilder.new(@file_paths, @file_set_params, user)
     end
 
     def validate_form
@@ -86,13 +86,7 @@ module Skullrax
     end
 
     def action
-      @action ||= Hyrax::Action::CreateValkyrieWork.new(
-        form:,
-        transactions:,
-        user:,
-        params:,
-        work_attributes_key:
-      )
+      @action ||= Hyrax::Action::CreateValkyrieWork.new(form:, transactions:, user:, params:, work_attributes_key:)
     end
 
     def transactions
@@ -101,9 +95,12 @@ module Skullrax
 
     def perform_action
       action.validate
-      result = action.perform
-
+      result = transaction_executor.execute
       result.success? ? handle_success(result) : handle_failure(result)
+    end
+
+    def transaction_executor
+      @transaction_executor ||= TransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
     end
 
     def handle_success(result)
