@@ -6,7 +6,7 @@ require_relative 'skullrax/error_formatter'
 require_relative 'skullrax/valkyrie_work_generator'
 require_relative 'skullrax/file_uploader'
 require_relative 'skullrax/parameter_builder'
-require_relative 'skullrax/geonames_handler'
+require_relative 'skullrax/based_near_handler'
 
 module Skullrax
   class Error < StandardError; end

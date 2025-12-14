@@ -1,13 +1,29 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class GeonamesHandler
+  class BasedNearHandler
     class << self
+      def handles?(property)
+        property == 'based_near'
+      end
+
+      def param_key
+        'based_near_attributes'
+      end
+
+      def default_value
+        { '0' => { 'id' => default_geonames_url, '_destroy' => 'false' } }
+      end
+
       def process(values)
         Array.wrap(values).flat_map { |value| lookup_or_return(value) }.compact
       end
 
       private
+
+      def default_geonames_url
+        'https://sws.geonames.org/5391811/'
+      end
 
       def lookup_or_return(value)
         return value if value.start_with?('http')

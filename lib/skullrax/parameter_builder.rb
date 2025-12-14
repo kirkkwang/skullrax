@@ -39,26 +39,14 @@ module Skullrax
     end
 
     def param_key_for(property)
-      property == 'based_near' ? 'based_near_attributes' : property
+      based_near_handler.handles?(property) ? based_near_handler.param_key : property
     end
 
     def param_value_for(property)
       return controlled_vocabulary_for(property) if controlled_property?(property)
-      return based_near_default if based_near_without_value?(property)
+      return based_near_handler.default_value if based_near_handler.handles?(property) && kwargs[property].blank?
 
       ["Test #{property}"]
-    end
-
-    def based_near_without_value?(property)
-      property == 'based_near' && kwargs[property].blank?
-    end
-
-    def based_near_default
-      { '0' => { 'id' => default_geonames_url, '_destroy' => 'false' } }
-    end
-
-    def default_geonames_url
-      'https://sws.geonames.org/5391811/'
     end
 
     def controlled_property?(property)
@@ -79,13 +67,13 @@ module Skullrax
     end
 
     def process_attribute(key, value)
-      return geonames_handler.process(value) if key.to_s == 'based_near'
+      return based_near_handler.process(value) if based_near_handler.handles?(key.to_s)
 
       Array.wrap(value)
     end
 
-    def geonames_handler
-      GeonamesHandler
+    def based_near_handler
+      BasedNearHandler
     end
   end
 end
