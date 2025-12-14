@@ -130,6 +130,57 @@ Skullrax::ValkyrieWorkGenerator.new(
 ).create
 ```
 
+### File Set Metadata
+
+You can specify metadata for individual file sets when attaching files:
+
+#### Multiple Files with Corresponding Metadata
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  file_paths: ['/path/to/file1.pdf', '/path/to/file2.jpg'],
+  file_set_params: [
+    { title: 'Contract Document', description: 'Legal contract' },
+    { title: 'Product Photo', keyword: ['product', 'marketing'] }
+  ]
+).create
+```
+
+The order of `file_set_params` corresponds to the order of `file_paths`.
+
+#### Single File Set Metadata
+
+If you provide a single hash instead of an array, it applies only to the first file:
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  file_paths: ['/path/to/file1.pdf', '/path/to/file2.jpg'],
+  file_set_params: { title: 'Contract Document', description: 'Legal contract' }
+).create
+# Only file1.pdf gets the metadata; file2.jpg uses defaults
+```
+
+#### Automatic Value Wrapping
+
+Values are automatically wrapped in arrays (Hyrax expects array values for most fields):
+```ruby
+# These are equivalent:
+file_set_params: { title: 'My Title' }
+file_set_params: { title: ['My Title'] }
+```
+
+#### Unsupported Properties
+
+Unsupported properties are silently ignored - Hyrax will filter them out based on `FileSet.user_settable_attributes`:
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  file_paths: '/path/to/file.pdf',
+  file_set_params: {
+    title: 'Valid Title',
+    invalid_field: 'This will be ignored'
+  }
+).create
+# Only 'title' is applied; 'invalid_field' is skipped
+```
+
 ### Error Handling
 
 Check for errors after work creation:
