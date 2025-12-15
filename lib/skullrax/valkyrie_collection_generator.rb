@@ -46,13 +46,18 @@ module Skullrax
 
       result =
         transactions['change_set.create_collection']
-        .with_step_args(
-          'change_set.set_user_as_depositor' => { user: },
-          'change_set.add_to_collections' => { collection_ids: Array(params[:parent_id]) },
-          'collection_resource.apply_collection_type_permissions' => { user: }
-        )
+        .with_step_args(**collection_step_args)
         .call(form)
+
       result.success? ? handle_success(result) : handle_failure(result)
+    end
+
+    def collection_step_args
+      {
+        'change_set.set_user_as_depositor' => { user: },
+        'change_set.add_to_collections' => { collection_ids: Array(params[:parent_id]) },
+        'collection_resource.apply_collection_type_permissions' => { user: }
+      }
     end
 
     def assign_resource(resource)

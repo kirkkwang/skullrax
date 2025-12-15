@@ -76,7 +76,7 @@ module Skullrax
     end
 
     def transaction_executor
-      @transaction_executor ||= TransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
+      @transaction_executor ||= WorkTransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
     end
 
     def assign_resource(resource)
