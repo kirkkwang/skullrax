@@ -3,9 +3,8 @@
 module Skullrax
   class ValkyrieCollectionGenerator
     attr_accessor :collection
-    attr_reader :errors, :autofill, :except, :kwargs
 
-    delegate :required_properties, :settable_properties, to: :parameter_builder
+    include Skullrax::GeneratorConcern
 
     def initialize(autofill: false, except: [], **kwargs)
       @autofill = autofill
@@ -20,38 +19,14 @@ module Skullrax
       perform_action
     end
 
-    def parameter_builder
-      @parameter_builder ||= ParameterBuilder.new(model:, autofill:, except:, **kwargs)
-    end
-
     private
 
     def model
       Hyrax.config.collection_class
     end
 
-    def user
-      @user ||= User.find_by_email('admin@example.com')
-    end
-
-    def validate_form
-      form.validate(params[collection_attributes_key])
-    end
-
-    def collection_attributes_key
-      model.model_name.param_key
-    end
-
     def params
-      { collection_attributes_key => params_hash }
-    end
-
-    def params_hash
-      @params_hash ||= parameter_builder.build
-    end
-
-    def transactions
-      Hyrax::Transactions::Container
+      { attributes_key => params_hash }
     end
 
     def form
@@ -80,16 +55,8 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
-    def handle_success(result)
-      self.collection = result.value!
-      result
-    end
-
-    def handle_failure(result)
-      formatter = ErrorFormatter.new(result)
-      formatter.log
-      @errors << formatter.format
-      result
+    def assign_resource(resource)
+      self.collection = resource
     end
   end
 end

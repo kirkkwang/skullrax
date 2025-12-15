@@ -3,10 +3,9 @@
 module Skullrax
   class ValkyrieWorkGenerator
     attr_writer :work
-    attr_accessor :errors
-    attr_reader :model, :autofill, :except, :kwargs
+    attr_reader :model
 
-    delegate :required_properties, :settable_properties, to: :parameter_builder
+    include Skullrax::GeneratorConcern
 
     def initialize(model: nil, file_paths: [], file_set_params: [], autofill: false, except: [], **kwargs) # rubocop:disable Metrics/ParameterLists
       @model = model || default_model
@@ -31,18 +30,10 @@ module Skullrax
       end
     end
 
-    def parameter_builder
-      @parameter_builder ||= ParameterBuilder.new(model:, autofill:, except:, **kwargs)
-    end
-
     private
 
     def default_model
       Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
-    end
-
-    def user
-      @user ||= User.find_by_email('admin@example.com')
     end
 
     def admin_set_id
@@ -57,22 +48,14 @@ module Skullrax
       Hyrax::WorkFormService.form_class(work)
     end
 
-    def work_attributes_key
-      model.model_name.param_key
-    end
-
-    def param_hash
-      @param_hash ||= parameter_builder.build
-    end
-
     def params
       builder = file_set_params_builder
 
-      work_params = param_hash
+      work_params = params_hash
 
       work_params[:file_set] = builder.formatted_file_set_params if builder.formatted_file_set_params.any?
 
-      result = { work_attributes_key => work_params }
+      result = { attributes_key => work_params }
       result[:uploaded_files] = builder.uploaded_file_ids if builder.uploaded_file_ids.any?
       result
     end
@@ -81,16 +64,9 @@ module Skullrax
       @file_set_params_builder ||= FileSetParamsBuilder.new(@file_paths, @file_set_params, user)
     end
 
-    def validate_form
-      form.validate(params[work_attributes_key])
-    end
-
     def action
-      @action ||= Hyrax::Action::CreateValkyrieWork.new(form:, transactions:, user:, params:, work_attributes_key:)
-    end
-
-    def transactions
-      Hyrax::Transactions::Container
+      @action ||=
+        Hyrax::Action::CreateValkyrieWork.new(form:, transactions:, user:, params:, work_attributes_key: attributes_key)
     end
 
     def perform_action
@@ -103,16 +79,8 @@ module Skullrax
       @transaction_executor ||= TransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
     end
 
-    def handle_success(result)
-      self.work = result.value!
-      result
-    end
-
-    def handle_failure(result)
-      formatter = ErrorFormatter.new(result)
-      formatter.log
-      @errors << formatter.format
-      result
+    def assign_resource(resource)
+      self.work = resource
     end
   end
 end
