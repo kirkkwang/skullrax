@@ -4,13 +4,15 @@ An easy programmatic way to create Valkyrie works in Hyrax 5 based applications 
 
 ## Features
 
-- **Simple Work Creation**: Create works with minimal configuration
-- **Intelligent Defaults**: Automatically fills required fields with placeholder data (very placeholder, not even the Faker kind, I'm talking "Test title" and "Test creator")
+- **Simple Resource Creation**: Create works and collections with minimal configuration
+- **Intelligent Defaults**: Automatically fills required fields with placeholder data
 - **Auto-fill Mode**: Optionally populate all settable properties, not just required ones
 - **Flexible Property Control**: Exclude specific properties from being set
 - **Controlled Vocabulary Support**: Intelligently handles Questioning Authority vocabularies
 - **Geonames Integration**: Automatically looks up location URIs from plain text queries
 - **File Attachment**: Support for local and remote file uploads
+- **File Set Metadata**: Set individual metadata for each attached file
+- **Visibility Management**: Configure visibility including embargoes and leases
 - **Hyku Compatible**: Handles Hyku's authority naming quirks (e.g., `audience.yml` vs `audiences.yml`)
 - **Error Handling**: Comprehensive error tracking for debugging
 
@@ -253,6 +255,50 @@ When `autofill: true` is enabled, Skullrax will populate all properties that hav
 - Creating fully populated test works
 - Exploring all available fields on a work type
 - Generating sample data for development
+
+## Collection Creation
+
+Skullrax can also create collections with the same ease and flexibility as works.
+
+### Basic Collection Creation
+
+Create a collection with all required fields populated:
+```ruby
+Skullrax::ValkyrieCollectionGenerator.new.create
+```
+
+### Customized Collection Creation
+
+Specify your own attributes:
+```ruby
+Skullrax::ValkyrieCollectionGenerator.new(
+  title: 'Custom Collection Title',
+  creator: 'Jane Doe',
+  visibility: 'authenticated'
+).create
+```
+
+### Auto-fill with Exclusions
+
+Use `autofill: true` to populate all settable properties, with optional exclusions:
+```ruby
+Skullrax::ValkyrieCollectionGenerator.new(
+  autofill: true,
+  except: :hide_from_catalog_search,
+  visibility: 'open'
+).create
+```
+
+### Collection Features
+
+Collections support the same features as works:
+- **Auto-fill Mode**: Use `autofill: true` to populate all settable properties
+- **Property Exclusions**: Use `except:` to skip specific fields
+- **Controlled Vocabularies**: Automatically validated against Questioning Authority
+- **Visibility Settings**: Including embargoes and leases
+- **Geonames Integration**: Automatic location URI lookup
+
+**Note:** Collections use the default collection type. They do not support file attachments (use works for that).
 
 ## Development
 
