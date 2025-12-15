@@ -73,6 +73,45 @@ Skullrax::ValkyrieWorkGenerator.new(
 ).create
 ```
 
+### Visibility Settings
+
+Control work visibility including embargoes and leases:
+
+#### Basic Visibility
+
+Set simple visibility levels (defaults to `restricted` if not specified):
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  visibility: 'open'  # or 'authenticated', 'restricted'
+).create
+```
+
+#### Embargo
+
+Restrict access until a future date, then change to a different visibility:
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  visibility: 'embargo',
+  visibility_during_embargo: 'restricted',
+  embargo_release_date: Date.today + 6.months,
+  visibility_after_embargo: 'open'
+).create
+```
+
+#### Lease
+
+Make work openly available for a limited time, then restrict access:
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  visibility: 'lease',
+  visibility_during_lease: 'open',
+  lease_expiration_date: '2030-12-31',  # Date or String accepted
+  visibility_after_lease: 'authenticated'
+).create
+```
+
+**Note:** Both `embargo_release_date` and `lease_expiration_date` accept either `Date` objects or date strings - Hyrax forms will handle the conversion automatically.
+
 ### Geonames Location Lookup
 
 Skullrax can automatically look up Geonames URIs from plain text location queries:
