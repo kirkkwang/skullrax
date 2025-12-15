@@ -45,15 +45,13 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
     it 'sets properties from kwargs' do
       generator = described_class.new(model: Monograph,
                                       title: ['Custom Title'],
-                                      creator: ['Custom Creator'],
-                                      visibility: 'open')
+                                      creator: ['Custom Creator'])
       result = generator.create
 
       expect(result).to be_success
       expect(generator.work).to be_a Monograph
       expect(generator.work.title).to eq ['Custom Title']
       expect(generator.work.creator).to eq ['Custom Creator']
-      expect(generator.work.visibility).to eq 'open'
     end
 
     it 'ignores unknown properties' do
@@ -64,6 +62,65 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       expect(generator.work).to be_a Monograph
       expect(generator.work.respond_to?(:unknown_property)).to be false
       expect(generator.work.respond_to?(:another_one)).to be false
+    end
+
+    context 'when visibility is provided' do
+      it 'can set open' do
+        generator = described_class.new(visibility: 'open')
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.visibility).to eq 'open'
+      end
+
+      it 'can set restricted' do
+        generator = described_class.new(visibility: 'restricted')
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.visibility).to eq 'restricted'
+      end
+
+      it 'can set authenticated' do
+        generator = described_class.new(visibility: 'authenticated')
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.visibility).to eq 'authenticated'
+      end
+
+      it 'can set embargo' do
+        future_date = Date.today + 1.month
+        generator = described_class.new(
+          visibility: 'embargo',
+          visibility_during_embargo: 'restricted',
+          embargo_release_date: future_date,
+          visibility_after_embargo: 'open'
+        )
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.visibility).to eq 'restricted'
+        expect(generator.work.embargo.embargo_release_date).to eq future_date
+        expect(generator.work.embargo.visibility_during_embargo).to eq 'restricted'
+        expect(generator.work.embargo.visibility_after_embargo).to eq 'open'
+      end
+
+      it 'can set lease' do
+        future_date = Date.today + 1.month
+        generator = described_class.new(
+          visibility: 'lease',
+          visibility_during_lease: 'open',
+          lease_expiration_date: future_date,
+          visibility_after_lease: 'authenticated'
+        )
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.visibility).to eq 'open'
+        expect(generator.work.lease.lease_expiration_date).to eq future_date
+        expect(generator.work.lease.visibility_after_lease).to eq 'authenticated'
+      end
     end
   end
 

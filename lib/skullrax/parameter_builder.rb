@@ -13,7 +13,7 @@ module Skullrax
 
     def build
       base_params.tap do |hash|
-        add_visibility(hash)
+        VisibilityHandler.add_visibility(hash, kwargs)
         add_custom_attributes(hash)
       end
     end
@@ -55,11 +55,6 @@ module Skullrax
 
     def controlled_vocabulary_for(property)
       ControlledVocabularyHandler.new(property, kwargs[property.to_sym]).validate
-    end
-
-    def add_visibility(hash)
-      visibility = kwargs.delete(:visibility)
-      hash['visibility'] = visibility if visibility
     end
 
     def add_custom_attributes(hash)

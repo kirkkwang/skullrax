@@ -9,6 +9,7 @@ require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/based_near_handler'
 require_relative 'skullrax/file_set_params_builder'
 require_relative 'skullrax/transaction_executor'
+require_relative 'skullrax/visibility_handler'
 
 module Skullrax
   class Error < StandardError; end
