@@ -27,13 +27,6 @@ module Skullrax
 
     private
 
-    def authority
-      @authority ||= Qa::Authorities::Local.subauthority_for(property.pluralize)
-    rescue Qa::InvalidSubAuthority
-      # Try singular if plural not found
-      @authority ||= Qa::Authorities::Local.subauthority_for(property)
-    end
-
     def first_valid_term
       term = authority.all.find { |t| t[:active] }
       term ? [term[:id]] : []
@@ -48,6 +41,13 @@ module Skullrax
 
     def active_term?(term)
       term&.dig('active') == true
+    end
+
+    def authority
+      @authority ||= Qa::Authorities::Local.subauthority_for(property.pluralize)
+    rescue Qa::InvalidSubAuthority
+      # Try singular if plural not found
+      @authority ||= Qa::Authorities::Local.subauthority_for(property)
     end
 
     def error_message(value)

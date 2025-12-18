@@ -32,12 +32,23 @@ module Skullrax
 
     private
 
-    def default_model
-      Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
+    def perform_action
+      action.validate
+      result = transaction_executor.execute
+      result.success? ? handle_success(result) : handle_failure(result)
     end
 
-    def admin_set_id
-      @admin_set_id ||= Hyrax::AdminSetCreateService.find_or_create_default_admin_set.id.to_s
+    def assign_resource(resource)
+      self.work = resource
+    end
+
+    def action
+      @action ||=
+        Hyrax::Action::CreateValkyrieWork.new(form:, transactions:, user:, params:, work_attributes_key: attributes_key)
+    end
+
+    def transaction_executor
+      @transaction_executor ||= WorkTransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
     end
 
     def form
@@ -51,11 +62,8 @@ module Skullrax
     def params
       builder = file_set_params_builder
 
-      work_params = params_hash
-
-      work_params[:file_set] = builder.formatted_file_set_params if builder.formatted_file_set_params.any?
-
-      result = { attributes_key => work_params }
+      result = { attributes_key => params_hash }
+      result[attributes_key][:file_set] = builder.formatted_file_set_params if builder.formatted_file_set_params.any?
       result[:uploaded_files] = builder.uploaded_file_ids if builder.uploaded_file_ids.any?
       result
     end
@@ -64,23 +72,12 @@ module Skullrax
       @file_set_params_builder ||= FileSetParamsBuilder.new(@file_paths, @file_set_params, user)
     end
 
-    def action
-      @action ||=
-        Hyrax::Action::CreateValkyrieWork.new(form:, transactions:, user:, params:, work_attributes_key: attributes_key)
+    def default_model
+      Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
     end
 
-    def perform_action
-      action.validate
-      result = transaction_executor.execute
-      result.success? ? handle_success(result) : handle_failure(result)
-    end
-
-    def transaction_executor
-      @transaction_executor ||= WorkTransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
-    end
-
-    def assign_resource(resource)
-      self.work = resource
+    def admin_set_id
+      @admin_set_id ||= Hyrax::AdminSetCreateService.find_or_create_default_admin_set.id.to_s
     end
   end
 end

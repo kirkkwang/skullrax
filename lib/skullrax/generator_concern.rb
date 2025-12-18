@@ -13,8 +13,8 @@ module Skullrax
 
     private
 
-    def user
-      @user ||= User.find_by_email('admin@example.com')
+    def validate_form
+      form.validate(params[attributes_key])
     end
 
     def handle_success(result)
@@ -29,20 +29,20 @@ module Skullrax
       result
     end
 
-    def transactions
-      Hyrax::Transactions::Container
-    end
-
-    def validate_form
-      form.validate(params[attributes_key])
+    def params_hash
+      @params_hash ||= parameter_builder.build
     end
 
     def attributes_key
       model.model_name.param_key
     end
 
-    def params_hash
-      @params_hash ||= parameter_builder.build
+    def user
+      @user ||= User.find_by_email('admin@example.com')
+    end
+
+    def transactions
+      Hyrax::Transactions::Container
     end
   end
 end

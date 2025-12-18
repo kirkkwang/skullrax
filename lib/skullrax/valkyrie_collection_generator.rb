@@ -21,26 +21,6 @@ module Skullrax
 
     private
 
-    def model
-      Hyrax.config.collection_class
-    end
-
-    def params
-      { attributes_key => params_hash }
-    end
-
-    def form
-      @form ||= Hyrax::Forms::ResourceForm.for(resource: collection).tap(&:prepopulate!)
-    end
-
-    def collection_type_gid
-      Hyrax::CollectionType.find(default_collection_type.id).to_global_id
-    end
-
-    def default_collection_type
-      Hyrax::CollectionType.find_or_create_default_collection_type
-    end
-
     def perform_action
       form.validate(params)
 
@@ -52,6 +32,18 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
+    def assign_resource(resource)
+      self.collection = resource
+    end
+
+    def form
+      @form ||= Hyrax::Forms::ResourceForm.for(resource: collection).tap(&:prepopulate!)
+    end
+
+    def params
+      { attributes_key => params_hash }
+    end
+
     def collection_step_args
       {
         'change_set.set_user_as_depositor' => { user: },
@@ -60,8 +52,16 @@ module Skullrax
       }
     end
 
-    def assign_resource(resource)
-      self.collection = resource
+    def model
+      Hyrax.config.collection_class
+    end
+
+    def collection_type_gid
+      Hyrax::CollectionType.find(default_collection_type.id).to_global_id
+    end
+
+    def default_collection_type
+      Hyrax::CollectionType.find_or_create_default_collection_type
     end
   end
 end

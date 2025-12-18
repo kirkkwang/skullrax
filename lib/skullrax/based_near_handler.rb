@@ -21,10 +21,6 @@ module Skullrax
 
       private
 
-      def default_geonames_url
-        'https://sws.geonames.org/5391811/'
-      end
-
       def lookup_or_return(value)
         return value if value.start_with?('http')
 
@@ -47,10 +43,6 @@ module Skullrax
         end
       end
 
-      def username
-        ENV.fetch('GEONAMES_USERNAME', 'scientist')
-      end
-
       def extract_url(response)
         return nil unless response.is_a?(Net::HTTPSuccess)
 
@@ -60,6 +52,14 @@ module Skullrax
 
       def parse_geoname_id(body)
         JSON.parse(body).dig('geonames', 0, 'geonameId')
+      end
+
+      def default_geonames_url
+        'https://sws.geonames.org/5391811/'
+      end
+
+      def username
+        ENV.fetch('GEONAMES_USERNAME', 'scientist')
       end
     end
   end

@@ -49,19 +49,25 @@ module Skullrax
       ["Test #{property}"]
     end
 
+    def add_custom_attributes(hash)
+      kwargs.each do |key, value|
+        validate_existence(key, value) if relationship_key?(key)
+        hash[key] = process_attribute(key, value)
+      end
+    end
+
+    def process_attribute(key, value)
+      return based_near_handler.process(value) if based_near_handler.handles?(key.to_s)
+
+      Array.wrap(value)
+    end
+
     def controlled_property?(property)
       ControlledVocabularyHandler.controlled_properties.include?(property)
     end
 
     def controlled_vocabulary_for(property)
       ControlledVocabularyHandler.new(property, kwargs[property.to_sym]).validate
-    end
-
-    def add_custom_attributes(hash)
-      kwargs.each do |key, value|
-        validate_existence(key, value) if relationship_key?(key)
-        hash[key] = process_attribute(key, value)
-      end
     end
 
     def relationship_key?(key)
@@ -78,12 +84,6 @@ module Skullrax
 
     def error_klass_for(key)
       key == :member_of_collection_ids ? Skullrax::CollectionNotFoundError : Skullrax::WorkNotFoundError
-    end
-
-    def process_attribute(key, value)
-      return based_near_handler.process(value) if based_near_handler.handles?(key.to_s)
-
-      Array.wrap(value)
     end
 
     def based_near_handler
