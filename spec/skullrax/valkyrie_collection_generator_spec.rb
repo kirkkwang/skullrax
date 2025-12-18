@@ -100,11 +100,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         .to(receive(:required_properties)
               .and_return(generator.parameter_builder.required_properties + ['license']))
 
-      expect do
-        generator.create
-      end.to raise_error(
-        ArgumentError, /'Invalid License Term' is not an active term in the controlled vocabulary for 'license'/
-      )
+      expect { generator.create }.to raise_error(Skullrax::InvalidControlledVocabularyTerm)
     end
 
     it 'fills in required controlled vocabularies if they are not provided' do
@@ -203,6 +199,29 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
 
       expect(result).to be_success
       expect(generator.collection.based_near).to eq ['https://sws.geonames.org/5391811/']
+    end
+  end
+
+  context 'with relationships' do
+    context 'when adding to a collection' do
+      it 'can add a collection as a member of another collection' do
+        parent_generator = described_class.new(title: ['Parent Collection'])
+        parent_result = parent_generator.create
+        expect(parent_result).to be_success
+
+        child_generator = described_class.new(member_of_collection_ids: [parent_generator.collection.id])
+        child_result = child_generator.create
+        expect(child_result).to be_success
+
+        expect(child_generator.collection.member_of_collection_ids)
+          .to include(parent_generator.collection.id)
+      end
+
+      it 'raises an error if the collection does not exist' do
+        generator = described_class.new(member_of_collection_ids: ['nonexistent-collection-id'])
+
+        expect { generator.create }.to raise_error(Skullrax::CollectionNotFoundError)
+      end
     end
   end
 end

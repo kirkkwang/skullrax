@@ -143,11 +143,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         .to(receive(:required_properties)
               .and_return(generator.parameter_builder.required_properties + ['license']))
 
-      expect do
-        generator.create
-      end.to raise_error(
-        ArgumentError, /'Invalid License Term' is not an active term in the controlled vocabulary for 'license'/
-      )
+      expect { generator.create }.to raise_error(Skullrax::InvalidControlledVocabularyTerm)
     end
 
     it 'fills in required controlled vocabularies if they are not provided' do
@@ -365,6 +361,52 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
 
       expect(result).to be_success
       expect(generator.work.based_near).to eq ['https://sws.geonames.org/5391811/']
+    end
+  end
+
+  context 'with relationships' do
+    context 'when adding to a collection' do
+      it 'can add the work to the specified collection(s)' do
+        col_generator1 = Skullrax::ValkyrieCollectionGenerator.new
+        col_generator1.create
+        col_id1 = col_generator1.collection.id
+        col_generator2 = Skullrax::ValkyrieCollectionGenerator.new
+        col_generator2.create
+        col_id2 = col_generator2.collection.id
+        generator = described_class.new(member_of_collection_ids: [col_id1, col_id2])
+
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.work.member_of_collection_ids).to include col_id1
+        expect(generator.work.member_of_collection_ids).to include col_id2
+      end
+
+      it 'will raise an error if the collection does not exist' do
+        generator = described_class.new(member_of_collection_ids: 'nonexistent-collection-id')
+
+        expect { generator.create }.to raise_error(Skullrax::CollectionNotFoundError)
+      end
+    end
+
+    context 'when adding a child work' do
+      it 'can add the child work to the parent work' do
+        child_generator = described_class.new
+        child_generator.create
+        child_work_id = child_generator.work.id
+        parent_generator = described_class.new(member_ids: [child_work_id])
+
+        result = parent_generator.create
+
+        expect(result).to be_success
+        expect(parent_generator.work.member_ids).to include child_work_id
+      end
+
+      it 'will raise an error if the parent work does not exist' do
+        generator = described_class.new(member_ids: 'nonexistent-parent-work-id')
+
+        expect { generator.create }.to raise_error(Skullrax::WorkNotFoundError)
+      end
     end
   end
 end

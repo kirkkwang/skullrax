@@ -58,7 +58,26 @@ module Skullrax
     end
 
     def add_custom_attributes(hash)
-      kwargs.each { |key, value| hash[key] = process_attribute(key, value) }
+      kwargs.each do |key, value|
+        validate_existence(key, value) if relationship_key?(key)
+        hash[key] = process_attribute(key, value)
+      end
+    end
+
+    def relationship_key?(key)
+      %i[member_of_collection_ids member_ids].include?(key)
+    end
+
+    def validate_existence(key, ids)
+      Array.wrap(ids).each do |id|
+        Hyrax.query_service.find_by(id:)
+      rescue Valkyrie::Persistence::ObjectNotFoundError
+        raise error_klass_for(key), "#{id} not found.  Create it first or use a valid ID."
+      end
+    end
+
+    def error_klass_for(key)
+      key == :member_of_collection_ids ? Skullrax::CollectionNotFoundError : Skullrax::WorkNotFoundError
     end
 
     def process_attribute(key, value)

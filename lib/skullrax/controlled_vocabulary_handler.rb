@@ -43,7 +43,7 @@ module Skullrax
       term = authority.find(value)
       return [term[:id]] if active_term?(term)
 
-      raise ArgumentError, error_message(value)
+      raise Skullrax::InvalidControlledVocabularyTerm, error_message(value)
     end
 
     def active_term?(term)

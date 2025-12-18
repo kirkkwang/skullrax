@@ -15,6 +15,9 @@ require_relative 'skullrax/valkyrie_collection_generator'
 
 module Skullrax
   class Error < StandardError; end
+  class InvalidControlledVocabularyTerm < Error; end
+  class CollectionNotFoundError < Error; end
+  class WorkNotFoundError < Error; end
 
   def self.root
     @root ||= Pathname.new(File.expand_path('..', __dir__))
