@@ -256,6 +256,33 @@ When `autofill: true` is enabled, Skullrax will populate all properties that hav
 - Exploring all available fields on a work type
 - Generating sample data for development
 
+### Relationships
+
+Add works to collections or add works to collections:
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  member_of_collection_ids: ['collection-123']
+).create
+```
+
+The collection must exist before adding works to it. If the collection is not found, a `Skullrax::CollectionNotFoundError` will be raised.
+
+You can also add collections as members of other collections:
+```ruby
+Skullrax::ValkyrieCollectionGenerator.new(
+  member_of_collection_ids: ['parent-collection-123']
+).create
+```
+
+Adding a work as a child work:
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  member_ids: ['child-work-123']
+).create
+```
+
+The works must exist before adding them to a collection. If any work is not found, a `Skullrax::WorkNotFoundError` will be raised.
+
 ## Collection Creation
 
 Skullrax can also create collections with the same ease and flexibility as works.
