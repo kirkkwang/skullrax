@@ -4,6 +4,8 @@ module Skullrax
   class ParameterBuilder
     attr_reader :model, :autofill, :except, :kwargs
 
+    include Skullrax::ObjectNotFound
+
     def initialize(model:, autofill: false, except: [], **kwargs)
       @model = model
       @autofill = autofill
@@ -77,7 +79,7 @@ module Skullrax
     def validate_existence(key, ids)
       Array.wrap(ids).each do |id|
         Hyrax.query_service.find_by(id:)
-      rescue Valkyrie::Persistence::ObjectNotFoundError
+      rescue *object_not_found_errors
         raise error_klass_for(key), "#{id} not found.  Create it first or use a valid ID."
       end
     end

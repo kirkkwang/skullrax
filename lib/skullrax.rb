@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'skullrax/version'
+require_relative 'skullrax/object_not_found'
 require_relative 'skullrax/error_formatter'
 require_relative 'skullrax/visibility_handler'
 require_relative 'skullrax/based_near_handler'
@@ -18,6 +19,7 @@ module Skullrax
   class InvalidControlledVocabularyTerm < Error; end
   class CollectionNotFoundError < Error; end
   class WorkNotFoundError < Error; end
+  class IdAlreadyExistsError < Error; end
 
   def self.root
     @root ||= Pathname.new(File.expand_path('..', __dir__))

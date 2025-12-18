@@ -2,7 +2,6 @@
 
 module Skullrax
   class ValkyrieWorkGenerator
-    attr_writer :resource
     attr_reader :model
 
     include Skullrax::GeneratorConcern
@@ -14,17 +13,14 @@ module Skullrax
       @autofill = autofill
       @except = Array.wrap(except).map(&:to_s)
       @kwargs = kwargs
+      @id = kwargs.delete(:id)
       @resource = nil
       @errors = []
     end
 
-    def create
-      validate_form
-      perform_action
-    end
-
     def resource
       @resource ||= model.new.tap do |w|
+        w.id = id if id.present?
         w.depositor = user.email
         w.admin_set_id = admin_set_id
       end

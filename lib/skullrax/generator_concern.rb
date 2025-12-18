@@ -3,15 +3,35 @@
 module Skullrax
   module GeneratorConcern
     attr_accessor :errors
-    attr_reader :autofill, :except, :kwargs
+    attr_reader :autofill, :except, :id, :kwargs
+    attr_writer :resource
 
     delegate :required_properties, :settable_properties, to: :parameter_builder
+
+    include Skullrax::ObjectNotFound
 
     def parameter_builder
       @parameter_builder ||= ParameterBuilder.new(model:, autofill:, except:, **kwargs)
     end
 
+    def create
+      check_id
+      validate_form
+      perform_action
+    end
+
     private
+
+    def check_id
+      return unless id.present?
+
+      begin
+        Hyrax.query_service.find_by(id:)
+        raise Skullrax::IdAlreadyExistsError, "ID '#{id}' is already in use. Update not yet implemented."
+      rescue *object_not_found_errors
+        true
+      end
+    end
 
     def assign_resource(resource)
       self.resource = resource

@@ -224,4 +224,28 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       end
     end
   end
+
+  context 'when user passes in an id' do
+    context 'when the id already exists' do
+      it 'raises an IdAlreadyExistsError' do
+        existing_generator = described_class.new
+        existing_generator.create
+        existing_id = existing_generator.resource.id
+        generator = described_class.new(id: existing_id)
+
+        expect { generator.create }.to raise_error(Skullrax::IdAlreadyExistsError)
+      end
+    end
+
+    context 'when the id does not exist' do
+      it 'uses the provided id for the collection' do
+        generator = described_class.new(id: 'custom-collection-id-123')
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.resource.id.to_s).to eq 'custom-collection-id-123'
+        expect(SolrDocument.find('custom-collection-id-123')).to be_present
+      end
+    end
+  end
 end

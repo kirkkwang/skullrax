@@ -2,21 +2,21 @@
 
 module Skullrax
   class ValkyrieCollectionGenerator
-    attr_accessor :resource
-
     include Skullrax::GeneratorConcern
 
     def initialize(autofill: false, except: [], **kwargs)
       @autofill = autofill
       @except = Array.wrap(except).map(&:to_s)
-      @resource = model.new(collection_type_gid:)
+      @resource = nil
       @kwargs = kwargs
+      @id = kwargs.delete(:id)
       @errors = []
     end
 
-    def create
-      validate_form
-      perform_action
+    def resource
+      @resource ||= model.new(collection_type_gid:).tap do |c|
+        c.id = id if id.present?
+      end
     end
 
     private
