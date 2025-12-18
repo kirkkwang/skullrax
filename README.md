@@ -305,6 +305,32 @@ Skullrax::ValkyrieCollectionGenerator.new(
 ).create
 ```
 
+### Custom IDs
+
+Specify custom IDs for works and collections instead of auto-generated ones:
+
+#### Custom Work ID
+```ruby
+Skullrax::ValkyrieWorkGenerator.new(
+  id: 'custom-work-id-123',
+).create
+```
+
+#### Custom Collection ID
+```ruby
+Skullrax::ValkyrieCollectionGenerator.new(
+  id: 'custom-collection-id-456',
+).create
+```
+
+**Important:** The ID must be unique. If an object with that ID already exists, a `Skullrax::IdAlreadyExistsError` will be raised.
+
+**Use cases for custom IDs:**
+- Maintaining consistent IDs across environments
+- Migrating content from another system
+- Creating predictable URLs for testing
+- Integrating with external systems that reference specific IDs
+
 ### Auto-fill with Exclusions
 
 Use `autofill: true` to populate all settable properties, with optional exclusions:
