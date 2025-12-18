@@ -13,6 +13,10 @@ module Skullrax
 
     private
 
+    def assign_resource(resource)
+      self.resource = resource
+    end
+
     def validate_form
       form.validate(params[attributes_key])
     end

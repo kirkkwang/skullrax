@@ -231,7 +231,7 @@ result = generator.create
 
 # Check if creation was successful
 if result.success?
-  puts "Work created: #{generator.work.id}"
+  puts "Work created: #{generator.resource.id}"
 else
   puts "Errors: #{generator.errors}"
 end

@@ -10,15 +10,15 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
     result = generator.create
 
     expect(result).to be_success
-    expect(generator.work.class).to eq Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
+    expect(generator.resource.class).to eq Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
   end
 
   it 'fills in required properties with "Test <property>"' do
     generator = described_class.new
     generator.create
 
-    expect(generator.work.title).to eq ['Test title']
-    expect(generator.work.creator).to eq ['Test creator']
+    expect(generator.resource.title).to eq ['Test title']
+    expect(generator.resource.creator).to eq ['Test creator']
   end
 
   it 'returns a failure if there are errors' do
@@ -29,7 +29,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
     result = generator.create
 
     expect(result).to be_failure
-    expect(generator.work.id).to be_nil
+    expect(generator.resource.id).to be_nil
     expect(generator.errors).not_to be_empty
   end
 
@@ -39,7 +39,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work).to be_a Monograph
+      expect(generator.resource).to be_a Monograph
     end
 
     it 'sets properties from kwargs' do
@@ -49,9 +49,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work).to be_a Monograph
-      expect(generator.work.title).to eq ['Custom Title']
-      expect(generator.work.creator).to eq ['Custom Creator']
+      expect(generator.resource).to be_a Monograph
+      expect(generator.resource.title).to eq ['Custom Title']
+      expect(generator.resource.creator).to eq ['Custom Creator']
     end
 
     it 'ignores unknown properties' do
@@ -59,9 +59,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work).to be_a Monograph
-      expect(generator.work.respond_to?(:unknown_property)).to be false
-      expect(generator.work.respond_to?(:another_one)).to be false
+      expect(generator.resource).to be_a Monograph
+      expect(generator.resource.respond_to?(:unknown_property)).to be false
+      expect(generator.resource.respond_to?(:another_one)).to be false
     end
 
     context 'when visibility is provided' do
@@ -70,7 +70,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.visibility).to eq 'open'
+        expect(generator.resource.visibility).to eq 'open'
       end
 
       it 'can set restricted' do
@@ -78,7 +78,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.visibility).to eq 'restricted'
+        expect(generator.resource.visibility).to eq 'restricted'
       end
 
       it 'can set authenticated' do
@@ -86,7 +86,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.visibility).to eq 'authenticated'
+        expect(generator.resource.visibility).to eq 'authenticated'
       end
 
       it 'can set embargo' do
@@ -100,10 +100,10 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.visibility).to eq 'restricted'
-        expect(generator.work.embargo.embargo_release_date).to eq future_date
-        expect(generator.work.embargo.visibility_during_embargo).to eq 'restricted'
-        expect(generator.work.embargo.visibility_after_embargo).to eq 'open'
+        expect(generator.resource.visibility).to eq 'restricted'
+        expect(generator.resource.embargo.embargo_release_date).to eq future_date
+        expect(generator.resource.embargo.visibility_during_embargo).to eq 'restricted'
+        expect(generator.resource.embargo.visibility_after_embargo).to eq 'open'
       end
 
       it 'can set lease' do
@@ -117,9 +117,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.visibility).to eq 'open'
-        expect(generator.work.lease.lease_expiration_date).to eq future_date
-        expect(generator.work.lease.visibility_after_lease).to eq 'authenticated'
+        expect(generator.resource.visibility).to eq 'open'
+        expect(generator.resource.lease.lease_expiration_date).to eq future_date
+        expect(generator.resource.lease.visibility_after_lease).to eq 'authenticated'
       end
     end
   end
@@ -134,7 +134,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work.license).to eq ['https://creativecommons.org/licenses/by-nc/4.0/']
+      expect(generator.resource.license).to eq ['https://creativecommons.org/licenses/by-nc/4.0/']
     end
 
     it 'raises an error for invalid controlled vocabulary terms' do
@@ -163,9 +163,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(active_license_terms).to include(generator.work.license.first)
-      expect(active_rights_terms).to include(generator.work.rights_statement.first)
-      expect(active_resource_types).to include(generator.work.resource_type.first)
+      expect(active_license_terms).to include(generator.resource.license.first)
+      expect(active_rights_terms).to include(generator.resource.rights_statement.first)
+      expect(active_resource_types).to include(generator.resource.resource_type.first)
     end
 
     context 'when the authority uses singular property names' do
@@ -185,7 +185,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(active_resource_types).to include(generator.work.resource_type.first)
+        expect(active_resource_types).to include(generator.resource.resource_type.first)
       end
     end
   end
@@ -200,7 +200,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work.member_ids.length).to eq 2
+      expect(generator.resource.member_ids.length).to eq 2
     end
 
     it 'can be called with a single file' do
@@ -208,7 +208,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work.member_ids.length).to eq 1
+      expect(generator.resource.member_ids.length).to eq 1
     end
 
     it 'downloads and uploads remote files from URLs' do
@@ -223,7 +223,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work.member_ids.length).to eq 1
+      expect(generator.resource.member_ids.length).to eq 1
     end
 
     it 'handles mixed local and remote files' do
@@ -234,7 +234,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work.member_ids.length).to eq 2
+      expect(generator.resource.member_ids.length).to eq 2
     end
 
     context 'with file set metadata' do
@@ -249,9 +249,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.member_ids.length).to eq 2
+        expect(generator.resource.member_ids.length).to eq 2
 
-        file_sets = generator.work.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
+        file_sets = generator.resource.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
         expect(file_sets.first.title).to eq ['Some Image']
         expect(file_sets.first.keyword).to eq ['example']
         expect(file_sets.last.title).to eq ['Some Text File']
@@ -266,9 +266,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.member_ids.length).to eq 2
+        expect(generator.resource.member_ids.length).to eq 2
 
-        file_sets = generator.work.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
+        file_sets = generator.resource.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
         expect(file_sets.first.title).to eq ['Some Image']
         expect(file_sets.last.title).to be_empty
       end
@@ -284,9 +284,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.member_ids.length).to eq 1
+        expect(generator.resource.member_ids.length).to eq 1
 
-        file_set = Hyrax.query_service.find_by(id: generator.work.member_ids.first)
+        file_set = Hyrax.query_service.find_by(id: generator.resource.member_ids.first)
         expect(file_set.title).to eq ['Some Image']
       end
 
@@ -300,9 +300,9 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.member_ids.length).to eq 1
+        expect(generator.resource.member_ids.length).to eq 1
 
-        file_set = Hyrax.query_service.find_by(id: generator.work.member_ids.first)
+        file_set = Hyrax.query_service.find_by(id: generator.resource.member_ids.first)
         expect(file_set.title).to eq ['Some Image']
         expect(file_set.respond_to?(:unknown_property)).to be false
       end
@@ -315,10 +315,10 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work.title).to eq ['Test title']
-      expect(generator.work.creator).to eq ['Test creator']
-      expect(generator.work.description).to eq ['Test description']
-      expect(generator.work.based_near).to eq ['https://sws.geonames.org/5391811/']
+      expect(generator.resource.title).to eq ['Test title']
+      expect(generator.resource.creator).to eq ['Test creator']
+      expect(generator.resource.description).to eq ['Test description']
+      expect(generator.resource.based_near).to eq ['https://sws.geonames.org/5391811/']
     end
 
     context 'and except option' do
@@ -327,10 +327,10 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.title).to eq ['Test title']
-        expect(generator.work.creator).to eq ['Test creator']
-        expect(generator.work.description).to be_empty
-        expect(generator.work.based_near).to be_empty
+        expect(generator.resource.title).to eq ['Test title']
+        expect(generator.resource.creator).to eq ['Test creator']
+        expect(generator.resource.description).to be_empty
+        expect(generator.resource.based_near).to be_empty
       end
     end
   end
@@ -360,7 +360,7 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.work.based_near).to eq ['https://sws.geonames.org/5391811/']
+      expect(generator.resource.based_near).to eq ['https://sws.geonames.org/5391811/']
     end
   end
 
@@ -369,17 +369,17 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       it 'can add the work to the specified collection(s)' do
         col_generator1 = Skullrax::ValkyrieCollectionGenerator.new
         col_generator1.create
-        col_id1 = col_generator1.collection.id
+        col_id1 = col_generator1.resource.id
         col_generator2 = Skullrax::ValkyrieCollectionGenerator.new
         col_generator2.create
-        col_id2 = col_generator2.collection.id
+        col_id2 = col_generator2.resource.id
         generator = described_class.new(member_of_collection_ids: [col_id1, col_id2])
 
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.work.member_of_collection_ids).to include col_id1
-        expect(generator.work.member_of_collection_ids).to include col_id2
+        expect(generator.resource.member_of_collection_ids).to include col_id1
+        expect(generator.resource.member_of_collection_ids).to include col_id2
       end
 
       it 'will raise an error if the collection does not exist' do
@@ -393,13 +393,13 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       it 'can add the child work to the parent work' do
         child_generator = described_class.new
         child_generator.create
-        child_work_id = child_generator.work.id
+        child_work_id = child_generator.resource.id
         parent_generator = described_class.new(member_ids: [child_work_id])
 
         result = parent_generator.create
 
         expect(result).to be_success
-        expect(parent_generator.work.member_ids).to include child_work_id
+        expect(parent_generator.resource.member_ids).to include child_work_id
       end
 
       it 'will raise an error if the parent work does not exist' do

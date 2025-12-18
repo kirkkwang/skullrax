@@ -2,14 +2,14 @@
 
 module Skullrax
   class ValkyrieCollectionGenerator
-    attr_accessor :collection
+    attr_accessor :resource
 
     include Skullrax::GeneratorConcern
 
     def initialize(autofill: false, except: [], **kwargs)
       @autofill = autofill
       @except = Array.wrap(except).map(&:to_s)
-      @collection = model.new(collection_type_gid:)
+      @resource = model.new(collection_type_gid:)
       @kwargs = kwargs
       @errors = []
     end
@@ -32,12 +32,8 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
-    def assign_resource(resource)
-      self.collection = resource
-    end
-
     def form
-      @form ||= Hyrax::Forms::ResourceForm.for(resource: collection).tap(&:prepopulate!)
+      @form ||= Hyrax::Forms::ResourceForm.for(resource:).tap(&:prepopulate!)
     end
 
     def params

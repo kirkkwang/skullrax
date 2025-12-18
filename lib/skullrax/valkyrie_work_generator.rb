@@ -2,7 +2,7 @@
 
 module Skullrax
   class ValkyrieWorkGenerator
-    attr_writer :work
+    attr_writer :resource
     attr_reader :model
 
     include Skullrax::GeneratorConcern
@@ -14,7 +14,7 @@ module Skullrax
       @autofill = autofill
       @except = Array.wrap(except).map(&:to_s)
       @kwargs = kwargs
-      @work = nil
+      @resource = nil
       @errors = []
     end
 
@@ -23,8 +23,8 @@ module Skullrax
       perform_action
     end
 
-    def work
-      @work ||= model.new.tap do |w|
+    def resource
+      @resource ||= model.new.tap do |w|
         w.depositor = user.email
         w.admin_set_id = admin_set_id
       end
@@ -38,10 +38,6 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
-    def assign_resource(resource)
-      self.work = resource
-    end
-
     def action
       @action ||=
         Hyrax::Action::CreateValkyrieWork.new(form:, transactions:, user:, params:, work_attributes_key: attributes_key)
@@ -52,11 +48,11 @@ module Skullrax
     end
 
     def form
-      @form ||= form_class.new(resource: work)
+      @form ||= form_class.new(resource:)
     end
 
     def form_class
-      Hyrax::WorkFormService.form_class(work)
+      Hyrax::WorkFormService.form_class(resource)
     end
 
     def params

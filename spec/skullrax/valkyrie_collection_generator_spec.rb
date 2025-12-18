@@ -10,15 +10,15 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
     result = generator.create
 
     expect(result).to be_success
-    expect(generator.collection.class).to eq Hyrax.config.collection_class
+    expect(generator.resource.class).to eq Hyrax.config.collection_class
   end
 
   it 'fills in required properties with "Test <property>"' do
     generator = described_class.new
     generator.create
 
-    expect(generator.collection.title).to eq ['Test title']
-    expect(generator.collection.creator).to eq ['Test creator']
+    expect(generator.resource.title).to eq ['Test title']
+    expect(generator.resource.creator).to eq ['Test creator']
   end
 
   it 'returns a failure if there are errors' do
@@ -29,7 +29,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
     result = generator.create
 
     expect(result).to be_failure
-    expect(generator.collection.id).to be_nil
+    expect(generator.resource.id).to be_nil
     expect(generator.errors).not_to be_empty
   end
 
@@ -40,8 +40,8 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.collection.title).to eq ['Custom Title']
-      expect(generator.collection.creator).to eq ['Custom Creator']
+      expect(generator.resource.title).to eq ['Custom Title']
+      expect(generator.resource.creator).to eq ['Custom Creator']
     end
 
     it 'ignores unknown properties' do
@@ -49,9 +49,9 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.collection).to be_a Hyrax.config.collection_class
-      expect(generator.collection.respond_to?(:unknown_property)).to be false
-      expect(generator.collection.respond_to?(:another_one)).to be false
+      expect(generator.resource).to be_a Hyrax.config.collection_class
+      expect(generator.resource.respond_to?(:unknown_property)).to be false
+      expect(generator.resource.respond_to?(:another_one)).to be false
     end
 
     context 'when visibility is provided' do
@@ -60,7 +60,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.collection.visibility).to eq 'open'
+        expect(generator.resource.visibility).to eq 'open'
       end
 
       it 'can set restricted' do
@@ -68,7 +68,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.collection.visibility).to eq 'restricted'
+        expect(generator.resource.visibility).to eq 'restricted'
       end
 
       it 'can set authenticated' do
@@ -76,7 +76,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.collection.visibility).to eq 'authenticated'
+        expect(generator.resource.visibility).to eq 'authenticated'
       end
     end
   end
@@ -91,7 +91,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.collection.license).to eq ['https://creativecommons.org/licenses/by-nc/4.0/']
+      expect(generator.resource.license).to eq ['https://creativecommons.org/licenses/by-nc/4.0/']
     end
 
     it 'raises an error for invalid controlled vocabulary terms' do
@@ -120,9 +120,9 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(active_license_terms).to include(generator.collection.license.first)
-      expect(active_rights_terms).to include(generator.collection.rights_statement.first)
-      expect(active_resource_types).to include(generator.collection.resource_type.first)
+      expect(active_license_terms).to include(generator.resource.license.first)
+      expect(active_rights_terms).to include(generator.resource.rights_statement.first)
+      expect(active_resource_types).to include(generator.resource.resource_type.first)
     end
 
     context 'when the authority uses singular property names' do
@@ -142,7 +142,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(active_resource_types).to include(generator.collection.resource_type.first)
+        expect(active_resource_types).to include(generator.resource.resource_type.first)
       end
     end
   end
@@ -153,10 +153,10 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.collection.title).to eq ['Test title']
-      expect(generator.collection.creator).to eq ['Test creator']
-      expect(generator.collection.description).to eq ['Test description']
-      expect(generator.collection.based_near).to eq ['https://sws.geonames.org/5391811/']
+      expect(generator.resource.title).to eq ['Test title']
+      expect(generator.resource.creator).to eq ['Test creator']
+      expect(generator.resource.description).to eq ['Test description']
+      expect(generator.resource.based_near).to eq ['https://sws.geonames.org/5391811/']
     end
 
     context 'and except option' do
@@ -165,10 +165,10 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         result = generator.create
 
         expect(result).to be_success
-        expect(generator.collection.title).to eq ['Test title']
-        expect(generator.collection.creator).to eq ['Test creator']
-        expect(generator.collection.description).to be_empty
-        expect(generator.collection.based_near).to be_empty
+        expect(generator.resource.title).to eq ['Test title']
+        expect(generator.resource.creator).to eq ['Test creator']
+        expect(generator.resource.description).to be_empty
+        expect(generator.resource.based_near).to be_empty
       end
     end
   end
@@ -198,7 +198,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       result = generator.create
 
       expect(result).to be_success
-      expect(generator.collection.based_near).to eq ['https://sws.geonames.org/5391811/']
+      expect(generator.resource.based_near).to eq ['https://sws.geonames.org/5391811/']
     end
   end
 
@@ -209,12 +209,12 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         parent_result = parent_generator.create
         expect(parent_result).to be_success
 
-        child_generator = described_class.new(member_of_collection_ids: [parent_generator.collection.id])
+        child_generator = described_class.new(member_of_collection_ids: [parent_generator.resource.id])
         child_result = child_generator.create
         expect(child_result).to be_success
 
-        expect(child_generator.collection.member_of_collection_ids)
-          .to include(parent_generator.collection.id)
+        expect(child_generator.resource.member_of_collection_ids)
+          .to include(parent_generator.resource.id)
       end
 
       it 'raises an error if the collection does not exist' do
