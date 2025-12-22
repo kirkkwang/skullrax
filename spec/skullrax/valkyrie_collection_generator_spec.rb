@@ -175,17 +175,15 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
 
   context 'with based_near property' do
     it 'looks up place names via Geonames' do
-      url = 'http://api.geonames.org/searchJSON?q=san+diego&username=scientist&maxRows=1'
-      stub_request(:get, url)
+      stub_request(:get, 'http://www.geonames.org/getJSON?geonameId=5391811&username=')
         .with(
           headers: {
-            'Accept' => '*/*',
+            'Accept' => 'application/json',
             'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Host' => 'api.geonames.org',
-            'User-Agent' => 'Ruby'
+            'User-Agent' => 'Faraday v2.14.0'
           }
         )
-        .to_return(status: 200, body: '', headers: {})
+        .to_return(status: 200, body: {}.to_json, headers: {})
 
       generator = described_class.new(based_near: ['san diego'])
       response = Net::HTTPSuccess.new('1.1', '200', 'OK')
