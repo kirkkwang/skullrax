@@ -21,11 +21,11 @@ module Skullrax
     end
 
     def required_properties
-      model.schema.filter_map { |key| key.name.to_s if key.meta.dig('form', 'required') }
+      schema.filter_map { |schema_key| schema_key.name.to_s if schema_key.meta.dig('form', 'required') }
     end
 
     def settable_properties
-      model.schema.keys.filter_map { |key| key.name.to_s if key.meta['form'].present? }
+      schema.filter_map { |schema_key| schema_key.name.to_s if schema_key.meta['form'].present? }
     end
 
     private
@@ -90,6 +90,18 @@ module Skullrax
 
     def based_near_handler
       BasedNearHandler
+    end
+
+    def schema
+      flexible_schema || simple_schema
+    end
+
+    def flexible_schema
+      model.new.singleton_class&.schema
+    end
+
+    def simple_schema
+      model.schema
     end
   end
 end
