@@ -7,7 +7,7 @@ module Skullrax
     include Skullrax::GeneratorConcern
 
     def initialize(model: nil, file_paths: [], file_set_params: [], autofill: false, except: [], **kwargs) # rubocop:disable Metrics/ParameterLists
-      @model = model || default_model
+      @model = model.to_s.safe_constantize || default_model
       @file_paths = file_paths
       @file_set_params = file_set_params
       @autofill = autofill

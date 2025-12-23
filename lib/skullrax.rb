@@ -13,6 +13,11 @@ require_relative 'skullrax/work_transaction_executor'
 require_relative 'skullrax/generator_concern'
 require_relative 'skullrax/valkyrie_work_generator'
 require_relative 'skullrax/valkyrie_collection_generator'
+require_relative 'skullrax/csv_importer'
+require_relative 'skullrax/csv_parser'
+require_relative 'skullrax/row_processor'
+require_relative 'skullrax/file_set_collector'
+require_relative 'skullrax/work_row_preparer'
 
 module Skullrax
   class Error < StandardError; end
@@ -20,6 +25,7 @@ module Skullrax
   class CollectionNotFoundError < Error; end
   class WorkNotFoundError < Error; end
   class IdAlreadyExistsError < Error; end
+  class ArgumentError < Error; end
 
   def self.root
     @root ||= Pathname.new(File.expand_path('..', __dir__))
