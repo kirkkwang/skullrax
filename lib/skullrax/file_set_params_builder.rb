@@ -28,7 +28,7 @@ module Skullrax
     private
 
     def file_uploader
-      @file_uploader ||= FileUploader.new(file_paths, user)
+      @file_uploader ||= Skullrax::FileAttachmentHandler.new(file_paths, user)
     end
   end
 end

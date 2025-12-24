@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class FileUploader
+  class FileAttachmentHandler
     attr_reader :file_paths, :user
 
     def initialize(file_paths, user)

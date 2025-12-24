@@ -67,11 +67,11 @@ module Skullrax
     end
 
     def controlled_property?(property)
-      ControlledVocabularyHandler.controlled_properties.include?(property)
+      Skullrax::ControlledVocabularyHandler.controlled_properties.include?(property)
     end
 
     def controlled_vocabulary_for(property)
-      ControlledVocabularyHandler.new(property, kwargs[property.to_sym]).validate
+      Skullrax::ControlledVocabularyHandler.new(property, kwargs[property.to_sym]).validate
     end
 
     def relationship_key?(key)
@@ -91,7 +91,7 @@ module Skullrax
     end
 
     def based_near_handler
-      BasedNearHandler
+      Skullrax::BasedNearHandler
     end
   end
 end

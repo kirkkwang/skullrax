@@ -1,24 +1,29 @@
 # frozen_string_literal: true
 
 require_relative 'skullrax/version'
-require_relative 'skullrax/object_not_found'
+
+require_relative 'skullrax/concerns/object_not_found'
+require_relative 'skullrax/concerns/schema_property_filter_concern'
+require_relative 'skullrax/concerns/generator_concern'
+
+require_relative 'skullrax/handlers/visibility_handler'
+require_relative 'skullrax/handlers/based_near_handler'
+require_relative 'skullrax/handlers/controlled_vocabulary_handler'
+require_relative 'skullrax/handlers/file_attachment_handler'
+
 require_relative 'skullrax/error_formatter'
-require_relative 'skullrax/visibility_handler'
-require_relative 'skullrax/based_near_handler'
-require_relative 'skullrax/controlled_vocabulary_handler'
-require_relative 'skullrax/file_uploader'
-require_relative 'skullrax/file_set_params_builder'
-require_relative 'skullrax/schema_property_filter_concern'
 require_relative 'skullrax/parameter_builder'
+require_relative 'skullrax/file_set_params_builder'
 require_relative 'skullrax/work_transaction_executor'
-require_relative 'skullrax/generator_concern'
-require_relative 'skullrax/valkyrie_work_generator'
-require_relative 'skullrax/valkyrie_collection_generator'
-require_relative 'skullrax/csv_importer'
-require_relative 'skullrax/csv_parser'
-require_relative 'skullrax/row_processor'
-require_relative 'skullrax/file_set_collector'
-require_relative 'skullrax/work_row_preparer'
+
+require_relative 'skullrax/generators/valkyrie_work_generator'
+require_relative 'skullrax/generators/valkyrie_collection_generator'
+
+require_relative 'skullrax/importers/csv_importer'
+require_relative 'skullrax/importers/csv_parser'
+require_relative 'skullrax/importers/row_processor'
+require_relative 'skullrax/importers/file_set_collector'
+require_relative 'skullrax/importers/work_row_preparer'
 
 module Skullrax
   class Error < StandardError; end
