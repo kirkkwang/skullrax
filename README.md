@@ -37,6 +37,12 @@ Create a work with all required fields populated:
 Skullrax::ValkyrieWorkGenerator.new.create
 ```
 
+It can create a work by using the legacy Active Fedora models as well:
+```ruby
+Skullrax::ActiveFedoraWorkGenerator.new(model: GenericWork).create
+```
+This will still create a GenericWorkResource.
+
 ### Auto-fill All Settable Properties
 
 Use `autofill: true` to populate all settable properties, not just required ones:
@@ -221,6 +227,211 @@ Skullrax::ValkyrieWorkGenerator.new(
 ).create
 # Only 'title' is applied; 'invalid_field' is skipped
 ```
+
+### CSV Import
+
+Skullrax supports batch imports via CSV, allowing you to create collections, works, and file sets in a single operation.
+
+#### Basic CSV Import
+
+Import collections and works from a CSV string:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility
+  CollectionResource,Related Collection,Collection Creator,open
+  GenericWorkResource,Work in Collection,Work Creator,open
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+#### Active Fedora models
+
+You can also use Active Fedora models by specifying them in the `model` column:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility
+  Collection,Related Collection,Collection Creator,open
+  GenericWork,Work in Collection,Work Creator,open
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+#### Accessing Imported Resources
+
+After import, you can access the created resources:
+```ruby
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+
+# Access all resources
+importer.resources  # => [collection, work, ...]
+
+# Filter by type
+importer.collections  # => [collection1, collection2]
+importer.works       # => [work1, work2]
+importer.file_sets   # => [file_set1, file_set2]
+```
+
+#### Explicit Collection Relationships
+
+Control collection membership explicitly using `member_of_collection_ids`:
+```ruby
+csv = <<~CSV
+  model,id,title,creator,member_of_collection_ids,visibility
+  Collection,col-789,Related Collection,Collection Creator,,open
+  GenericWork,,Work in Collection,Work Creator,col-789,open
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+**Note:** You can set custom IDs for collections using the `id` column. Works will be added to the collection with the matching ID.
+
+#### Batched Import Structure
+
+Skullrax automatically assigns works to collections based on CSV order. Works are added to the most recently defined collection above them:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility
+  Collection,New Collection,Collection Creator,open
+  GenericWork,Work1 in New Collection,Work Creator,open
+  GenericWork,Work2 in New Collection,Work Creator,open
+  Collection,Another Collection,Another Creator,open
+  GenericWork,Work1 in Another Collection,Another Creator,open
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+This creates:
+- "New Collection" containing Work1 and Work2
+- "Another Collection" containing Work1
+
+**Important:** Standalone works (not belonging to any collection) must appear before the first collection:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility
+  GenericWork,Standalone Work1,Standalone Creator,open
+  GenericWork,Standalone Work2,Standalone Creator,open
+  Collection,New Collection,Collection Creator,open
+  GenericWork,Work1 in New Collection,Work Creator,open
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+#### File Attachments in CSV
+
+##### Simple File Attachment
+
+Add a single file to a work using the `file` column:
+```ruby
+csv = <<~CSV
+  title,creator,visibility,file
+  Work with File,Work Creator,open,/path/to/file1.jpg
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+##### Explicit File Sets
+
+Create file sets with custom metadata by including `FileSet` rows after works:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility,file
+  Collection,New Collection,Collection Creator,open,
+  GenericWork,Work1 in Collection,Work Creator,open,
+  FileSet,FileSet1 for Work1,FileSet Creator,open,/path/to/file1.jpg
+  FileSet,FileSet2 for Work1,FileSet Creator,open,/path/to/file2.jpg
+  GenericWork,Work2 in Collection,Work Creator,open,
+  FileSet,FileSet1 for Work2,FileSet Creator,open,https://example.com/file3.jpg
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+This creates:
+- "Work1 in Collection" with 2 file sets
+- "Work2 in Collection" with 1 file set
+
+File sets are automatically attached to the work immediately above them in the CSV.
+
+##### Remote Files
+
+File sets support both local paths and remote URLs:
+```ruby
+csv = <<~CSV
+  model,title,file
+  GenericWork,Work with Remote File,
+  FileSet,Remote Image,https://example.com/image.jpg
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+#### Delimited Values
+
+Split multi-value fields using semicolon (`;`) delimiter:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility,subject,keyword
+  GenericWork,Work with Multiple Values,Work Creator,open,History;Art;Science,sample;test;demo
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import
+```
+
+The `subject` field becomes `['History', 'Art', 'Science']` and `keyword` becomes `['sample', 'test', 'demo']`.
+
+##### Custom Delimiter
+
+Use a different delimiter if needed:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility,subject
+  GenericWork,Work with Subjects,Work Creator,open,History|Art|Science
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:, delimiter: '|')
+importer.import
+```
+
+**Note:** Delimiters only apply to fields that are defined as multi-value in your model's schema (fields with `form` metadata). Single-value fields like `title` are not split.
+
+#### Supported Model Types
+
+CSV import supports:
+- **Collection** - Collections (uses `Hyrax.config.collection_class`)
+- **Curation Concerns** - Any registered curation concern (e.g., `GenericWorkResource`, `Monograph`, `ImageResource` or `GenericWork`, `Image`)
+- **FileSet** - File sets with attachments
+
+#### CSV Column Reference
+
+Common columns supported:
+- `model` - Required. The resource type to create
+- `id` - Optional. Custom ID for the resource
+- `title` - Work/collection title
+- `creator` - Creator name(s)
+- `visibility` - Access level: `open`, `authenticated`, `restricted`
+- `file` - File path or URL (for simple file attachment to works)
+- `member_of_collection_ids` - Explicit collection membership
+- Plus any other property supported by your work/collection model
+
+For file sets:
+- `file` - Required. Path or URL to the file
+- Any other file set metadata fields (e.g., `title`, `creator`, `keyword`)
 
 ### Error Handling
 
