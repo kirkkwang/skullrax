@@ -4,37 +4,23 @@ require 'csv'
 
 module Skullrax
   class CsvImporter
-    attr_reader :csv, :resources, :delimiter
+    delegate :resources, :collections, :works, :file_sets, to: :processor
+
+    attr_reader :csv, :delimiter
 
     def initialize(csv:, delimiter: ';')
       @csv = csv
-      @resources = []
-      @processor = Skullrax::RowProcessor.new(resources)
       @delimiter = delimiter
     end
 
     def import
       parse_csv
-      process_rows
-
-      resources
-    end
-
-    def collections
-      resources.select(&:collection?)
-    end
-
-    def works
-      resources.select(&:work?)
-    end
-
-    def file_sets
-      resources.select(&:file_set?)
+      processor.process(rows)
     end
 
     private
 
-    attr_reader :rows, :processor
+    attr_reader :rows
 
     def parse_csv
       validate_csv_input!
@@ -49,8 +35,8 @@ module Skullrax
       Skullrax::CsvParser.new(importer: self).parse
     end
 
-    def process_rows
-      processor.process(rows)
+    def processor
+      @processor ||= Skullrax::RowProcessor.new
     end
   end
 end

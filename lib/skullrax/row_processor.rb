@@ -2,8 +2,10 @@
 
 module Skullrax
   class RowProcessor
-    def initialize(resources)
-      @resources = resources
+    attr_reader :resources
+
+    def initialize
+      @resources = []
       @current_collection = nil
       @indices_to_skip = Set.new
     end
@@ -11,11 +13,24 @@ module Skullrax
     def process(rows)
       @rows = rows
       process_each_row
+      resources
+    end
+
+    def collections
+      resources.select(&:collection?)
+    end
+
+    def works
+      resources.select(&:work?)
+    end
+
+    def file_sets
+      resources.select(&:file_set?)
     end
 
     private
 
-    attr_reader :rows, :resources, :current_collection, :indices_to_skip
+    attr_reader :rows, :current_collection, :indices_to_skip
 
     def process_each_row
       rows.each_with_index { |row, index| process_row_at_index(row, index) }
@@ -32,8 +47,8 @@ module Skullrax
     end
 
     def import_row(row, index)
-      return import_collection(row) if collection?(row)
-      return import_work_with_file_sets(row, index) if work?(row)
+      return import_collection(row) if row[:model]&.collection?
+      return import_work_with_file_sets(row, index) if row[:model]&.work?
     end
 
     def import_collection(row)
@@ -76,18 +91,6 @@ module Skullrax
 
     def work_file_sets(work)
       work.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
-    end
-
-    def collection?(row)
-      row[:model]&.collection?
-    end
-
-    def work?(row)
-      !collection?(row) && !file_set?(row)
-    end
-
-    def file_set?(row)
-      row[:model] == Hyrax::FileSet
     end
   end
 end

@@ -64,6 +64,16 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       expect(generator.resource.respond_to?(:another_one)).to be false
     end
 
+    context 'when using legacy ActiveFedora models' do
+      it 'converts it to the Valkyrized model' do
+        generator = described_class.new(model: GenericWork)
+        result = generator.create
+
+        expect(result).to be_success
+        expect(generator.resource).to be_a GenericWorkResource
+      end
+    end
+
     context 'when visibility is provided' do
       it 'can set open' do
         generator = described_class.new(visibility: 'open')

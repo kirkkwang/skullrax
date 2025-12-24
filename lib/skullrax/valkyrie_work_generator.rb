@@ -7,7 +7,7 @@ module Skullrax
     include Skullrax::GeneratorConcern
 
     def initialize(model: nil, file_paths: [], file_set_params: [], autofill: false, except: [], **kwargs) # rubocop:disable Metrics/ParameterLists
-      @model = model.to_s.safe_constantize || default_model
+      @model = normalize_model(model)
       @file_paths = file_paths
       @file_set_params = file_set_params
       @autofill = autofill
@@ -26,7 +26,16 @@ module Skullrax
       end
     end
 
+    def self.default_model
+      Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
+    end
+
     private
+
+    def normalize_model(model)
+      model = model.to_s.safe_constantize || self.class.default_model
+      Wings::ModelRegistry.reverse_lookup(model) || model
+    end
 
     def perform_action
       action.validate
@@ -62,10 +71,6 @@ module Skullrax
 
     def file_set_params_builder
       @file_set_params_builder ||= FileSetParamsBuilder.new(@file_paths, @file_set_params, user)
-    end
-
-    def default_model
-      Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
     end
 
     def admin_set_id

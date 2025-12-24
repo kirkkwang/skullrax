@@ -2,6 +2,8 @@
 
 module Skullrax
   class ParameterBuilder
+    include SchemaPropertyFilterConcern
+
     attr_reader :model, :autofill, :except, :kwargs
 
     include Skullrax::ObjectNotFound
@@ -21,11 +23,11 @@ module Skullrax
     end
 
     def required_properties
-      schema.filter_map { |schema_key| schema_key.name.to_s if schema_key.meta.dig('form', 'required') }
+      super(model).map(&:to_s)
     end
 
     def settable_properties
-      schema.filter_map { |schema_key| schema_key.name.to_s if schema_key.meta['form'].present? }
+      splittable_properties(model).map(&:to_s)
     end
 
     private
@@ -90,18 +92,6 @@ module Skullrax
 
     def based_near_handler
       BasedNearHandler
-    end
-
-    def schema
-      flexible_schema || simple_schema
-    end
-
-    def flexible_schema
-      model.new.singleton_class&.schema
-    end
-
-    def simple_schema
-      model.schema
     end
   end
 end

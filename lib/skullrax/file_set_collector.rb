@@ -21,15 +21,11 @@ module Skullrax
     end
 
     def consecutive_file_sets(starting_index)
-      rows[starting_index..].take_while { |row| file_set?(row) }
+      rows[starting_index..].take_while { |row| row[:model]&.file_set? }
     end
 
     def mark_indices(starting_index, file_set_rows)
       file_set_rows.each_index { |offset| indices_to_skip.add(starting_index + offset) }
-    end
-
-    def file_set?(row)
-      row[:model] == Hyrax::FileSet
     end
   end
 end

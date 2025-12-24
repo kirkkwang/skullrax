@@ -2,9 +2,7 @@
 
 module Skullrax
   class CsvParser
-    HEADER_MAPPINGS = {
-      'file' => 'file_paths'
-    }.freeze
+    include SchemaPropertyFilterConcern
 
     def initialize(importer:)
       @csv = importer.csv
@@ -20,16 +18,30 @@ module Skullrax
     attr_reader :csv, :delimiter
 
     def parsed_csv_rows
-      CSV.parse(csv, headers: true, header_converters: ->(header) { HEADER_MAPPINGS.fetch(header, header) })
+      CSV.parse(csv, headers: true, header_converters: ->(header) { header_mappings.fetch(header, header) })
+    end
+
+    def header_mappings
+      {
+        'file' => 'file_paths'
+      }
     end
 
     def process_row(row)
-      symbolized_hash(row).tap { |hash| constantize_model!(hash) }
+      symbolized_hash(row).tap { |hash| split_delimited_values!(hash) }
     end
 
     def symbolized_hash(row)
-      row.to_h.compact.transform_keys(&:to_sym).each_with_object({}) do |(key, value), hash|
-        hash[key] = should_split_value?(key, value) ? split_value(value) : value
+      hash = row.to_h.compact.transform_keys(&:to_sym)
+      hash[:model] = normalize_and_constantize(hash[:model])
+      hash
+    end
+
+    def split_delimited_values!(hash)
+      hash.each do |key, value|
+        next unless should_split_value?(key, value)
+
+        hash[key] = split_value(value)
       end
     end
 
@@ -42,25 +54,27 @@ module Skullrax
     end
 
     def unique_models
-      @unique_models ||= parsed_csv_rows.map { |row| row['model'] }.uniq.compact.map(&:constantize)
-    end
-
-    def splittable_properties(model)
-      model.schema.filter_map { |schema_key| schema_key.name if schema_key.meta['form'].present? }
+      @unique_models ||= parsed_csv_rows.filter_map { |row| row['model'] }
+                                        .uniq
+                                        .map { |model_string| normalize_and_constantize(model_string) }
     end
 
     def split_value(value)
       value.split(delimiter).map(&:strip)
     end
 
-    def constantize_model!(hash)
-      return unless hash[:model]
-
-      hash[:model] = model_constant(hash[:model])
+    def normalize_and_constantize(model_string)
+      normalized = model_mappings.fetch(model_string, model_string).constantize
+      model = Wings::ModelRegistry.reverse_lookup(normalized) || normalized
+      model.tap { |m| validate_model!(m) }
     end
 
-    def model_constant(model_string)
-      model_string.safe_constantize.tap { |model| validate_model!(model) }
+    def model_mappings
+      {
+        'Collection' => Hyrax.config.collection_class.to_s,
+        'FileSet' => Hyrax.config.file_set_class.to_s,
+        nil => Skullrax::ValkyrieWorkGenerator.default_model.to_s
+      }
     end
 
     def validate_model!(model)

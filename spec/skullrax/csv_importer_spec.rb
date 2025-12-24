@@ -43,7 +43,7 @@ RSpec.describe Skullrax::CsvImporter do
   it 'can import collections from a CSV' do
     csv = <<~CSV
       model,title,creator,visibility
-      CollectionResource,Collection Title,Collection Creator,open
+      Collection,Collection Title,Collection Creator,open
     CSV
 
     importer = Skullrax::CsvImporter.new(csv:)
@@ -59,7 +59,7 @@ RSpec.describe Skullrax::CsvImporter do
   it 'can set the id of imported works and collections' do
     csv = <<~CSV
       model,id,title,creator,visibility
-      CollectionResource,col-123,Collection Title,Collection Creator,open
+      Collection,col-123,Collection Title,Collection Creator,open
       GenericWorkResource,work-456,Work Title,Work Creator,open
     CSV
 
@@ -79,12 +79,24 @@ RSpec.describe Skullrax::CsvImporter do
     expect { importer.import }.to raise_error(Skullrax::ArgumentError)
   end
 
+  it 'supports unmigrated model name' do
+    csv = <<~CSV
+      model,title,creator,visibility
+      GenericWork,Work Title,Work Creator,open
+    CSV
+
+    importer = Skullrax::CsvImporter.new(csv:)
+    importer.import
+
+    expect(importer.works.first.class).to eq(GenericWorkResource)
+  end
+
   context 'with relationships' do
     it 'can create a relationship between a work and a collection' do
       csv = <<~CSV
         model,id,title,creator,member_of_collection_ids,visibility
-        CollectionResource,col-789,Related Collection,Collection Creator,,open
-        GenericWorkResource,,Work in Collection,Work Creator,col-789,open
+        Collection,col-789,Related Collection,Collection Creator,,open
+        GenericWork,,Work in Collection,Work Creator,col-789,open
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:)
@@ -98,8 +110,8 @@ RSpec.describe Skullrax::CsvImporter do
       it 'assumes the collection that the works are under is the parent collection of the works' do
         csv = <<~CSV
           model,title
-          CollectionResource,Parent Collection
-          GenericWorkResource,Child Work
+          Collection,Parent Collection
+          GenericWork,Child Work
           Monograph,Another Child Work
         CSV
 
@@ -112,9 +124,9 @@ RSpec.describe Skullrax::CsvImporter do
       it 'supports multiple collections and their works' do
         csv = <<~CSV
           model,title
-          CollectionResource,Collection One
-          GenericWorkResource,Work One
-          CollectionResource,Collection Two
+          Collection,Collection One
+          GenericWork,Work One
+          Collection,Collection Two
           Monograph,Work Two
         CSV
 
@@ -133,10 +145,10 @@ RSpec.describe Skullrax::CsvImporter do
       it 'will handle standalone works without collections' do
         csv = <<~CSV
           model,title
-          GenericWorkResource,Standalone Work
-          GenericWorkResource,Another Standalone Work
-          CollectionResource,Some Collection
-          GenericWorkResource,Work in Collection
+          GenericWork,Standalone Work
+          GenericWork,Another Standalone Work
+          Collection,Some Collection
+          GenericWork,Work in Collection
         CSV
 
         importer = Skullrax::CsvImporter.new(csv:)
@@ -152,7 +164,7 @@ RSpec.describe Skullrax::CsvImporter do
       it 'can import a file set on the work row' do
         csv = <<~CSV
           model,title,creator,visibility,file
-          GenericWorkResource,Work with FileSet,Work Creator,open,spec/fixtures/files/test_file.png
+          GenericWork,Work with FileSet,Work Creator,open,spec/fixtures/files/test_file.png
         CSV
 
         importer = Skullrax::CsvImporter.new(csv:)
@@ -165,10 +177,10 @@ RSpec.describe Skullrax::CsvImporter do
       it 'can import file sets on separate rows under its works' do
         csv = <<~CSV
           model,title,creator,visibility,file
-          GenericWorkResource,Work with FileSet,Work Creator,open
-          Hyrax::FileSet,FileSet Title,FileSet Creator,open,spec/fixtures/files/test_file.png
-          GenericWorkResource,Another Work,Another Creator,open
-          Hyrax::FileSet,Another FileSet,Another FileSet Creator,open,spec/fixtures/files/test_file.txt
+          GenericWork,Work with FileSet,Work Creator,open
+          FileSet,FileSet Title,FileSet Creator,open,spec/fixtures/files/test_file.png
+          GenericWork,Another Work,Another Creator,open
+          FileSet,Another FileSet,Another FileSet Creator,open,spec/fixtures/files/test_file.txt
         CSV
 
         importer = Skullrax::CsvImporter.new(csv:)
@@ -195,7 +207,7 @@ RSpec.describe Skullrax::CsvImporter do
     it 'can split values by a delimiter' do
       csv = <<~CSV
         model,title,creator,keyword,visibility
-        GenericWorkResource,Work title ; Second Title,Some Author; Some Other Author,keyword1;keyword2;keyword3,open
+        GenericWork,Work title ; Second Title,Some Author; Some Other Author,keyword1;keyword2;keyword3,open
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:)
@@ -209,7 +221,7 @@ RSpec.describe Skullrax::CsvImporter do
     it 'can split by a different delimiter' do
       csv = <<~CSV
         model,title,creator,keyword,visibility
-        GenericWorkResource,Work title | Second Title,Some Author| Some Other Author,keyword1|keyword2|keyword3,open
+        GenericWork,Work title | Second Title,Some Author| Some Other Author,keyword1|keyword2|keyword3,open
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:, delimiter: '|')
