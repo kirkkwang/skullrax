@@ -58,7 +58,7 @@ module Skullrax
     end
 
     def create_collection_generator(row)
-      Skullrax::ValkyrieCollectionGenerator.new(**row.except(:model)).tap(&:create)
+      Skullrax::ValkyrieCollectionCreator.new(**row.except(:model)).tap(&:create)
     end
 
     def update_current_collection(collection)
@@ -82,7 +82,7 @@ module Skullrax
     end
 
     def create_work_generator(row)
-      Skullrax::ValkyrieWorkGenerator.new(**row).tap(&:create)
+      Skullrax::ValkyrieWorkCreator.new(**row).tap(&:create)
     end
 
     def add_work_file_sets(work)

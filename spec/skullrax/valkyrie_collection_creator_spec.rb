@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Skullrax::ValkyrieCollectionGenerator do
+RSpec.describe Skullrax::ValkyrieCollectionCreator do
   before do
     create(:admin, email: 'admin@example.com')
   end

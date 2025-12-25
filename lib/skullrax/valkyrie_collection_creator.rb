@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class ValkyrieCollectionGenerator
-    include Skullrax::GeneratorConcern
+  class ValkyrieCollectionCreator
+    include Skullrax::CreatorConcern
 
     def initialize(autofill: false, except: [], **kwargs)
       @autofill = autofill

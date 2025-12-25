@@ -34,7 +34,7 @@ $ bundle install
 
 Create a work with all required fields populated:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new.create
+Skullrax::ValkyrieWorkCreator.new.create
 ```
 
 It can create a work by using the legacy Active Fedora models as well:
@@ -47,7 +47,7 @@ This will still create a GenericWorkResource.
 
 Use `autofill: true` to populate all settable properties, not just required ones:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   autofill: true
 ).create
 ```
@@ -57,13 +57,13 @@ Skullrax::ValkyrieWorkGenerator.new(
 Exclude specific properties from being set using `except:`:
 ```ruby
 # Exclude a single property
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   autofill: true,
   except: :video_embed
 ).create
 
 # Exclude multiple properties
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   autofill: true,
   except: [:based_near, :subject]
 ).create
@@ -73,7 +73,7 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 Specify your own attributes:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   model: Monograph,
   title: ['Sample Work Title'],
   keyword: ['sample', 'work', 'keywords'],
@@ -89,7 +89,7 @@ Control work visibility including embargoes and leases:
 
 Set simple visibility levels (defaults to `restricted` if not specified):
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   visibility: 'open'  # or 'authenticated', 'restricted'
 ).create
 ```
@@ -98,7 +98,7 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 Restrict access until a future date, then change to a different visibility:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   visibility: 'embargo',
   visibility_during_embargo: 'restricted',
   embargo_release_date: Date.today + 6.months,
@@ -110,7 +110,7 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 Make work openly available for a limited time, then restrict access:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   visibility: 'lease',
   visibility_during_lease: 'open',
   lease_expiration_date: '2030-12-31',  # Date or String accepted
@@ -124,7 +124,7 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 Skullrax can automatically look up Geonames URIs from plain text location queries:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   based_near: 'San Diego'
 ).create
 # Automatically resolves to: https://sws.geonames.org/5391811/
@@ -132,7 +132,7 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 You can also use exact URIs if you prefer:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   based_near: 'https://sws.geonames.org/5391811/'
 ).create
 ```
@@ -143,14 +143,14 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 #### Single Local File
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   file_paths: '/path/to/file.png'
 ).create
 ```
 
 #### Multiple Files (Local and Remote)
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   file_paths: [
     '/path/on/disk/local-image.jpg',
     '/path/to/another/file.txt'
@@ -162,14 +162,14 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 Download and attach files from URLs:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   file_paths: 'https://example.com/path/to/remote-image.jpg'
 ).create
 ```
 
 #### Mixed Local and Remote Files
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   file_paths: [
     'https://example.com/path/to/remote-image.jpg',
     'path/on/disk/local-image.jpg'
@@ -183,7 +183,7 @@ You can specify metadata for individual file sets when attaching files:
 
 #### Multiple Files with Corresponding Metadata
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   file_paths: ['/path/to/file1.pdf', '/path/to/file2.jpg'],
   file_set_params: [
     { title: 'Contract Document', description: 'Legal contract' },
@@ -198,7 +198,7 @@ The order of `file_set_params` corresponds to the order of `file_paths`.
 
 If you provide a single hash instead of an array, it applies only to the first file:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   file_paths: ['/path/to/file1.pdf', '/path/to/file2.jpg'],
   file_set_params: { title: 'Contract Document', description: 'Legal contract' }
 ).create
@@ -218,7 +218,7 @@ file_set_params: { title: ['My Title'] }
 
 Unsupported properties are silently ignored - Hyrax will filter them out based on `FileSet.user_settable_attributes`:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   file_paths: '/path/to/file.pdf',
   file_set_params: {
     title: 'Valid Title',
@@ -437,7 +437,7 @@ For file sets:
 
 Check for errors after work creation:
 ```ruby
-generator = Skullrax::ValkyrieWorkGenerator.new(title: ['My Work'])
+generator = Skullrax::ValkyrieWorkCreator.new(title: ['My Work'])
 result = generator.create
 
 # Check if creation was successful
@@ -471,7 +471,7 @@ When `autofill: true` is enabled, Skullrax will populate all properties that hav
 
 Add works to collections or add works to collections:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   member_of_collection_ids: ['collection-123']
 ).create
 ```
@@ -480,14 +480,14 @@ The collection must exist before adding works to it. If the collection is not fo
 
 You can also add collections as members of other collections:
 ```ruby
-Skullrax::ValkyrieCollectionGenerator.new(
+Skullrax::ValkyrieCollectionCreator.new(
   member_of_collection_ids: ['parent-collection-123']
 ).create
 ```
 
 Adding a work as a child work:
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   member_ids: ['child-work-123']
 ).create
 ```
@@ -502,14 +502,14 @@ Skullrax can also create collections with the same ease and flexibility as works
 
 Create a collection with all required fields populated:
 ```ruby
-Skullrax::ValkyrieCollectionGenerator.new.create
+Skullrax::ValkyrieCollectionCreator.new.create
 ```
 
 ### Customized Collection Creation
 
 Specify your own attributes:
 ```ruby
-Skullrax::ValkyrieCollectionGenerator.new(
+Skullrax::ValkyrieCollectionCreator.new(
   title: 'Custom Collection Title',
   creator: 'Jane Doe',
   visibility: 'authenticated'
@@ -522,14 +522,14 @@ Specify custom IDs for works and collections instead of auto-generated ones:
 
 #### Custom Work ID
 ```ruby
-Skullrax::ValkyrieWorkGenerator.new(
+Skullrax::ValkyrieWorkCreator.new(
   id: 'custom-work-id-123',
 ).create
 ```
 
 #### Custom Collection ID
 ```ruby
-Skullrax::ValkyrieCollectionGenerator.new(
+Skullrax::ValkyrieCollectionCreator.new(
   id: 'custom-collection-id-456',
 ).create
 ```
@@ -546,7 +546,7 @@ Skullrax::ValkyrieCollectionGenerator.new(
 
 Use `autofill: true` to populate all settable properties, with optional exclusions:
 ```ruby
-Skullrax::ValkyrieCollectionGenerator.new(
+Skullrax::ValkyrieCollectionCreator.new(
   autofill: true,
   except: :hide_from_catalog_search,
   visibility: 'open'

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class ValkyrieWorkGenerator
+  class ValkyrieWorkCreator
     attr_reader :model
 
-    include Skullrax::GeneratorConcern
+    include Skullrax::CreatorConcern
 
     def initialize(model: nil, file_paths: [], file_set_params: [], autofill: false, except: [], **kwargs) # rubocop:disable Metrics/ParameterLists
       @model = normalize_model(model)
