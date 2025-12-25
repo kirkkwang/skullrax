@@ -3,11 +3,13 @@
 module Skullrax
   class RowProcessor
     attr_reader :resources
+    attr_accessor :errors
 
     def initialize
       @resources = []
       @current_collection = nil
       @indices_to_skip = Set.new
+      @errors = []
     end
 
     def process(rows)
@@ -47,18 +49,21 @@ module Skullrax
     end
 
     def import_row(row, index)
-      return import_collection(row) if row[:model]&.collection?
+      return import_collection(row, index) if row[:model]&.collection?
       return import_work_with_file_sets(row, index) if row[:model]&.work?
     end
 
-    def import_collection(row)
-      generator = create_collection_generator(row)
+    def import_collection(row, index)
+      generator = create_collection_generator(row, index)
       update_current_collection(generator.resource)
       add_to_resources(generator.resource)
     end
 
-    def create_collection_generator(row)
-      Skullrax::ValkyrieCollectionCreator.new(**row.except(:model)).tap(&:create)
+    def create_collection_generator(row, index)
+      Skullrax::ValkyrieCollectionCreator.new(**row.except(:model)).tap do |generator|
+        generator.create
+        add_to_errors(generator, index) if generator.errors.present?
+      end
     end
 
     def update_current_collection(collection)
@@ -72,17 +77,20 @@ module Skullrax
     def import_work_with_file_sets(work_row, current_index)
       file_set_rows = Skullrax::FileSetCollector.new(rows, indices_to_skip).collect_after(current_index)
       prepared_row = Skullrax::WorkRowPreparer.new(work_row, file_set_rows, current_collection).prepare
-      import_prepared_work(prepared_row)
+      import_prepared_work(prepared_row, current_index)
     end
 
-    def import_prepared_work(work_row)
-      generator = create_work_generator(work_row)
+    def import_prepared_work(work_row, index)
+      generator = create_work_generator(work_row, index)
       add_to_resources(generator.resource)
       add_work_file_sets(generator.resource)
     end
 
-    def create_work_generator(row)
-      Skullrax::ValkyrieWorkCreator.new(**row).tap(&:create)
+    def create_work_generator(row, index)
+      Skullrax::ValkyrieWorkCreator.new(**row).tap do |generator|
+        generator.create
+        add_to_errors(generator, index) if generator.errors.present?
+      end
     end
 
     def add_work_file_sets(work)
@@ -91,6 +99,14 @@ module Skullrax
 
     def work_file_sets(work)
       work.member_ids.map { |id| Hyrax.query_service.find_by(id:) }
+    end
+
+    def add_to_errors(generator, index)
+      errors << {
+        row_number: index + 2, # +2 to account for header row and 0-based index
+        resource_type: generator.resource.class,
+        errors: generator.errors
+      }
     end
   end
 end

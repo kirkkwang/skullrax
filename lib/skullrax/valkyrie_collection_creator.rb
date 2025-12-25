@@ -4,9 +4,7 @@ module Skullrax
   class ValkyrieCollectionCreator
     include Skullrax::CreatorConcern
 
-    def initialize(autofill: false, except: [], **kwargs)
-      @autofill = autofill
-      @except = Array.wrap(except).map(&:to_s)
+    def initialize(**kwargs)
       @resource = nil
       @kwargs = kwargs
       @id = kwargs.delete(:id)

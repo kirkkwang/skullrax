@@ -7,7 +7,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
   it 'creates a work' do
     generator = described_class.new
-    result = generator.create
+    result = generator.generate
 
     expect(result).to be_success
     expect(generator.resource.class).to eq Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
@@ -15,7 +15,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
   it 'fills in required properties with "Test <property>"' do
     generator = described_class.new
-    generator.create
+    generator.generate
 
     expect(generator.resource.title).to eq ['Test title']
     expect(generator.resource.creator).to eq ['Test creator']
@@ -23,10 +23,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
   it 'returns a failure if there are errors' do
     generator = described_class.new
-    # makes generate think there aren't any required properties
-    allow(generator.parameter_builder).to receive(:required_properties).and_return([])
-
-    result = generator.create
+    result = generator.generate(fill_required: false)
 
     expect(result).to be_failure
     expect(generator.resource.id).to be_nil
@@ -36,7 +33,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
   context 'when passing kwargs' do
     it 'creates a work of that model' do
       generator = described_class.new(model: Monograph)
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource).to be_a Monograph
@@ -46,7 +43,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
       generator = described_class.new(model: Monograph,
                                       title: ['Custom Title'],
                                       creator: ['Custom Creator'])
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource).to be_a Monograph
@@ -56,7 +53,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
     it 'ignores unknown properties' do
       generator = described_class.new(model: Monograph, unknown_property: 'Some Value', another_one: 123)
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource).to be_a Monograph
@@ -67,7 +64,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
     context 'when using legacy ActiveFedora models' do
       it 'converts it to the Valkyrized model' do
         generator = described_class.new(model: GenericWork)
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource).to be_a GenericWorkResource
@@ -77,7 +74,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
     context 'when visibility is provided' do
       it 'can set open' do
         generator = described_class.new(visibility: 'open')
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.visibility).to eq 'open'
@@ -85,7 +82,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
       it 'can set restricted' do
         generator = described_class.new(visibility: 'restricted')
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.visibility).to eq 'restricted'
@@ -93,7 +90,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
       it 'can set authenticated' do
         generator = described_class.new(visibility: 'authenticated')
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.visibility).to eq 'authenticated'
@@ -107,7 +104,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
           embargo_release_date: future_date,
           visibility_after_embargo: 'open'
         )
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.visibility).to eq 'restricted'
@@ -124,7 +121,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
           lease_expiration_date: future_date,
           visibility_after_lease: 'authenticated'
         )
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.visibility).to eq 'open'
@@ -141,7 +138,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
         .to(receive(:required_properties)
               .and_return(generator.parameter_builder.required_properties + ['license']))
 
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource.license).to eq ['https://creativecommons.org/licenses/by-nc/4.0/']
@@ -149,11 +146,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
     it 'raises an error for invalid controlled vocabulary terms' do
       generator = described_class.new(license: ['Invalid License Term'])
-      allow(generator.parameter_builder)
-        .to(receive(:required_properties)
-              .and_return(generator.parameter_builder.required_properties + ['license']))
-
-      expect { generator.create }.to raise_error(Skullrax::InvalidControlledVocabularyTerm)
+      expect { generator.generate(autofill: true) }.to raise_error(Skullrax::InvalidControlledVocabularyTerm)
     end
 
     it 'fills in required controlled vocabularies if they are not provided' do
@@ -165,12 +158,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
       active_resource_types = resource_type_authority.all.select { |hash| hash[:active] }.pluck(:id)
 
       generator = described_class.new
-      extra_fields = %w[license rights_statement resource_type]
-      allow(generator.parameter_builder)
-        .to(receive(:required_properties)
-              .and_return(generator.parameter_builder.required_properties + extra_fields))
-
-      result = generator.create
+      result = generator.generate(autofill: true)
 
       expect(result).to be_success
       expect(active_license_terms).to include(generator.resource.license.first)
@@ -182,17 +170,15 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
       it 'attempts to adjust for unconventional naming' do
         resource_type_authority = Qa::Authorities::Local.subauthority_for('resource_types')
         active_resource_types = resource_type_authority.all.select { |hash| hash[:active] }.pluck(:id)
+
+        allow(Qa::Authorities::Local).to receive(:subauthority_for).and_call_original
         allow(Qa::Authorities::Local)
           .to receive(:subauthority_for).with('resource_types').and_raise(Qa::InvalidSubAuthority)
         allow(Qa::Authorities::Local)
           .to receive(:subauthority_for).with('resource_type').and_return(resource_type_authority)
 
         generator = described_class.new
-        allow(generator.parameter_builder)
-          .to(receive(:required_properties)
-                .and_return(generator.parameter_builder.required_properties + ['resource_type']))
-
-        result = generator.create
+        result = generator.generate(autofill: true)
 
         expect(result).to be_success
         expect(active_resource_types).to include(generator.resource.resource_type.first)
@@ -207,7 +193,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
     it 'uploads local files and associates them with the work' do
       generator = described_class.new(file_paths: [file1, file2])
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource.member_ids.length).to eq 2
@@ -215,7 +201,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
     it 'can be called with a single file' do
       generator = described_class.new(file_paths: file1)
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource.member_ids.length).to eq 1
@@ -230,7 +216,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
         )
 
       generator = described_class.new(file_paths: remote_url)
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource.member_ids.length).to eq 1
@@ -241,7 +227,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
         .to_return(status: 200, body: 'fake pdf content')
 
       generator = described_class.new(file_paths: [file1, remote_url])
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource.member_ids.length).to eq 2
@@ -256,7 +242,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
             { title: 'Some Text File', language: 'english' }
           ]
         )
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.member_ids.length).to eq 2
@@ -273,7 +259,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
           file_paths: [file1, file2],
           file_set_params: { title: 'Some Image' } # No metadata for second file sets
         )
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.member_ids.length).to eq 2
@@ -291,7 +277,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
             { title: 'Extra Metadata' }
           ]
         )
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.member_ids.length).to eq 1
@@ -307,7 +293,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
             { title: 'Some Image', unknown_property: 'Some Value' }
           ]
         )
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.member_ids.length).to eq 1
@@ -321,8 +307,8 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
   context 'with autofill true' do
     it 'automatically fills in all settable properties' do
-      generator = described_class.new(autofill: true)
-      result = generator.create
+      generator = described_class.new
+      result = generator.generate(autofill: true)
 
       expect(result).to be_success
       expect(generator.resource.title).to eq ['Test title']
@@ -333,8 +319,8 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
 
     context 'and except option' do
       it 'omits the specified properties from being set' do
-        generator = described_class.new(autofill: true, except: %w[description based_near])
-        result = generator.create
+        generator = described_class.new
+        result = generator.generate(autofill: true, except: %w[description based_near])
 
         expect(result).to be_success
         expect(generator.resource.title).to eq ['Test title']
@@ -367,7 +353,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
       allow(response).to receive(:body).and_return('{"geonames":[{"geonameId":5391811}]}')
       allow(Net::HTTP).to receive(:get_response).and_return(response)
 
-      result = generator.create
+      result = generator.generate
 
       expect(result).to be_success
       expect(generator.resource.based_near).to eq ['https://sws.geonames.org/5391811/']
@@ -378,14 +364,14 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
     context 'when adding to a collection' do
       it 'can add the work to the specified collection(s)' do
         col_generator1 = Skullrax::ValkyrieCollectionCreator.new
-        col_generator1.create
+        col_generator1.generate
         col_id1 = col_generator1.resource.id
         col_generator2 = Skullrax::ValkyrieCollectionCreator.new
-        col_generator2.create
+        col_generator2.generate
         col_id2 = col_generator2.resource.id
         generator = described_class.new(member_of_collection_ids: [col_id1, col_id2])
 
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.member_of_collection_ids).to include col_id1
@@ -395,18 +381,18 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
       it 'will raise an error if the collection does not exist' do
         generator = described_class.new(member_of_collection_ids: 'nonexistent-collection-id')
 
-        expect { generator.create }.to raise_error(Skullrax::CollectionNotFoundError)
+        expect { generator.generate }.to raise_error(Skullrax::CollectionNotFoundError)
       end
     end
 
     context 'when adding a child work' do
       it 'can add the child work to the parent work' do
         child_generator = described_class.new
-        child_generator.create
+        child_generator.generate
         child_work_id = child_generator.resource.id
         parent_generator = described_class.new(member_ids: [child_work_id])
 
-        result = parent_generator.create
+        result = parent_generator.generate
 
         expect(result).to be_success
         expect(parent_generator.resource.member_ids).to include child_work_id
@@ -415,7 +401,7 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
       it 'will raise an error if the parent work does not exist' do
         generator = described_class.new(member_ids: 'nonexistent-parent-work-id')
 
-        expect { generator.create }.to raise_error(Skullrax::WorkNotFoundError)
+        expect { generator.generate }.to raise_error(Skullrax::WorkNotFoundError)
       end
     end
   end
@@ -424,18 +410,18 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
     context 'when the id already exists' do
       it 'raises an IdAlreadyExistsError' do
         existing_generator = described_class.new
-        existing_generator.create
+        existing_generator.generate
         existing_id = existing_generator.resource.id
         generator = described_class.new(id: existing_id)
 
-        expect { generator.create }.to raise_error(Skullrax::IdAlreadyExistsError)
+        expect { generator.generate }.to raise_error(Skullrax::IdAlreadyExistsError)
       end
     end
 
     context 'when the id does not exist' do
       it 'uses the provided id for the work' do
         generator = described_class.new(id: 'custom-work-id-123')
-        result = generator.create
+        result = generator.generate
 
         expect(result).to be_success
         expect(generator.resource.id.to_s).to eq 'custom-work-id-123'

@@ -6,12 +6,10 @@ module Skullrax
 
     include Skullrax::CreatorConcern
 
-    def initialize(model: nil, file_paths: [], file_set_params: [], autofill: false, except: [], **kwargs) # rubocop:disable Metrics/ParameterLists
+    def initialize(model: nil, file_paths: [], file_set_params: [], **kwargs)
       @model = normalize_model(model)
       @file_paths = file_paths
       @file_set_params = file_set_params
-      @autofill = autofill
-      @except = Array.wrap(except).map(&:to_s)
       @kwargs = kwargs
       @id = kwargs.delete(:id)
       @resource = nil

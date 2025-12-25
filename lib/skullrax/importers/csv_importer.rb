@@ -4,7 +4,7 @@ require 'csv'
 
 module Skullrax
   class CsvImporter
-    delegate :resources, :collections, :works, :file_sets, to: :processor
+    delegate :resources, :collections, :works, :file_sets, :errors, to: :processor
 
     attr_reader :csv, :delimiter
 

@@ -4,13 +4,13 @@ module Skullrax
   class ParameterBuilder
     include SchemaPropertyFilterConcern
 
-    attr_reader :model, :autofill, :except, :kwargs
+    attr_reader :model, :fill_mode, :except, :kwargs
 
     include Skullrax::ObjectNotFound
 
-    def initialize(model:, autofill: false, except: [], **kwargs)
+    def initialize(model:, fill_mode: :required, except: [], **kwargs)
       @model = model
-      @autofill = autofill
+      @fill_mode = fill_mode
       @except = Array.wrap(except).map(&:to_s)
       @kwargs = kwargs
     end
@@ -33,7 +33,11 @@ module Skullrax
     private
 
     def properties
-      (autofill ? settable_properties : required_properties) - except
+      case fill_mode
+      when :none then []
+      when :required then (required_properties - except)
+      when :all then (settable_properties - except)
+      end
     end
 
     def base_params

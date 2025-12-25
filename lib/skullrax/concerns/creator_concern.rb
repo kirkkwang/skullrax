@@ -2,25 +2,43 @@
 
 module Skullrax
   module CreatorConcern
-    attr_accessor :errors
-    attr_reader :autofill, :except, :id, :kwargs
+    attr_accessor :errors, :autofill, :except, :fill_mode
+    attr_reader :id, :kwargs
     attr_writer :resource
 
     delegate :required_properties, :settable_properties, to: :parameter_builder
 
     include Skullrax::ObjectNotFound
 
-    def parameter_builder
-      @parameter_builder ||= ParameterBuilder.new(model:, autofill:, except:, **kwargs)
+    def generate(autofill: false, fill_required: true, except: [])
+      @fill_mode = if autofill
+                     :all
+                   elsif fill_required
+                     :required
+                   else
+                     :none
+                   end
+      @except = Array.wrap(except).map(&:to_s)
+      execute_creation
     end
 
     def create
+      @fill_mode = :none
+      @except = []
+      execute_creation
+    end
+
+    def parameter_builder
+      ParameterBuilder.new(model:, fill_mode:, except:, **kwargs)
+    end
+
+    private
+
+    def execute_creation
       check_id
       validate_form
       perform_action
     end
-
-    private
 
     def check_id
       return unless id.present?

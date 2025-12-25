@@ -1,11 +1,12 @@
 # Skullrax
 
-An easy programmatic way to create Valkyrie works in Hyrax 5 based applications for use in development.  Skullrax provides a simple, Rails console approach to work creation with automatic field population.
+An easy programmatic way to create Valkyrie works in Hyrax 5 based applications for use in development. Skullrax provides a simple, Rails console approach to work creation with automatic field population.
 
 ## Features
 
 - **Simple Resource Creation**: Create works and collections with minimal configuration
-- **Intelligent Defaults**: Automatically fills required fields with placeholder data
+- **Two Creation Modes**: Use `generate` for development (auto-fills fields) or `create` for non-Development (explicit values only)
+- **Intelligent Defaults**: Automatically fills required fields with placeholder data in generate mode
 - **Auto-fill Mode**: Optionally populate all settable properties, not just required ones
 - **Flexible Property Control**: Exclude specific properties from being set
 - **Controlled Vocabulary Support**: Intelligently handles Questioning Authority vocabularies
@@ -13,6 +14,7 @@ An easy programmatic way to create Valkyrie works in Hyrax 5 based applications 
 - **File Attachment**: Support for local and remote file uploads
 - **File Set Metadata**: Set individual metadata for each attached file
 - **Visibility Management**: Configure visibility including embargoes and leases
+- **CSV Batch Import**: Import multiple works, collections, and file sets at once
 - **Hyku Compatible**: Handles Hyku's authority naming quirks (e.g., `audience.yml` vs `audiences.yml`)
 - **Error Handling**: Comprehensive error tracking for debugging
 
@@ -30,26 +32,37 @@ $ bundle install
 
 ## Usage
 
-### Basic Work Creation
+### Two Creation Modes
 
-Create a work with all required fields populated:
+Skullrax offers two methods for creating resources:
+
+**`generate`** - Development mode that auto-fills required fields
 ```ruby
-Skullrax::ValkyrieWorkCreator.new.create
+Skullrax::ValkyrieWorkCreator.new(title: ['My Work']).generate
+# Auto-fills required fields like creator with "Test creator"
 ```
 
-It can create a work by using the legacy Active Fedora models as well:
+**`create`** - Non-Development mode that only uses what you provide
 ```ruby
-Skullrax::ActiveFedoraWorkGenerator.new(model: GenericWork).create
+Skullrax::ValkyrieWorkCreator.new(
+  title: ['My Work'],
+  creator: ['Jane Doe']
+).create
+# Fails if required fields are missing
 ```
-This will still create a GenericWorkResource.
+
+### Basic Work Generation
+
+Generate a work with all required fields automatically populated:
+```ruby
+Skullrax::ValkyrieWorkCreator.new.generate
+```
 
 ### Auto-fill All Settable Properties
 
 Use `autofill: true` to populate all settable properties, not just required ones:
 ```ruby
-Skullrax::ValkyrieWorkCreator.new(
-  autofill: true
-).create
+Skullrax::ValkyrieWorkCreator.new.generate(autofill: true)
 ```
 
 ### Excluding Properties
@@ -57,28 +70,48 @@ Skullrax::ValkyrieWorkCreator.new(
 Exclude specific properties from being set using `except:`:
 ```ruby
 # Exclude a single property
-Skullrax::ValkyrieWorkCreator.new(
-  autofill: true,
-  except: :video_embed
-).create
+Skullrax::ValkyrieWorkCreator.new.generate(autofill: true, except: :video_embed)
 
 # Exclude multiple properties
-Skullrax::ValkyrieWorkCreator.new(
-  autofill: true,
-  except: [:based_near, :subject]
-).create
+Skullrax::ValkyrieWorkCreator.new.generate(autofill: true, except: [:based_near, :subject])
+```
+
+### Generate Without Auto-filling Required Fields
+
+If you want to generate but not auto-fill required fields:
+```ruby
+Skullrax::ValkyrieWorkCreator.new(title: ['My Work']).generate(fill_required: false)
+# Only uses the title you provided, doesn't fill other required fields
 ```
 
 ### Customized Work Creation
 
-Specify your own attributes:
+Specify your own attributes for both modes:
 ```ruby
+# Generate mode - fills in missing required fields
 Skullrax::ValkyrieWorkCreator.new(
   model: Monograph,
   title: ['Sample Work Title'],
   keyword: ['sample', 'work', 'keywords'],
   visibility: 'open'
+).generate
+
+# Create mode - strict, only uses what you provide
+Skullrax::ValkyrieWorkCreator.new(
+  model: Monograph,
+  title: ['Sample Work Title'],
+  creator: ['Author Name'],
+  keyword: ['sample', 'work', 'keywords'],
+  visibility: 'open'
 ).create
+```
+
+### Active Fedora Support
+
+Skullrax can work with legacy Active Fedora models, automatically converting them to Valkyrie resources:
+```ruby
+Skullrax::ActiveFedoraWorkGenerator.new(model: GenericWork).generate
+# Creates a GenericWorkResource
 ```
 
 ### Visibility Settings
@@ -91,7 +124,7 @@ Set simple visibility levels (defaults to `restricted` if not specified):
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
   visibility: 'open'  # or 'authenticated', 'restricted'
-).create
+).generate
 ```
 
 #### Embargo
@@ -103,7 +136,7 @@ Skullrax::ValkyrieWorkCreator.new(
   visibility_during_embargo: 'restricted',
   embargo_release_date: Date.today + 6.months,
   visibility_after_embargo: 'open'
-).create
+).generate
 ```
 
 #### Lease
@@ -115,7 +148,7 @@ Skullrax::ValkyrieWorkCreator.new(
   visibility_during_lease: 'open',
   lease_expiration_date: '2030-12-31',  # Date or String accepted
   visibility_after_lease: 'authenticated'
-).create
+).generate
 ```
 
 **Note:** Both `embargo_release_date` and `lease_expiration_date` accept either `Date` objects or date strings - Hyrax forms will handle the conversion automatically.
@@ -126,7 +159,7 @@ Skullrax can automatically look up Geonames URIs from plain text location querie
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
   based_near: 'San Diego'
-).create
+).generate
 # Automatically resolves to: https://sws.geonames.org/5391811/
 ```
 
@@ -134,7 +167,7 @@ You can also use exact URIs if you prefer:
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
   based_near: 'https://sws.geonames.org/5391811/'
-).create
+).generate
 ```
 
 **Note**: Geonames lookup requires a username. Set the `GEONAMES_USERNAME` environment variable or it defaults to 'scientist' for testing.
@@ -145,7 +178,7 @@ Skullrax::ValkyrieWorkCreator.new(
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
   file_paths: '/path/to/file.png'
-).create
+).generate
 ```
 
 #### Multiple Files (Local and Remote)
@@ -155,7 +188,7 @@ Skullrax::ValkyrieWorkCreator.new(
     '/path/on/disk/local-image.jpg',
     '/path/to/another/file.txt'
   ]
-).create
+).generate
 ```
 
 #### Remote Files
@@ -164,7 +197,7 @@ Download and attach files from URLs:
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
   file_paths: 'https://example.com/path/to/remote-image.jpg'
-).create
+).generate
 ```
 
 #### Mixed Local and Remote Files
@@ -174,7 +207,7 @@ Skullrax::ValkyrieWorkCreator.new(
     'https://example.com/path/to/remote-image.jpg',
     'path/on/disk/local-image.jpg'
   ]
-).create
+).generate
 ```
 
 ### File Set Metadata
@@ -189,7 +222,7 @@ Skullrax::ValkyrieWorkCreator.new(
     { title: 'Contract Document', description: 'Legal contract' },
     { title: 'Product Photo', keyword: ['product', 'marketing'] }
   ]
-).create
+).generate
 ```
 
 The order of `file_set_params` corresponds to the order of `file_paths`.
@@ -201,7 +234,7 @@ If you provide a single hash instead of an array, it applies only to the first f
 Skullrax::ValkyrieWorkCreator.new(
   file_paths: ['/path/to/file1.pdf', '/path/to/file2.jpg'],
   file_set_params: { title: 'Contract Document', description: 'Legal contract' }
-).create
+).generate
 # Only file1.pdf gets the metadata; file2.jpg uses defaults
 ```
 
@@ -224,7 +257,7 @@ Skullrax::ValkyrieWorkCreator.new(
     title: 'Valid Title',
     invalid_field: 'This will be ignored'
   }
-).create
+).generate
 # Only 'title' is applied; 'invalid_field' is skipped
 ```
 
@@ -246,18 +279,20 @@ importer = Skullrax::CsvImporter.new(csv:)
 importer.import
 ```
 
-#### Active Fedora models
+#### Model Flexibility
 
-You can also use Active Fedora models by specifying them in the `model` column:
+You can use either Valkyrie resource names or Active Fedora model names:
 ```ruby
 csv = <<~CSV
   model,title,creator,visibility
   Collection,Related Collection,Collection Creator,open
   GenericWork,Work in Collection,Work Creator,open
+  FileSet,My File,File Creator,open,/path/to/file.pdf
 CSV
 
 importer = Skullrax::CsvImporter.new(csv:)
 importer.import
+# Automatically converts: Collection → CollectionResource, GenericWork → GenericWorkResource, FileSet → Hyrax::FileSet
 ```
 
 #### Accessing Imported Resources
@@ -282,8 +317,8 @@ Control collection membership explicitly using `member_of_collection_ids`:
 ```ruby
 csv = <<~CSV
   model,id,title,creator,member_of_collection_ids,visibility
-  Collection,col-789,Related Collection,Collection Creator,,open
-  GenericWork,,Work in Collection,Work Creator,col-789,open
+  CollectionResource,col-789,Related Collection,Collection Creator,,open
+  GenericWorkResource,,Work in Collection,Work Creator,col-789,open
 CSV
 
 importer = Skullrax::CsvImporter.new(csv:)
@@ -298,11 +333,11 @@ Skullrax automatically assigns works to collections based on CSV order. Works ar
 ```ruby
 csv = <<~CSV
   model,title,creator,visibility
-  Collection,New Collection,Collection Creator,open
-  GenericWork,Work1 in New Collection,Work Creator,open
-  GenericWork,Work2 in New Collection,Work Creator,open
-  Collection,Another Collection,Another Creator,open
-  GenericWork,Work1 in Another Collection,Another Creator,open
+  CollectionResource,New Collection,Collection Creator,open
+  GenericWorkResource,Work1 in New Collection,Work Creator,open
+  GenericWorkResource,Work2 in New Collection,Work Creator,open
+  CollectionResource,Another Collection,Another Creator,open
+  GenericWorkResource,Work1 in Another Collection,Another Creator,open
 CSV
 
 importer = Skullrax::CsvImporter.new(csv:)
@@ -317,10 +352,10 @@ This creates:
 ```ruby
 csv = <<~CSV
   model,title,creator,visibility
-  GenericWork,Standalone Work1,Standalone Creator,open
-  GenericWork,Standalone Work2,Standalone Creator,open
-  Collection,New Collection,Collection Creator,open
-  GenericWork,Work1 in New Collection,Work Creator,open
+  GenericWorkResource,Standalone Work1,Standalone Creator,open
+  GenericWorkResource,Standalone Work2,Standalone Creator,open
+  CollectionResource,New Collection,Collection Creator,open
+  GenericWorkResource,Work1 in New Collection,Work Creator,open
 CSV
 
 importer = Skullrax::CsvImporter.new(csv:)
@@ -348,11 +383,11 @@ Create file sets with custom metadata by including `FileSet` rows after works:
 ```ruby
 csv = <<~CSV
   model,title,creator,visibility,file
-  Collection,New Collection,Collection Creator,open,
-  GenericWork,Work1 in Collection,Work Creator,open,
+  CollectionResource,New Collection,Collection Creator,open,
+  GenericWorkResource,Work1 in Collection,Work Creator,open,
   FileSet,FileSet1 for Work1,FileSet Creator,open,/path/to/file1.jpg
   FileSet,FileSet2 for Work1,FileSet Creator,open,/path/to/file2.jpg
-  GenericWork,Work2 in Collection,Work Creator,open,
+  GenericWorkResource,Work2 in Collection,Work Creator,open,
   FileSet,FileSet1 for Work2,FileSet Creator,open,https://example.com/file3.jpg
 CSV
 
@@ -372,7 +407,7 @@ File sets support both local paths and remote URLs:
 ```ruby
 csv = <<~CSV
   model,title,file
-  GenericWork,Work with Remote File,
+  GenericWorkResource,Work with Remote File,
   FileSet,Remote Image,https://example.com/image.jpg
 CSV
 
@@ -386,7 +421,7 @@ Split multi-value fields using semicolon (`;`) delimiter:
 ```ruby
 csv = <<~CSV
   model,title,creator,visibility,subject,keyword
-  GenericWork,Work with Multiple Values,Work Creator,open,History;Art;Science,sample;test;demo
+  GenericWorkResource,Work with Multiple Values,Work Creator,open,History;Art;Science,sample;test;demo
 CSV
 
 importer = Skullrax::CsvImporter.new(csv:)
@@ -401,7 +436,7 @@ Use a different delimiter if needed:
 ```ruby
 csv = <<~CSV
   model,title,creator,visibility,subject
-  GenericWork,Work with Subjects,Work Creator,open,History|Art|Science
+  GenericWorkResource,Work with Subjects,Work Creator,open,History|Art|Science
 CSV
 
 importer = Skullrax::CsvImporter.new(csv:, delimiter: '|')
@@ -413,14 +448,14 @@ importer.import
 #### Supported Model Types
 
 CSV import supports:
-- **Collection** - Collections (uses `Hyrax.config.collection_class`)
-- **Curation Concerns** - Any registered curation concern (e.g., `GenericWorkResource`, `Monograph`, `ImageResource` or `GenericWork`, `Image`)
-- **FileSet** - File sets with attachments
+- **Collection** or **CollectionResource** - Collections (uses `Hyrax.config.collection_class`)
+- **Curation Concerns** - Any registered curation concern, using either Active Fedora or Valkyrie names (e.g., `GenericWork`/`GenericWorkResource`, `Image`/`ImageResource`, `Monograph`)
+- **FileSet** or **Hyrax::FileSet** - File sets with attachments
 
 #### CSV Column Reference
 
 Common columns supported:
-- `model` - Required. The resource type to create
+- `model` - Optional (defaults to `GenericWorkResource`). The resource type to create
 - `id` - Optional. Custom ID for the resource
 - `title` - Work/collection title
 - `creator` - Creator name(s)
@@ -437,43 +472,26 @@ For file sets:
 
 Check for errors after work creation:
 ```ruby
-generator = Skullrax::ValkyrieWorkCreator.new(title: ['My Work'])
-result = generator.create
+creator = Skullrax::ValkyrieWorkCreator.new(title: ['My Work'])
+result = creator.generate
 
 # Check if creation was successful
 if result.success?
-  puts "Work created: #{generator.resource.id}"
+  puts "Work created: #{creator.resource.id}"
 else
-  puts "Errors: #{generator.errors}"
+  puts "Errors: #{creator.errors}"
 end
 ```
 
-**Note**: Errors caught during the save process are stored in `generator.errors`. Errors that occur before save will be raised as usual.
-
-## How It Works
-
-### Automatic Field Population
-
-Skullrax automatically:
-- Fills missing required fields with placeholder data (e.g., "Test title")
-- Detects controlled vocabulary fields using the Questioning Authority gem and selects valid values from available authority lists
-- Looks up Geonames URIs when given plain text location names
-- Handles special Hyrax fields like `based_near` that use nested attributes
-
-### Auto-fill Mode
-
-When `autofill: true` is enabled, Skullrax will populate all properties that have form metadata in the model's schema, not just required ones. This is useful for:
-- Creating fully populated test works
-- Exploring all available fields on a work type
-- Generating sample data for development
+**Note**: Errors caught during the save process are stored in `creator.errors`. Errors that occur before save will be raised as usual.
 
 ### Relationships
 
-Add works to collections or add works to collections:
+Add works to collections:
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
   member_of_collection_ids: ['collection-123']
-).create
+).generate
 ```
 
 The collection must exist before adding works to it. If the collection is not found, a `Skullrax::CollectionNotFoundError` will be raised.
@@ -482,14 +500,14 @@ You can also add collections as members of other collections:
 ```ruby
 Skullrax::ValkyrieCollectionCreator.new(
   member_of_collection_ids: ['parent-collection-123']
-).create
+).generate
 ```
 
 Adding a work as a child work:
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
   member_ids: ['child-work-123']
-).create
+).generate
 ```
 
 The works must exist before adding them to a collection. If any work is not found, a `Skullrax::WorkNotFoundError` will be raised.
@@ -498,17 +516,25 @@ The works must exist before adding them to a collection. If any work is not foun
 
 Skullrax can also create collections with the same ease and flexibility as works.
 
-### Basic Collection Creation
+### Basic Collection Generation
 
-Create a collection with all required fields populated:
+Generate a collection with all required fields populated:
 ```ruby
-Skullrax::ValkyrieCollectionCreator.new.create
+Skullrax::ValkyrieCollectionCreator.new.generate
 ```
 
 ### Customized Collection Creation
 
 Specify your own attributes:
 ```ruby
+# Generate mode
+Skullrax::ValkyrieCollectionCreator.new(
+  title: 'Custom Collection Title',
+  creator: 'Jane Doe',
+  visibility: 'authenticated'
+).generate
+
+# Create mode (strict)
 Skullrax::ValkyrieCollectionCreator.new(
   title: 'Custom Collection Title',
   creator: 'Jane Doe',
@@ -523,15 +549,15 @@ Specify custom IDs for works and collections instead of auto-generated ones:
 #### Custom Work ID
 ```ruby
 Skullrax::ValkyrieWorkCreator.new(
-  id: 'custom-work-id-123',
-).create
+  id: 'custom-work-id-123'
+).generate
 ```
 
 #### Custom Collection ID
 ```ruby
 Skullrax::ValkyrieCollectionCreator.new(
-  id: 'custom-collection-id-456',
-).create
+  id: 'custom-collection-id-456'
+).generate
 ```
 
 **Important:** The ID must be unique. If an object with that ID already exists, a `Skullrax::IdAlreadyExistsError` will be raised.
@@ -547,15 +573,14 @@ Skullrax::ValkyrieCollectionCreator.new(
 Use `autofill: true` to populate all settable properties, with optional exclusions:
 ```ruby
 Skullrax::ValkyrieCollectionCreator.new(
-  autofill: true,
-  except: :hide_from_catalog_search,
   visibility: 'open'
-).create
+).generate(autofill: true, except: :hide_from_catalog_search)
 ```
 
 ### Collection Features
 
 Collections support the same features as works:
+- **Two Creation Modes**: `generate` (auto-fills) and `create` (explicit)
 - **Auto-fill Mode**: Use `autofill: true` to populate all settable properties
 - **Property Exclusions**: Use `except:` to skip specific fields
 - **Controlled Vocabularies**: Automatically validated against Questioning Authority
@@ -563,6 +588,37 @@ Collections support the same features as works:
 - **Geonames Integration**: Automatic location URI lookup
 
 **Note:** Collections use the default collection type. They do not support file attachments (use works for that).
+
+## How It Works
+
+### Automatic Field Population
+
+Skullrax automatically (in generate mode):
+- Fills missing required fields with placeholder data (e.g., "Test title")
+- Detects controlled vocabulary fields using the Questioning Authority gem and selects valid values from available authority lists
+- Looks up Geonames URIs when given plain text location names
+- Handles special Hyrax fields like `based_near` that use nested attributes
+
+### Generate vs Create Modes
+
+**Generate Mode** (`generate`):
+- Auto-fills required fields if not provided
+- Use `autofill: true` to fill all settable properties
+- Perfect for development and testing
+- Creates valid resources even with minimal input
+
+**Create Mode** (`create`):
+- Only uses the attributes you explicitly provide
+- Fails if required fields are missing
+- Perfect for non-Development use
+- Ensures you're consciously providing all necessary data
+
+### Auto-fill Mode
+
+When `autofill: true` is enabled in generate mode, Skullrax will populate all properties that have form metadata in the model's schema, not just required ones. This is useful for:
+- Creating fully populated test works
+- Exploring all available fields on a work type
+- Generating sample data for development
 
 ## Development
 

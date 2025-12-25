@@ -23,6 +23,26 @@ RSpec.describe Skullrax::CsvImporter do
     expect(importer.resources.map(&:visibility)).to contain_exactly('open', 'open')
   end
 
+  it 'does not autofill required fields' do
+    csv = <<~CSV
+      model,title
+      CollectionResource,Collection Title 1
+      GenericWorkResource,Test Title 1
+    CSV
+
+    importer = Skullrax::CsvImporter.new(csv:)
+    importer.import
+    errors = importer.errors
+
+    expect(errors.size).to eq(2)
+    expect(errors.first[:row_number]).to eq(2)
+    expect(errors.first[:resource_type]).to eq(CollectionResource)
+    expect(errors.first[:errors].first).to include("Creator can't be blank")
+    expect(errors.second[:row_number]).to eq(3)
+    expect(errors.second[:resource_type]).to eq(GenericWorkResource)
+    expect(errors.second[:errors].first).to include("Creator can't be blank")
+  end
+
   it 'can import other work types from a CSV' do
     csv = <<~CSV
       model,title,creator,record_info,visibility
@@ -109,10 +129,10 @@ RSpec.describe Skullrax::CsvImporter do
     context 'when no collection id is provided for a work' do
       it 'assumes the collection that the works are under is the parent collection of the works' do
         csv = <<~CSV
-          model,title
-          Collection,Parent Collection
-          GenericWork,Child Work
-          Monograph,Another Child Work
+          model,title,creator,record_info
+          Collection,Parent Collection,Collection Creator
+          GenericWork,Child Work,Work Creator
+          Monograph,Another Child Work,Another Work Creator,Some Record Info
         CSV
 
         importer = Skullrax::CsvImporter.new(csv:)
@@ -123,11 +143,11 @@ RSpec.describe Skullrax::CsvImporter do
 
       it 'supports multiple collections and their works' do
         csv = <<~CSV
-          model,title
-          Collection,Collection One
-          GenericWork,Work One
-          Collection,Collection Two
-          Monograph,Work Two
+          model,title,creator,record_info
+          Collection,Collection One,Collection Creator One
+          GenericWork,Work One,Work Creator One
+          Collection,Collection Two,Collection Creator Two
+          Monograph,Work Two,Work Creator Two,Some Record Info
         CSV
 
         importer = Skullrax::CsvImporter.new(csv:)
@@ -144,11 +164,11 @@ RSpec.describe Skullrax::CsvImporter do
 
       it 'will handle standalone works without collections' do
         csv = <<~CSV
-          model,title
-          GenericWork,Standalone Work
-          GenericWork,Another Standalone Work
-          Collection,Some Collection
-          GenericWork,Work in Collection
+          model,title,creator
+          GenericWork,Standalone Work,Work Creator
+          GenericWork,Another Standalone Work,Another Work Creator
+          Collection,Some Collection,Collection Creator
+          GenericWork,Work in Collection,Work Creator
         CSV
 
         importer = Skullrax::CsvImporter.new(csv:)
