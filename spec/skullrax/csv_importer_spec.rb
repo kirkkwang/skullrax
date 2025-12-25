@@ -23,24 +23,26 @@ RSpec.describe Skullrax::CsvImporter do
     expect(importer.resources.map(&:visibility)).to contain_exactly('open', 'open')
   end
 
-  it 'does not autofill required fields' do
-    csv = <<~CSV
-      model,title
-      CollectionResource,Collection Title 1
-      GenericWorkResource,Test Title 1
-    CSV
+  context 'when not all required fields are provided' do
+    it 'accumulate errors' do
+      csv = <<~CSV
+        model,title
+        CollectionResource,Collection Title 1
+        GenericWorkResource,Test Title 1
+      CSV
 
-    importer = Skullrax::CsvImporter.new(csv:)
-    importer.import
-    errors = importer.errors
+      importer = Skullrax::CsvImporter.new(csv:)
+      importer.import(autofill: true, except: :creator)
+      errors = importer.errors
 
-    expect(errors.size).to eq(2)
-    expect(errors.first[:row_number]).to eq(2)
-    expect(errors.first[:resource_type]).to eq(CollectionResource)
-    expect(errors.first[:errors].first).to include("Creator can't be blank")
-    expect(errors.second[:row_number]).to eq(3)
-    expect(errors.second[:resource_type]).to eq(GenericWorkResource)
-    expect(errors.second[:errors].first).to include("Creator can't be blank")
+      expect(errors.size).to eq(2)
+      expect(errors.first[:row_number]).to eq(2)
+      expect(errors.first[:resource_type]).to eq(CollectionResource)
+      expect(errors.first[:errors].first).to include("Creator can't be blank")
+      expect(errors.second[:row_number]).to eq(3)
+      expect(errors.second[:resource_type]).to eq(GenericWorkResource)
+      expect(errors.second[:errors].first).to include("Creator can't be blank")
+    end
   end
 
   it 'can import other work types from a CSV' do

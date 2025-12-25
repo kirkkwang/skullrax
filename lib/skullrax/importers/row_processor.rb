@@ -12,8 +12,10 @@ module Skullrax
       @errors = []
     end
 
-    def process(rows)
+    def process(rows, autofill: false, except: [])
       @rows = rows
+      @autofill = autofill
+      @except = except
       process_each_row
       resources
     end
@@ -32,7 +34,7 @@ module Skullrax
 
     private
 
-    attr_reader :rows, :current_collection, :indices_to_skip
+    attr_reader :rows, :current_collection, :indices_to_skip, :autofill, :except
 
     def process_each_row
       rows.each_with_index { |row, index| process_row_at_index(row, index) }
@@ -61,7 +63,7 @@ module Skullrax
 
     def create_collection_generator(row, index)
       Skullrax::ValkyrieCollectionCreator.new(**row.except(:model)).tap do |generator|
-        generator.create
+        generator.generate(autofill:, except:)
         add_to_errors(generator, index) if generator.errors.present?
       end
     end
@@ -88,7 +90,7 @@ module Skullrax
 
     def create_work_generator(row, index)
       Skullrax::ValkyrieWorkCreator.new(**row).tap do |generator|
-        generator.create
+        generator.generate(autofill:, except:)
         add_to_errors(generator, index) if generator.errors.present?
       end
     end

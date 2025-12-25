@@ -13,9 +13,9 @@ module Skullrax
       @delimiter = delimiter
     end
 
-    def import
+    def import(autofill: false, except: [])
       parse_csv
-      processor.process(rows)
+      processor.process(rows, autofill:, except:)
     end
 
     private

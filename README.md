@@ -445,6 +445,15 @@ importer.import
 
 **Note:** Delimiters only apply to fields that are defined as multi-value in your model's schema (fields with `form` metadata). Single-value fields like `title` are not split.
 
+#### Autofill and Exclusions
+You can enable auto-fill mode and exclude specific properties during CSV import:
+```ruby
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import(autofill: true, except: [:video_embed, :based_near])
+```
+
+By default, autofill is false and if the CSV does not provide required fields, work creation will fail.
+
 #### Supported Model Types
 
 CSV import supports:
