@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class ValkyrieWorkCreator
+  class ValkyrieWorkGenerator
     attr_reader :model
 
-    include Skullrax::CreatorConcern
+    include Skullrax::GeneratorConcern
 
     def initialize(model: nil, file_paths: [], file_set_params: [], **kwargs)
       @model = normalize_model(model)

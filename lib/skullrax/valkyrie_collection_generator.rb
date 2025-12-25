@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class ValkyrieCollectionCreator
-    include Skullrax::CreatorConcern
+  class ValkyrieCollectionGenerator
+    include Skullrax::GeneratorConcern
 
     def initialize(**kwargs)
       @resource = nil

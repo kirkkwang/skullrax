@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Skullrax::ValkyrieWorkCreator do
+RSpec.describe Skullrax::ValkyrieWorkGenerator do
   before do
     create(:admin, email: 'admin@example.com')
   end
@@ -364,10 +364,10 @@ RSpec.describe Skullrax::ValkyrieWorkCreator do
     context 'with relationships' do
       context 'when adding to a collection' do
         it 'can add the work to the specified collection(s)' do
-          col_generator1 = Skullrax::ValkyrieCollectionCreator.new
+          col_generator1 = Skullrax::ValkyrieCollectionGenerator.new
           col_generator1.generate
           col_id1 = col_generator1.resource.id
-          col_generator2 = Skullrax::ValkyrieCollectionCreator.new
+          col_generator2 = Skullrax::ValkyrieCollectionGenerator.new
           col_generator2.generate
           col_id2 = col_generator2.resource.id
           generator = described_class.new(member_of_collection_ids: [col_id1, col_id2])

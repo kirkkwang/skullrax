@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Skullrax
-  module CreatorConcern
+  module GeneratorConcern
     attr_accessor :errors, :autofill, :except, :fill_mode
     attr_reader :id, :kwargs
     attr_writer :resource

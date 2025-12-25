@@ -4,7 +4,7 @@ require_relative 'skullrax/version'
 
 require_relative 'skullrax/concerns/object_not_found'
 require_relative 'skullrax/concerns/schema_property_filter_concern'
-require_relative 'skullrax/concerns/creator_concern'
+require_relative 'skullrax/concerns/generator_concern'
 
 require_relative 'skullrax/handlers/visibility_handler'
 require_relative 'skullrax/handlers/based_near_handler'
@@ -16,8 +16,8 @@ require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/file_set_params_builder'
 require_relative 'skullrax/work_transaction_executor'
 
-require_relative 'skullrax/valkyrie_work_creator'
-require_relative 'skullrax/valkyrie_collection_creator'
+require_relative 'skullrax/valkyrie_work_generator'
+require_relative 'skullrax/valkyrie_collection_generator'
 
 require_relative 'skullrax/importers/csv_importer'
 require_relative 'skullrax/importers/csv_parser'

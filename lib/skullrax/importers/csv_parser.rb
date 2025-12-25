@@ -73,7 +73,7 @@ module Skullrax
       {
         'Collection' => Hyrax.config.collection_class.to_s,
         'FileSet' => Hyrax.config.file_set_class.to_s,
-        nil => Skullrax::ValkyrieWorkCreator.default_model.to_s
+        nil => Skullrax::ValkyrieWorkGenerator.default_model.to_s
       }
     end
 

@@ -62,7 +62,7 @@ module Skullrax
     end
 
     def create_collection_generator(row, index)
-      Skullrax::ValkyrieCollectionCreator.new(**row.except(:model)).tap do |generator|
+      Skullrax::ValkyrieCollectionGenerator.new(**row.except(:model)).tap do |generator|
         generator.generate(autofill:, except:)
         add_to_errors(generator, index) if generator.errors.present?
       end
@@ -89,7 +89,7 @@ module Skullrax
     end
 
     def create_work_generator(row, index)
-      Skullrax::ValkyrieWorkCreator.new(**row).tap do |generator|
+      Skullrax::ValkyrieWorkGenerator.new(**row).tap do |generator|
         generator.generate(autofill:, except:)
         add_to_errors(generator, index) if generator.errors.present?
       end
