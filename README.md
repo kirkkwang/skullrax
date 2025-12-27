@@ -563,6 +563,40 @@ Skullrax::ValkyrieCollectionGenerator.new(
 - **autofill: true**: Fills empty fields after merging/replacing
 - **except**: Excludes specific properties from autofill
 
+### Deleting Works, Collections, and File Sets
+
+Skullrax allows you to delete existing works, collections, and file sets by ID.
+
+#### Deleting a Work
+
+Delete a work and all its file sets:
+```ruby
+generator = Skullrax::ValkyrieWorkGenerator.new(id: 'work-123')
+generator.destroy
+```
+
+**Note:** Deleting a work will also delete all of its associated file sets.
+
+#### Deleting a Collection
+
+Delete a collection:
+```ruby
+generator = Skullrax::ValkyrieCollectionGenerator.new(id: 'collection-456')
+generator.destroy
+```
+
+**Note:** Deleting a collection will remove it from any parent collections but will not delete the works within it. The works will remain in the repository.
+
+#### Deleting a File Set
+
+Delete a file set from its parent work:
+```ruby
+generator = Skullrax::ValkyrieFileSetGenerator.new(id: 'file-set-789')
+generator.destroy
+```
+
+**Note:** Deleting a file set removes it from its parent work but does not affect the work itself.
+
 ### Updating File Sets
 
 Skullrax allows you to update metadata for existing file sets.
