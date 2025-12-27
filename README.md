@@ -563,6 +563,56 @@ Skullrax::ValkyrieCollectionGenerator.new(
 - **autofill: true**: Fills empty fields after merging/replacing
 - **except**: Excludes specific properties from autofill
 
+### Updating File Sets
+
+Skullrax allows you to update metadata for existing file sets.
+
+**Note:** File sets can only be updated, not created standalone. File sets are created as part of works using the `file_paths` parameter.
+
+#### Basic File Set Update
+
+Update a file set's metadata:
+```ruby
+generator = Skullrax::ValkyrieFileSetGenerator.new(
+  id: 'file-set-123',
+  title: ['Updated File Title'],
+  description: ['New description']
+)
+generator.update
+# Result: title and description are replaced
+```
+
+#### Update with Merge
+
+Append to existing metadata values:
+```ruby
+# File set currently has: keyword: ['original']
+generator = Skullrax::ValkyrieFileSetGenerator.new(
+  id: 'file-set-123',
+  keyword: ['additional']
+)
+generator.update(merge: true)
+# Result: keyword: ['original', 'additional']
+```
+
+#### Update with Autofill
+
+Fill in all empty metadata fields:
+```ruby
+generator = Skullrax::ValkyrieFileSetGenerator.new(id: 'file-set-123')
+generator.update(autofill: true)
+# Fills all empty fields with "Test " values
+```
+
+#### Update with Exclusions
+
+Update while excluding specific properties:
+```ruby
+generator = Skullrax::ValkyrieFileSetGenerator.new(id: 'file-set-123')
+generator.update(autofill: true, except: :description)
+# Fills all fields except description
+```
+
 ### Error Handling
 
 Check for errors after work creation:
