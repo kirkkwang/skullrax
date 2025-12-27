@@ -16,8 +16,9 @@ require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/file_set_params_builder'
 require_relative 'skullrax/work_transaction_executor'
 
-require_relative 'skullrax/valkyrie_work_generator'
 require_relative 'skullrax/valkyrie_collection_generator'
+require_relative 'skullrax/valkyrie_work_generator'
+require_relative 'skullrax/valkyrie_file_set_generator'
 
 require_relative 'skullrax/importers/csv_importer'
 require_relative 'skullrax/importers/csv_parser'

@@ -91,6 +91,10 @@ module Skullrax
       self.resource = resource
     end
 
+    def form
+      @form ||= Hyrax::Forms::ResourceForm.for(resource:).tap(&:prepopulate!)
+    end
+
     def validate_form
       form.validate(merged_kwargs || params[attributes_key])
     end

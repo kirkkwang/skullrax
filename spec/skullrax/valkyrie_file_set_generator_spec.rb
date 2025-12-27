@@ -1,0 +1,77 @@
+# frozen_string_literal: true
+
+RSpec.describe Skullrax::ValkyrieFileSetGenerator do
+  before do
+    create(:admin, email: 'admin@example.com')
+  end
+
+  let(:file_paths) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
+  let(:generator) do
+    Skullrax::ValkyrieWorkGenerator.new(file_paths:, file_set_params:)
+  end
+  let(:work) { generator.resource }
+  let(:file_set) { Hyrax.query_service.find_by(id: work.member_ids.first) }
+
+  describe '#update' do
+    before do
+      generator.generate
+    end
+
+    let(:file_set_params) do
+      [{ title: ['Initial File Set'] }]
+    end
+
+    it 'updates an existing file set' do
+      expect(file_set.title).to eq(['Initial File Set'])
+      expect(file_set.subject).to be_empty
+
+      update_generator = Skullrax::ValkyrieFileSetGenerator.new(id: file_set.id, title: ['Updated'], subject: ['Test'])
+      update_generator.update
+      updated_file_set = Hyrax.query_service.find_by(id: file_set.id)
+      expect(updated_file_set.title).to eq(['Updated'])
+      expect(updated_file_set.subject).to eq(['Test'])
+    end
+
+    it 'will error if the file_set does not exist' do
+      generator = described_class.new(id: 'nonexistent-file-set-id', title: 'Updated Title')
+
+      expect { generator.update }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+
+    context 'when using the merge option' do
+      it 'merges the new value into the existing one' do
+        expect(file_set.title).to eq(['Initial File Set'])
+
+        update_generator = Skullrax::ValkyrieFileSetGenerator.new(id: file_set.id, title: ['With Two Titles'])
+        update_generator.update(merge: true)
+        updated_file_set = Hyrax.query_service.find_by(id: file_set.id)
+        expect(updated_file_set.title).to contain_exactly('Initial File Set', 'With Two Titles')
+      end
+    end
+
+    context 'when using autofill' do
+      it 'fills in all settable properties' do
+        expect(file_set.description).to be_empty
+
+        update_generator = described_class.new(id: file_set.id)
+        result = update_generator.update(autofill: true)
+
+        expect(result).to be_success
+        expect(update_generator.resource.description).to eq ['Test description']
+        expect(update_generator.resource.subject).to eq ['Test subject']
+      end
+
+      it 'can use the except option to omit properties' do
+        expect(file_set.description).to be_empty
+        expect(file_set.subject).to be_empty
+
+        update_generator = described_class.new(id: file_set.id)
+        result = update_generator.update(autofill: true, except: :subject)
+
+        expect(result).to be_success
+        expect(update_generator.resource.description).to eq ['Test description']
+        expect(update_generator.resource.subject).to be_empty
+      end
+    end
+  end
+end

@@ -40,10 +40,6 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
-    def form
-      @form ||= Hyrax::Forms::ResourceForm.for(resource:).tap(&:prepopulate!)
-    end
-
     def params
       { attributes_key => params_hash }
     end
