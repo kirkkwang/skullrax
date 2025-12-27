@@ -526,4 +526,34 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       end
     end
   end
+
+  describe '#destroy' do
+    let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
+
+    it 'deletes an existing work and its file_set' do
+      generator = described_class.new(file_paths: file1)
+      generator.generate
+      work = generator.resource
+
+      expect(work).to be_persisted
+      expect(work.member_ids.length).to eq 1
+
+      file_set = Hyrax.query_service.find_by(id: work.member_ids.first)
+      expect(file_set).to be_persisted
+
+      destroy_generator = described_class.new(id: work.id)
+      result = destroy_generator.destroy
+
+      expect(result).to be_success
+
+      expect { Hyrax.query_service.find_by(id: work.id) }.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+      expect { Hyrax.query_service.find_by(id: file_set.id) }.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+    end
+
+    it 'will error if the work does not exist' do
+      generator = described_class.new(id: 'nonexistent-work-id')
+
+      expect { generator.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+  end
 end

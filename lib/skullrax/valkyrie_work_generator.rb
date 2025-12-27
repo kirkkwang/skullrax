@@ -46,6 +46,15 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
+    def perform_destroy_action
+      result = transactions['work_resource.destroy']
+               .with_step_args('work_resource.delete' => { user: },
+                               'work_resource.delete_all_file_sets' => { user: })
+               .call(resource)
+
+      result.success? ? handle_success(result) : handle_failure(result)
+    end
+
     def action
       @action ||=
         Hyrax::Action::CreateValkyrieWork.new(form:, transactions:, user:, params:, work_attributes_key: attributes_key)

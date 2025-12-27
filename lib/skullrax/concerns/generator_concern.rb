@@ -35,6 +35,10 @@ module Skullrax
       execute_update
     end
 
+    def destroy
+      execute_destroy
+    end
+
     def parameter_builder
       ParameterBuilder.new(model:, fill_mode:, except:, **kwargs)
     end
@@ -53,6 +57,11 @@ module Skullrax
       merge_attributes
       validate_form
       perform_update_action
+    end
+
+    def execute_destroy
+      retrieve_existing_resource
+      perform_destroy_action
     end
 
     def check_id
