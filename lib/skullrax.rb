@@ -4,6 +4,8 @@ require_relative 'skullrax/version'
 
 require_relative 'skullrax/concerns/object_not_found'
 require_relative 'skullrax/concerns/schema_property_filter_concern'
+require_relative 'skullrax/concerns/resource_management_concern'
+require_relative 'skullrax/concerns/transaction_concern'
 require_relative 'skullrax/concerns/generator_concern'
 
 require_relative 'skullrax/handlers/visibility_handler'

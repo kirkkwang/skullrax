@@ -2,13 +2,15 @@
 
 module Skullrax
   module GeneratorConcern
+    include ResourceManagementConcern
+    include TransactionConcern
+    include Skullrax::ObjectNotFound
+
     attr_accessor :errors, :autofill, :except, :fill_mode
     attr_reader :id, :kwargs, :merge, :merged_kwargs
     attr_writer :resource
 
     delegate :required_properties, :settable_properties, to: :parameter_builder
-
-    include Skullrax::ObjectNotFound
 
     def generate(autofill: false, fill_required: true, except: [])
       @fill_mode = if autofill
@@ -64,26 +66,6 @@ module Skullrax
       perform_destroy_action
     end
 
-    def check_id
-      return unless id.present?
-
-      begin
-        Hyrax.query_service.find_by(id:)
-        raise Skullrax::IdAlreadyExistsError, "ID '#{id}' is already in use. Update not yet implemented."
-      rescue *object_not_found_errors
-        true
-      end
-    end
-
-    def retrieve_existing_resource
-      raise Skullrax::ArgumentError, 'ID required for updates' unless id.present?
-
-      existing_resource = Hyrax.query_service.find_by(id:)
-      assign_resource(existing_resource)
-    rescue *object_not_found_errors
-      raise Skullrax::ObjectNotFoundError, "No resource found with ID '#{id}' to update."
-    end
-
     def merge_attributes
       existing_attrs = resource.attributes
 
@@ -96,10 +78,6 @@ module Skullrax
       merge && value.is_a?(Array)
     end
 
-    def assign_resource(resource)
-      self.resource = resource
-    end
-
     def form
       @form ||= Hyrax::Forms::ResourceForm.for(resource:).tap(&:prepopulate!)
     end
@@ -108,32 +86,12 @@ module Skullrax
       form.validate(merged_kwargs || params[attributes_key])
     end
 
-    def handle_success(result)
-      assign_resource(result.value!)
-      result
-    end
-
-    def handle_failure(result)
-      formatter = ErrorFormatter.new(result)
-      formatter.log
-      @errors << formatter.format
-      result
-    end
-
     def params_hash
       @params_hash ||= parameter_builder.build
     end
 
     def attributes_key
       model.model_name.param_key
-    end
-
-    def user
-      @user ||= User.find_by_email('admin@example.com')
-    end
-
-    def transactions
-      Hyrax::Transactions::Container
     end
   end
 end
