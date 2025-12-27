@@ -3,6 +3,7 @@
 RSpec.describe Skullrax::ValkyrieFileSetGenerator do
   before do
     create(:admin, email: 'admin@example.com')
+    generator.generate
   end
 
   let(:file_paths) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
@@ -13,10 +14,6 @@ RSpec.describe Skullrax::ValkyrieFileSetGenerator do
   let(:file_set) { Hyrax.query_service.find_by(id: work.member_ids.first) }
 
   describe '#update' do
-    before do
-      generator.generate
-    end
-
     let(:file_set_params) do
       [{ title: ['Initial File Set'] }]
     end
@@ -72,6 +69,31 @@ RSpec.describe Skullrax::ValkyrieFileSetGenerator do
         expect(update_generator.resource.description).to eq ['Test description']
         expect(update_generator.resource.subject).to be_empty
       end
+    end
+  end
+
+  describe '#destroy' do
+    let(:file_set_params) do
+      [{ title: ['File Set to be Deleted'] }]
+    end
+
+    it 'deletes an existing file set' do
+      expect(file_set).to be_persisted
+
+      destroy_generator = Skullrax::ValkyrieFileSetGenerator.new(id: file_set.id)
+      result = destroy_generator.destroy
+
+      expect(result).to be_success
+      expect { Hyrax.query_service.find_by(id: file_set.id) }.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+
+      updated_work = Hyrax.query_service.find_by(id: work.id)
+      expect(updated_work.member_ids).not_to include(file_set.id)
+    end
+
+    it 'will error if the file set does not exist' do
+      generator = described_class.new(id: 'nonexistent-file-set-id')
+
+      expect { generator.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
     end
   end
 end

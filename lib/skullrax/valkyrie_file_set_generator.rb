@@ -30,6 +30,15 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
+    def perform_destroy_action
+      result = transactions['file_set.destroy']
+               .with_step_args('file_set.remove_from_work' => { user: },
+                               'file_set.delete' => { user: })
+               .call(resource)
+
+      result.success? ? handle_success(result) : handle_failure(result)
+    end
+
     def model
       Hyrax.config.file_set_class
     end
