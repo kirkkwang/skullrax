@@ -40,6 +40,15 @@ module Skullrax
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
+    def perform_destroy_action
+      result = transactions['collection_resource.destroy']
+               .with_step_args('collection_resource.delete' => { user: },
+                               'collection_resource.remove_from_membership' => { user: })
+               .call(resource)
+
+      result.success? ? handle_success(result) : handle_failure(result)
+    end
+
     def params
       { attributes_key => params_hash }
     end

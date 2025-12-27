@@ -311,4 +311,26 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
       end
     end
   end
+
+  describe '#destroy' do
+    it 'deletes an existing collection' do
+      generator = described_class.new
+      generator.generate
+      collection = generator.resource
+      expect(collection).to be_persisted
+
+      destroy_generator = described_class.new(id: collection.id)
+      result = destroy_generator.destroy
+
+      expect(result).to be_success
+      expect { Hyrax.query_service.find_by(id: collection.id) }
+        .to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+    end
+
+    it 'will error if the collection does not exist' do
+      generator = described_class.new(id: 'nonexistent-collection-id')
+
+      expect { generator.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+  end
 end
