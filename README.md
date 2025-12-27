@@ -251,7 +251,7 @@ file_set_params: { title: ['My Title'] }
 
 Unsupported properties are silently ignored - Hyrax will filter them out based on `FileSet.user_settable_attributes`:
 ```ruby
-Skullrax::ValkyrieWorkCreator.new(
+Skullrax::ValkyrieWorkGenerator.new(
   file_paths: '/path/to/file.pdf',
   file_set_params: {
     title: 'Valid Title',
@@ -477,11 +477,97 @@ For file sets:
 - `file` - Required. Path or URL to the file
 - Any other file set metadata fields (e.g., `title`, `creator`, `keyword`)
 
+### Updating Works and Collections
+
+Skullrax allows you to update existing works and collections by passing in the resource ID.
+
+#### Basic Update
+
+Update a work by replacing provided fields:
+```ruby
+generator = Skullrax::ValkyrieWorkGenerator.new(id: 'work-123', title: ['Updated Title'])
+generator.update
+# Result: title is replaced with ['Updated Title'], other fields unchanged
+```
+
+#### Update with Merge
+
+Append to multi-value fields instead of replacing:
+```ruby
+# Work currently has: title: ['Original Title']
+generator = Skullrax::ValkyrieWorkGenerator.new(id: 'work-123', title: ['New Title'])
+generator.update(merge: true)
+# Result: title: ['Original Title', 'New Title']
+```
+
+**Note:** Singular fields (like `depositor` or `admin_set_id`) are always replaced, regardless of the merge setting.
+
+#### Update with Autofill
+
+Fill in any empty fields with test data:
+```ruby
+# Work has minimal data, want to fill everything out
+generator = Skullrax::ValkyrieWorkGenerator.new(id: 'work-123')
+generator.update(autofill: true)
+# Fills in any empty fields with "Test <property>" values
+```
+
+#### Update with Exclusions
+
+Update while excluding specific properties:
+```ruby
+generator = Skullrax::ValkyrieWorkGenerator.new(id: 'work-123')
+generator.update(autofill: true, except: [:description, :based_near])
+# Fills all fields except description and based_near
+```
+
+#### Adding Files to Existing Works
+
+Files are always added to works, never replaced:
+```ruby
+# Work has 2 existing file sets
+generator = Skullrax::ValkyrieWorkGenerator.new(
+  id: 'work-123',
+  file_paths: '/path/to/new-file.pdf'
+)
+generator.update
+# Result: Work now has 3 file sets (2 existing + 1 new)
+```
+
+#### Updating Collections
+
+Collections work the same way:
+```ruby
+# Basic update
+Skullrax::ValkyrieCollectionGenerator.new(
+  id: 'collection-456',
+  title: ['Updated Collection Title']
+).update
+
+# With merge
+Skullrax::ValkyrieCollectionGenerator.new(
+  id: 'collection-456',
+  description: ['Additional description']
+).update(merge: true)
+
+# With autofill
+Skullrax::ValkyrieCollectionGenerator.new(
+  id: 'collection-456'
+).update(autofill: true, except: :hide_from_catalog_search)
+```
+
+#### Update Behavior Summary
+
+- **Default (replace)**: Replaces provided fields, keeps others unchanged
+- **merge: true**: Appends to multi-value arrays, keeps others unchanged
+- **autofill: true**: Fills empty fields after merging/replacing
+- **except**: Excludes specific properties from autofill
+
 ### Error Handling
 
 Check for errors after work creation:
 ```ruby
-creator = Skullrax::ValkyrieWorkCreator.new(title: ['My Work'])
+creator = Skullrax::ValkyrieWorkGenerator.new(title: ['My Work'])
 result = creator.generate
 
 # Check if creation was successful
@@ -498,7 +584,7 @@ end
 
 Add works to collections:
 ```ruby
-Skullrax::ValkyrieWorkCreator.new(
+Skullrax::ValkyrieWorkGenerator.new(
   member_of_collection_ids: ['collection-123']
 ).generate
 ```
@@ -514,7 +600,7 @@ Skullrax::ValkyrieCollectionGenerator.new(
 
 Adding a work as a child work:
 ```ruby
-Skullrax::ValkyrieWorkCreator.new(
+Skullrax::ValkyrieWorkGenerator.new(
   member_ids: ['child-work-123']
 ).generate
 ```
@@ -557,7 +643,7 @@ Specify custom IDs for works and collections instead of auto-generated ones:
 
 #### Custom Work ID
 ```ruby
-Skullrax::ValkyrieWorkCreator.new(
+Skullrax::ValkyrieWorkGenerator.new(
   id: 'custom-work-id-123'
 ).generate
 ```
