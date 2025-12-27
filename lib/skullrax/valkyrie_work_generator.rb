@@ -2,7 +2,7 @@
 
 module Skullrax
   class ValkyrieWorkGenerator
-    attr_reader :model
+    attr_reader :model, :file_paths, :file_set_params
 
     include Skullrax::GeneratorConcern
 
@@ -35,9 +35,14 @@ module Skullrax
       Wings::ModelRegistry.reverse_lookup(model) || model
     end
 
-    def perform_action
+    def perform_create_action
       action.validate
-      result = transaction_executor.execute
+      result = transaction_executor.create
+      result.success? ? handle_success(result) : handle_failure(result)
+    end
+
+    def perform_update_action
+      result = transaction_executor.update
       result.success? ? handle_success(result) : handle_failure(result)
     end
 
@@ -68,7 +73,7 @@ module Skullrax
     end
 
     def file_set_params_builder
-      @file_set_params_builder ||= FileSetParamsBuilder.new(@file_paths, @file_set_params, user)
+      @file_set_params_builder ||= FileSetParamsBuilder.new(file_paths, file_set_params, user)
     end
 
     def admin_set_id

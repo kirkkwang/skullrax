@@ -28,8 +28,7 @@ require_relative 'skullrax/importers/work_row_preparer'
 module Skullrax
   class Error < StandardError; end
   class InvalidControlledVocabularyTerm < Error; end
-  class CollectionNotFoundError < Error; end
-  class WorkNotFoundError < Error; end
+  class ObjectNotFoundError < Error; end
   class IdAlreadyExistsError < Error; end
   class ArgumentError < Error; end
 

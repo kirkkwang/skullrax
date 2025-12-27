@@ -19,13 +19,23 @@ module Skullrax
 
     private
 
-    def perform_action
+    def perform_create_action
       form.validate(params)
 
       result =
         transactions['change_set.create_collection']
-        .with_step_args(**collection_step_args)
+        .with_step_args(**create_step_args)
         .call(form)
+
+      result.success? ? handle_success(result) : handle_failure(result)
+    end
+
+    def perform_update_action
+      form.validate(merged_kwargs)
+
+      result = transactions['change_set.update_collection']
+               .with_step_args(**update_step_args)
+               .call(form)
 
       result.success? ? handle_success(result) : handle_failure(result)
     end
@@ -38,11 +48,22 @@ module Skullrax
       { attributes_key => params_hash }
     end
 
-    def collection_step_args
+    def create_step_args
       {
         'change_set.set_user_as_depositor' => { user: },
         'change_set.add_to_collections' => { collection_ids: Array(params[:parent_id]) },
         'collection_resource.apply_collection_type_permissions' => { user: }
+      }
+    end
+
+    def update_step_args
+      {
+        'collection_resource.save_collection_banner' => {
+          update_banner_file_ids: [], banner_unchanged_indicator: true
+        },
+        'collection_resource.save_collection_logo' => {
+          update_logo_file_ids: [], alttext_values: [], linkurl_values: [], logo_unchanged_indicator: false
+        }
       }
     end
 

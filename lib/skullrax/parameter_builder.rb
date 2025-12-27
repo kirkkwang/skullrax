@@ -59,7 +59,7 @@ module Skullrax
 
     def add_custom_attributes(hash)
       kwargs.each do |key, value|
-        validate_existence(key, value) if relationship_key?(key)
+        validate_existence(value) if relationship_key?(key)
         hash[key] = process_attribute(key, value)
       end
     end
@@ -82,16 +82,12 @@ module Skullrax
       %i[member_of_collection_ids member_ids].include?(key)
     end
 
-    def validate_existence(key, ids)
+    def validate_existence(ids)
       Array.wrap(ids).each do |id|
         Hyrax.query_service.find_by(id:)
       rescue *object_not_found_errors
-        raise error_klass_for(key), "#{id} not found.  Create it first or use a valid ID."
+        raise Skullrax::ObjectNotFoundError, "#{id} not found.  Create it first or use a valid ID."
       end
-    end
-
-    def error_klass_for(key)
-      key == :member_of_collection_ids ? Skullrax::CollectionNotFoundError : Skullrax::WorkNotFoundError
     end
 
     def based_near_handler

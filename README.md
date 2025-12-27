@@ -503,7 +503,7 @@ Skullrax::ValkyrieWorkCreator.new(
 ).generate
 ```
 
-The collection must exist before adding works to it. If the collection is not found, a `Skullrax::CollectionNotFoundError` will be raised.
+The collection must exist before adding works to it. If the collection is not found, a `Skullrax::ObjectNotFoundError` will be raised.
 
 You can also add collections as members of other collections:
 ```ruby
@@ -519,7 +519,7 @@ Skullrax::ValkyrieWorkCreator.new(
 ).generate
 ```
 
-The works must exist before adding them to a collection. If any work is not found, a `Skullrax::WorkNotFoundError` will be raised.
+The works must exist before adding them to a collection. If any work is not found, a `Skullrax::ObjectNotFoundError` will be raised.
 
 ## Collection Creation
 

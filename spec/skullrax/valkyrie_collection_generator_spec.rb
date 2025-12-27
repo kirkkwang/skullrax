@@ -205,7 +205,7 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
         it 'raises an error if the collection does not exist' do
           generator = described_class.new(member_of_collection_ids: ['nonexistent-collection-id'])
 
-          expect { generator.generate }.to raise_error(Skullrax::CollectionNotFoundError)
+          expect { generator.generate }.to raise_error(Skullrax::ObjectNotFoundError)
         end
       end
     end
@@ -242,6 +242,73 @@ RSpec.describe Skullrax::ValkyrieCollectionGenerator do
 
       expect(generator.resource.id).to be_nil
       expect(generator.errors).not_to be_empty
+    end
+  end
+
+  describe '#update' do
+    it 'updates an existing collection' do
+      generator = described_class.new(title: ['Original Title'])
+      generator.generate
+      collection_id = generator.resource.id
+
+      update_generator = described_class.new(id: collection_id, title: 'Updated Title')
+      result = update_generator.update
+
+      expect(result).to be_success
+      expect(update_generator.resource.id).to eq collection_id
+      expect(update_generator.resource.title).to eq ['Updated Title']
+    end
+
+    it 'will error if the collection does not exist' do
+      generator = described_class.new(id: 'nonexistent-collection-id', title: 'Updated Title')
+
+      expect { generator.update }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+
+    context 'when using the merge option' do
+      it 'merges the new value into the existing one' do
+        generator = described_class.new(subject: %w[History Science])
+        generator.generate
+        collection_id = generator.resource.id
+
+        update_generator = described_class.new(id: collection_id, subject: ['Art'], merge: true)
+        result = update_generator.update(merge: true)
+
+        expect(result).to be_success
+        expect(update_generator.resource.id).to eq collection_id
+        expect(update_generator.resource.subject).to contain_exactly('History', 'Science', 'Art')
+      end
+    end
+
+    context 'when using autofill' do
+      it 'fills in all settable properties' do
+        generator = described_class.new(title: ['Some Title'])
+        generator.generate
+        collection = generator.resource
+        expect(collection.description).to be_empty
+
+        update_generator = described_class.new(id: collection.id)
+        result = update_generator.update(autofill: true)
+
+        expect(result).to be_success
+        expect(update_generator.resource.description).to eq ['Test description']
+        expect(update_generator.resource.subject).to eq ['Test subject']
+      end
+
+      it 'can use the except option to omit properties' do
+        generator = described_class.new(title: ['Some Title'])
+        generator.generate
+        collection = generator.resource
+        expect(collection.description).to be_empty
+        expect(collection.subject).to be_empty
+
+        update_generator = described_class.new(id: collection.id)
+        result = update_generator.update(autofill: true, except: ['subject'])
+
+        expect(result).to be_success
+        expect(update_generator.resource.description).to eq ['Test description']
+        expect(update_generator.resource.subject).to be_empty
+      end
     end
   end
 end
