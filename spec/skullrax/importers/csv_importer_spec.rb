@@ -262,38 +262,50 @@ RSpec.describe Skullrax::CsvImporter do
       csv = <<~CSV
         model,title,file
         Collection,Test Collection
-        GenericWork,Test Work
-        FileSet,Test FileSet,spec/fixtures/files/test_file.png
+        GenericWork,Test Work 1
+        FileSet,Test FileSet 1,spec/fixtures/files/test_file.png
+        FileSet,Test FileSet 2,spec/fixtures/files/test_file.txt
+        GenericWork,Test Work 2
+        FileSet,Test FileSet 3,spec/fixtures/files/test_file.txt
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:)
       importer.import
       resources = importer.resources
       collection = resources.find(&:collection?)
-      work = resources.find(&:work?)
-      file_set = resources.find(&:file_set?)
+      work1, work2 = resources.select(&:work?)
+      file_set1, file_set2, file_set3 = resources.select(&:file_set?)
 
       expect(collection.title).to eq(['Test Collection'])
-      expect(work.title).to eq(['Test Work'])
-      expect(file_set.title).to eq(['Test FileSet'])
+      expect(work1.title).to eq(['Test Work 1'])
+      expect(file_set1.title).to eq(['Test FileSet 1'])
+      expect(file_set2.title).to eq(['Test FileSet 2'])
+      expect(work2.title).to eq(['Test Work 2'])
+      expect(file_set3.title).to eq(['Test FileSet 3'])
 
       update_csv = <<~CSV
         id,title
         #{collection.id},Updated Collection Title
-        #{work.id},Updated Work Title
-        #{file_set.id},Updated FileSet Title
+        #{work1.id},Updated Work 1 Title
+        #{file_set1.id},Updated FileSet 1 Title
+        #{file_set2.id},Updated FileSet 2 Title
+        #{work2.id},Updated Work 2 Title
+        #{file_set3.id},Updated FileSet 3 Title
       CSV
 
       importer = Skullrax::CsvImporter.new(csv: update_csv)
       importer.update
       updated_resources = importer.resources
       updated_collection = updated_resources.find(&:collection?)
-      updated_work = updated_resources.find(&:work?)
-      updated_file_set = updated_resources.find(&:file_set?)
+      updated_work1, updated_work2 = updated_resources.select(&:work?)
+      updated_file_set1, updated_file_set2, updated_file_set3 = updated_resources.select(&:file_set?)
 
       expect(updated_collection.title).to eq(['Updated Collection Title'])
-      expect(updated_work.title).to eq(['Updated Work Title'])
-      expect(updated_file_set.title).to eq(['Updated FileSet Title'])
+      expect(updated_work1.title).to eq(['Updated Work 1 Title'])
+      expect(updated_file_set1.title).to eq(['Updated FileSet 1 Title'])
+      expect(updated_file_set2.title).to eq(['Updated FileSet 2 Title'])
+      expect(updated_work2.title).to eq(['Updated Work 2 Title'])
+      expect(updated_file_set3.title).to eq(['Updated FileSet 3 Title'])
     end
 
     it 'raises an error if any rows are missing IDs' do

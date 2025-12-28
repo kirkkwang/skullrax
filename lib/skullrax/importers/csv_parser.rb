@@ -4,24 +4,43 @@ module Skullrax
   class CsvParser
     include SchemaPropertyFilterConcern
 
-    def initialize(importer:)
-      @csv = importer.csv
-      @delimiter = importer.delimiter
-      @action = importer.action
-      @found_resources = importer.found_resources
+    attr_reader :found_resources
+
+    def initialize(csv:, delimiter:, action:, found_resources: [])
+      @csv = csv
+      @delimiter = delimiter
+      @action = action
+      self.found_resources = found_resources
+    end
+
+    def found_resources=(resources)
+      @found_resources = resources
+      @found_resources_by_id = resources.index_by { |r| r.id.to_s }
     end
 
     def parse
-      parsed_csv_rows.map { |row| process_row(row) }
+      parsed_csv_table.map.with_index { |row, i| process_row(row, i) }
+    end
+
+    def validate_ids_present!
+      missing_count = parsed_csv_table.count { |r| r[:id].blank? }
+      return if missing_count.zero?
+
+      raise Skullrax::ArgumentError, "Update requires ID column for all rows. #{missing_count} rows missing IDs."
+    end
+
+    def raw_ids
+      Array(parsed_csv_table[:id]).compact
+    end
+
+    def parsed_csv_table
+      @parsed_csv_table ||=
+        CSV.parse(csv, headers: true, header_converters: [->(h) { header_mappings.fetch(h, h) }, :symbol])
     end
 
     private
 
-    attr_reader :importer, :csv, :delimiter, :action, :found_resources
-
-    def parsed_csv_rows
-      CSV.parse(csv, headers: true, header_converters: ->(header) { header_mappings.fetch(header, header) })
-    end
+    attr_reader :csv, :delimiter, :action, :found_resources_by_id
 
     def header_mappings
       {
@@ -29,14 +48,23 @@ module Skullrax
       }
     end
 
-    def process_row(row)
-      symbolized_hash(row).tap { |hash| split_delimited_values!(hash) }
+    def process_row(row, index)
+      hash = row.to_h
+      inject_existing_model!(hash)
+      normalize_hash!(hash)
+      Skullrax::CsvRow.new(hash:, index:)
     end
 
-    def symbolized_hash(row)
-      hash = row.to_h.compact.transform_keys(&:to_sym)
+    def inject_existing_model!(hash)
+      id = hash[:id]
+      return unless id && (resource = found_resources_by_id[id])
+
+      hash[:model] = resource.class.to_s
+    end
+
+    def normalize_hash!(hash)
       hash[:model] = normalize_and_constantize(hash[:model])
-      hash
+      split_delimited_values!(hash)
     end
 
     def split_delimited_values!(hash)
@@ -56,9 +84,9 @@ module Skullrax
     end
 
     def unique_models
-      @unique_models ||= parsed_csv_rows.filter_map { |row| row['model'] }
-                                        .uniq
-                                        .map { |model_string| normalize_and_constantize(model_string) }
+      @unique_models ||= parsed_csv_table.filter_map { |row| row[:model] }
+                                         .uniq
+                                         .map { |m| normalize_and_constantize(m) }
     end
 
     def split_value(value)

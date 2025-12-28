@@ -21,7 +21,7 @@ module Skullrax
     end
 
     def consecutive_file_sets(starting_index)
-      rows[starting_index..].take_while { |row| row[:model]&.file_set? }
+      rows[starting_index..].take_while(&:file_set?)
     end
 
     def mark_indices(starting_index, file_set_rows)
