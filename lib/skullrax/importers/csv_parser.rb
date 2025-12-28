@@ -7,6 +7,8 @@ module Skullrax
     def initialize(importer:)
       @csv = importer.csv
       @delimiter = importer.delimiter
+      @action = importer.action
+      @found_resources = importer.found_resources
     end
 
     def parse
@@ -15,7 +17,7 @@ module Skullrax
 
     private
 
-    attr_reader :csv, :delimiter
+    attr_reader :importer, :csv, :delimiter, :action, :found_resources
 
     def parsed_csv_rows
       CSV.parse(csv, headers: true, header_converters: ->(header) { header_mappings.fetch(header, header) })

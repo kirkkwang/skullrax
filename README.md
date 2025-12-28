@@ -454,6 +454,69 @@ importer.import(autofill: true, except: [:video_embed, :based_near])
 
 By default, autofill is false and if the CSV does not provide required fields, work creation will fail.
 
+#### Updating Resources via CSV
+
+Update existing collections, works, and file sets by providing their IDs:
+```ruby
+csv = <<~CSV
+  id,title,creator,description
+  work-123,Updated Work Title,Updated Creator,New description
+  collection-456,Updated Collection,Updated Creator,New description
+  file-set-789,Updated File Set,Updated Creator,New description
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.update
+```
+
+**Requirements:**
+- All rows must include an `id` column
+- All IDs must exist in the database (error raised if any ID is not found)
+- The `model` column is ignored - resources keep their existing type
+
+**Update with Merge:**
+
+By default, updates replace field values. Use `merge: true` to append to existing values:
+```ruby
+# Work currently has: subject: ['History']
+csv = <<~CSV
+  id,subject
+  work-123,Science;Art
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.update(merge: true)
+# Result: subject: ['History', 'Science', 'Art']
+```
+
+**Update with Autofill:**
+
+Fill in empty fields with test data:
+```ruby
+csv = <<~CSV
+  id
+  work-123
+  collection-456
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.update(autofill: true)
+# Fills all empty fields with "Test <property>" values
+```
+
+**Update with Exclusions:**
+
+Combine autofill with exclusions:
+```ruby
+importer.update(autofill: true, except: [:description, :based_near])
+# Fills all fields except description and based_near
+```
+
+**Important Notes:**
+- File sets are updated independently, not bundled with their parent work
+- The model cannot be changed during update (a GenericWork stays a GenericWork)
+- Updates preserve fields not included in the CSV
+
 #### Supported Model Types
 
 CSV import supports:
