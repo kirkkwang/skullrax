@@ -30,6 +30,16 @@ module Skullrax
       processor.process(parser.parse, action:, merge:, autofill:, except:)
     end
 
+    def destroy
+      validate_csv_input!
+      @action = :destroy
+
+      parser.validate_ids_present!
+      parser.found_resources = ResourceFetcher.fetch(ids: parser.raw_ids)
+
+      processor.process(parser.parse, action:)
+    end
+
     private
 
     def validate_csv_input!

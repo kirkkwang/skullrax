@@ -14,7 +14,7 @@ An easy programmatic way to create Valkyrie works in Hyrax 5 based applications 
 - **File Attachment**: Support for local and remote file uploads
 - **File Set Metadata**: Set individual metadata for each attached file
 - **Visibility Management**: Configure visibility including embargoes and leases
-- **CSV Batch Import**: Import multiple works, collections, and file sets at once
+- **CSV Batch Operations**: Import, update, or delete multiple resources at once via CSV
 - **Hyku Compatible**: Handles Hyku's authority naming quirks (e.g., `audience.yml` vs `audiences.yml`)
 - **Error Handling**: Comprehensive error tracking for debugging
 
@@ -516,6 +516,28 @@ importer.update(autofill: true, except: [:description, :based_near])
 - File sets are updated independently, not bundled with their parent work
 - The model cannot be changed during update (a GenericWork stays a GenericWork)
 - Updates preserve fields not included in the CSV
+
+#### Deleting Resources via CSV
+
+Bulk delete collections, works, and file sets by providing their IDs:
+
+```ruby
+csv = <<~CSV
+  id
+  work-123
+  collection-456
+  file-set-789
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.destroy
+```
+
+**Requirements:**
+- All rows must include an id column
+- All IDs must exist in the database (error raised if any ID is not found)
+
+**Safe Deletion:** Skullrax automatically prioritizes deletion order (File Sets → Works → Collections) to ensure file sets are cleanly unlinked from their parents before the parents are destroyed.
 
 #### Supported Model Types
 

@@ -543,4 +543,93 @@ RSpec.describe Skullrax::CsvImporter do
       end
     end
   end
+
+  describe '#destroy' do
+    it 'can destroy resources from a CSV' do
+      csv = <<~CSV
+        model,title,file
+        Collection,Test Collection
+        GenericWork,Test Work 1
+        FileSet,Test FileSet 1,spec/fixtures/files/test_file.png
+        FileSet,Test FileSet 2,spec/fixtures/files/test_file.txt
+        GenericWork,Test Work 2
+        FileSet,Test FileSet 3,spec/fixtures/files/test_file.txt
+      CSV
+
+      importer = Skullrax::CsvImporter.new(csv:)
+      importer.import
+      resources = importer.resources
+      collection = resources.find(&:collection?)
+      work1, work2 = resources.select(&:work?)
+      file_set1, file_set2, file_set3 = resources.select(&:file_set?)
+
+      expect(collection.title).to eq(['Test Collection'])
+      expect(work1.title).to eq(['Test Work 1'])
+      expect(file_set1.title).to eq(['Test FileSet 1'])
+      expect(file_set2.title).to eq(['Test FileSet 2'])
+      expect(work2.title).to eq(['Test Work 2'])
+      expect(file_set3.title).to eq(['Test FileSet 3'])
+
+      destroy_csv = <<~CSV
+        id
+        #{collection.id}
+        #{work1.id}
+        #{file_set1.id}
+        #{file_set2.id}
+        #{work2.id}
+        #{file_set3.id}
+      CSV
+
+      destroy_importer = Skullrax::CsvImporter.new(csv: destroy_csv)
+      destroy_importer.destroy
+
+      expect(destroy_importer.resources).to be_empty
+      expect do
+        Hyrax.query_service.find_by(id: collection.id)
+      end.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+      expect { Hyrax.query_service.find_by(id: work1.id) }.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+      expect do
+        Hyrax.query_service.find_by(id: file_set1.id)
+      end.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+      expect do
+        Hyrax.query_service.find_by(id: file_set2.id)
+      end.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+      expect { Hyrax.query_service.find_by(id: work2.id) }.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+      expect do
+        Hyrax.query_service.find_by(id: file_set3.id)
+      end.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+    end
+
+    it 'raises an error if any rows are missing IDs' do
+      csv = <<~CSV
+        model,title
+        Collection,Collection Without ID
+        GenericWork,Work Without ID
+        FileSet,FileSet Without ID
+      CSV
+
+      importer = Skullrax::CsvImporter.new(csv:)
+
+      expect { importer.destroy }.to raise_error(Skullrax::ArgumentError)
+    end
+
+    it 'raises an error if any IDs do not exist' do
+      generator = Skullrax::ValkyrieCollectionGenerator.new(id: 'collection-123')
+      generator.generate
+      collection = Hyrax.query_service.find_by(id: 'collection-123')
+
+      expect(collection).to be_persisted
+
+      csv = <<~CSV
+        model,id,title
+        Collection,collection-123,Nonexistent Collection
+        GenericWork,nonexistent-work-id,Nonexistent Work
+        FileSet,nonexistent-fileset-id,Nonexistent FileSet
+      CSV
+
+      importer = Skullrax::CsvImporter.new(csv:)
+
+      expect { importer.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+  end
 end

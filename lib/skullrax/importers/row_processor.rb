@@ -31,14 +31,17 @@ module Skullrax
 
     private
 
-    attr_reader :rows, :current_collection, :indices_to_skip, :merge, :autofill, :except, :action
+    attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action
+    attr_accessor :rows
 
     def process_each_row
-      rows.each { |row| process_row_at_index(row) }
+      queue = destroy? ? rows_ordered_for_destruction : rows
+      queue.each { |row| process_row_at_index(row) }
     end
 
     def process_row_at_index(row)
       return if indices_to_skip.include?(row.index)
+      return destroy_row(row) if destroy?
 
       import_row(row)
     end
@@ -102,11 +105,23 @@ module Skullrax
       resources << generator.resource
     end
 
+    def destroy_row(row)
+      resource_processor.generate_resource(row:)
+    end
+
+    def rows_ordered_for_destruction
+      # Ensure file sets are processed before their parent works
+      file_sets, works_and_collections = rows.partition(&:file_set?)
+      file_sets + works_and_collections
+    end
+
     def resource_processor
       @resource_processor ||=
         ResourceProcessor.new(action:, errors:, merge:, autofill:, except:)
     end
 
     def create? = action == :create
+
+    def destroy? = action == :destroy
   end
 end

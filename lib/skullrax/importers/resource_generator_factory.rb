@@ -17,6 +17,13 @@ module Skullrax
         end
       end
 
+      def destroy(row:, errors:, **_)
+        row.generator_class.new(**row).tap do |generator|
+          generator.destroy
+          add_errors(generator, row.number, errors) if generator.errors.present?
+        end
+      end
+
       private
 
       def add_errors(generator, row_number, errors)

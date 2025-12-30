@@ -26,7 +26,8 @@ module Skullrax
       missing_count = parsed_csv_table.count { |r| r[:id].blank? }
       return if missing_count.zero?
 
-      raise Skullrax::ArgumentError, "Update requires ID column for all rows. #{missing_count} rows missing IDs."
+      raise Skullrax::ArgumentError,
+            "Update and destroy requires ID column for all rows. #{missing_count} rows missing IDs."
     end
 
     def raw_ids
