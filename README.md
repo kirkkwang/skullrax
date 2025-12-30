@@ -562,6 +562,20 @@ For file sets:
 - `file` - Required. Path or URL to the file
 - Any other file set metadata fields (e.g., `title`, `creator`, `keyword`)
 
+#### Dry Run / Validation Mode
+
+Usage example:
+```ruby
+csv = <<~CSV
+  model,title,creator,visibility
+  Collection,Dry Run Collection,Dry Run Creator,open
+  GenericWork,Dry Run Work,Dry Run Creator,open
+CSV
+
+importer = Skullrax::CsvImporter.new(csv:)
+importer.import(dry_run: true)
+```
+
 ### Updating Works and Collections
 
 Skullrax allows you to update existing works and collections by passing in the resource ID.

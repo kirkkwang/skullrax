@@ -12,12 +12,14 @@ module Skullrax
       @errors = []
     end
 
-    def process(rows, action: :create, merge: false, autofill: false, except: [])
+    def process(rows, action: :create, dry_run: false, merge: false, autofill: false, except: []) # rubocop:disable Metrics/ParameterLists
       @rows = rows
       @action = action
+      @dry_run = dry_run
       @merge = merge
       @autofill = autofill
       @except = except
+      @resource_processor = nil
 
       process_each_row
       resources
@@ -31,7 +33,7 @@ module Skullrax
 
     private
 
-    attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action
+    attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action, :dry_run
     attr_accessor :rows
 
     def process_each_row
@@ -116,7 +118,7 @@ module Skullrax
 
     def resource_processor
       @resource_processor ||=
-        ResourceProcessor.new(action:, errors:, merge:, autofill:, except:)
+        ResourceProcessor.new(action:, errors:, dry_run:, merge:, autofill:, except:)
     end
 
     def create? = action == :create

@@ -255,6 +255,55 @@ RSpec.describe Skullrax::CsvImporter do
         expect(importer.works.first.keyword).to contain_exactly('keyword1', 'keyword2', 'keyword3')
       end
     end
+
+    context 'with dry_run' do
+      let(:csv) do
+        <<~CSV
+          model,title,creator,visibility
+          Collection,Dry Run Collection,Dry Run Creator,open
+          GenericWork,Dry Run Work,Dry Run Creator,open
+        CSV
+      end
+
+      it 'validates objects but does not persist them' do
+        importer = described_class.new(csv:)
+
+        expect(Hyrax.query_service.count_all_of_model(model: CollectionResource)).to eq 0
+        expect(Hyrax.query_service.count_all_of_model(model: GenericWorkResource)).to eq 0
+
+        importer.import(dry_run: true)
+
+        expect(Hyrax.query_service.count_all_of_model(model: CollectionResource)).to eq 0
+        expect(Hyrax.query_service.count_all_of_model(model: GenericWorkResource)).to eq 0
+
+        expect(importer.collections.size).to eq 1
+        expect(importer.collections.first.title).to eq(['Dry Run Collection'])
+        expect(importer.collections.first.creator).to eq(['Dry Run Creator'])
+        expect(importer.collections.first.visibility).to eq('open')
+        expect(importer.collections.first).not_to be_persisted
+        expect(importer.works.size).to eq 1
+        expect(importer.works.first.title).to eq(['Dry Run Work'])
+        expect(importer.works.first.creator).to eq(['Dry Run Creator'])
+        expect(importer.works.first.visibility).to eq('open')
+        expect(importer.works.first).not_to be_persisted
+        expect(importer.errors).to be_empty
+      end
+
+      it 'collects validation errors without persisting' do
+        invalid_csv = <<~CSV
+          model,title,creator,visibility
+          GenericWork,,Dry Run Creator,open
+        CSV
+
+        importer = described_class.new(csv: invalid_csv)
+        importer.import(dry_run: true)
+
+        expect(importer.errors).not_to be_empty
+        error_entry = importer.errors.first
+        expect(error_entry[:row_number]).to eq 2
+        expect(error_entry[:errors]).to include("Title can't be blank")
+      end
+    end
   end
 
   describe '#update' do
@@ -542,6 +591,27 @@ RSpec.describe Skullrax::CsvImporter do
         expect(updated_file_set.title).to eq(['Updated File Set'])
       end
     end
+
+    context 'with dry_run' do
+      it 'validates updates without applying them' do
+        generator = Skullrax::ValkyrieWorkGenerator.new(title: ['Original Title'])
+        generator.generate
+        work = generator.resource
+
+        csv = <<~CSV
+          id,title
+          #{work.id},New Dry Run Title
+        CSV
+
+        importer = described_class.new(csv:)
+        importer.update(dry_run: true)
+
+        reloaded_work = Hyrax.query_service.find_by(id: work.id)
+        expect(reloaded_work.title).to eq ['Original Title']
+
+        expect(importer.works.first.title).to eq ['New Dry Run Title']
+      end
+    end
   end
 
   describe '#destroy' do
@@ -630,6 +700,35 @@ RSpec.describe Skullrax::CsvImporter do
       importer = Skullrax::CsvImporter.new(csv:)
 
       expect { importer.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+  end
+
+  context 'with dry_run' do
+    it 'validates existence but does not destroy resources' do
+      generator = Skullrax::ValkyrieWorkGenerator.new(title: ['Work to Keep'])
+      generator.generate
+      work = generator.resource
+
+      csv = <<~CSV
+        id
+        #{work.id}
+      CSV
+
+      importer = described_class.new(csv:)
+      importer.destroy(dry_run: true)
+
+      expect(Hyrax.query_service.find_by(id: work.id)).to be_persisted
+    end
+
+    it 'raises an error if ID does not exist (validation still runs)' do
+      csv = <<~CSV
+        id
+        nonexistent-id
+      CSV
+
+      importer = described_class.new(csv:)
+
+      expect { importer.destroy(dry_run: true) }.to raise_error(Skullrax::ObjectNotFoundError)
     end
   end
 end

@@ -13,31 +13,31 @@ module Skullrax
       @delimiter = delimiter
     end
 
-    def import(autofill: false, except: [])
+    def import(dry_run: false, autofill: false, except: [])
       validate_csv_input!
       @action = :create
 
-      processor.process(parser.parse, autofill:, except:)
+      processor.process(parser.parse, dry_run:, autofill:, except:)
     end
 
-    def update(merge: false, autofill: false, except: [])
+    def update(dry_run: false, merge: false, autofill: false, except: [])
       validate_csv_input!
       @action = :update
 
       parser.validate_ids_present!
       parser.found_resources = ResourceFetcher.fetch(ids: parser.raw_ids)
 
-      processor.process(parser.parse, action:, merge:, autofill:, except:)
+      processor.process(parser.parse, action:, dry_run:, merge:, autofill:, except:)
     end
 
-    def destroy
+    def destroy(dry_run: false)
       validate_csv_input!
       @action = :destroy
 
       parser.validate_ids_present!
       parser.found_resources = ResourceFetcher.fetch(ids: parser.raw_ids)
 
-      processor.process(parser.parse, action:)
+      processor.process(parser.parse, action:, dry_run:)
     end
 
     private
