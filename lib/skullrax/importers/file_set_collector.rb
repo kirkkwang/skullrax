@@ -2,7 +2,7 @@
 
 module Skullrax
   class FileSetCollector
-    def initialize(rows, indices_to_skip)
+    def initialize(rows:, indices_to_skip:)
       @rows = rows
       @indices_to_skip = indices_to_skip
     end

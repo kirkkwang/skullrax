@@ -4,7 +4,7 @@ module Skullrax
   class FileSetParamsBuilder
     attr_reader :file_paths, :file_set_params, :user
 
-    def initialize(file_paths, file_set_params, user)
+    def initialize(file_paths:, file_set_params:, user:)
       @file_paths = Array.wrap(file_paths)
       @file_set_params = Array.wrap(file_set_params)
       @user = user

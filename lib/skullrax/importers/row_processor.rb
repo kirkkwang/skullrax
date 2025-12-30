@@ -70,7 +70,7 @@ module Skullrax
     end
 
     def collect_file_set_rows(work_index)
-      FileSetCollector.new(rows, indices_to_skip).collect_after(work_index)
+      Skullrax::FileSetCollector.new(rows:, indices_to_skip:).collect_after(work_index)
     end
 
     def import_work_and_file_sets(work_row, file_set_rows)

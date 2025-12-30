@@ -61,7 +61,8 @@ module Skullrax
     end
 
     def transaction_executor
-      @transaction_executor ||= WorkTransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
+      @transaction_executor ||=
+        Skullrax::WorkTransactionExecutor.new(action:, params:, user:, form:, file_set_params_builder:)
     end
 
     def form
@@ -82,7 +83,7 @@ module Skullrax
     end
 
     def file_set_params_builder
-      @file_set_params_builder ||= FileSetParamsBuilder.new(file_paths, file_set_params, user)
+      @file_set_params_builder ||= Skullrax::FileSetParamsBuilder.new(file_paths:, file_set_params:, user:)
     end
 
     def admin_set_id
