@@ -187,6 +187,39 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       end
     end
 
+    context 'when the transaction fails internally' do
+      let(:fake_executor) { instance_double(Skullrax::WorkTransactionExecutor) }
+
+      it 'handles the failure gracefully and logs the error' do
+        generator = described_class.new
+        allow(generator).to receive(:transaction_executor).and_return(fake_executor)
+        allow(fake_executor).to receive(:create)
+          .and_return(Dry::Monads::Failure('Something went wrong'))
+
+        result = generator.generate
+
+        expect(result).to be_failure
+        expect(generator.errors).to include('Something went wrong')
+        expect(generator.resource).not_to be_persisted
+      end
+
+      it 'handles complex failure objects gracefully' do
+        generator = described_class.new
+        allow(generator).to receive(:transaction_executor).and_return(fake_executor)
+
+        # Simulate a complex failure object (like Hyrax transactions return)
+        fake_error_object = double('ErrorObject', full_messages: ['Something went wrong'])
+        complex_failure = Dry::Monads::Failure([:save_work, fake_error_object])
+
+        allow(fake_executor).to receive(:create).and_return(complex_failure)
+
+        result = generator.generate
+
+        expect(result).to be_failure
+        expect(generator.errors.first).to include('Something went wrong [save_work]')
+      end
+    end
+
     context 'with files' do
       let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
       let(:file2) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt') }
@@ -430,6 +463,27 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         end
       end
     end
+
+    context 'with dry_run' do
+      it 'builds the resource successfully but does not persist it' do
+        generator = described_class.new
+        result = generator.generate(dry_run: true)
+
+        expect(result).to be_success
+        expect(generator.resource).to be_present
+        expect(generator.resource).not_to be_persisted
+        expect(generator.resource.title).to eq ['Test title']
+      end
+
+      it 'still performs validation and captures errors' do
+        generator = described_class.new
+        result = generator.generate(dry_run: true, fill_required: false)
+
+        expect(result).to be_failure
+        expect(generator.errors).to include("Title can't be blank")
+        expect(generator.resource).not_to be_persisted
+      end
+    end
   end
 
   describe '#create' do
@@ -525,6 +579,38 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         expect(update_generator.resource.member_ids.length).to eq 2
       end
     end
+
+    context 'with dry_run' do
+      it 'applies updates in memory but does not save them to the database' do
+        generator = described_class.new(title: ['Original Title'])
+        generator.generate
+        work_id = generator.resource.id
+
+        update_generator = described_class.new(id: work_id, title: 'Dry Run Title')
+        result = update_generator.update(dry_run: true)
+
+        expect(result).to be_success
+        expect(update_generator.resource.title).to eq ['Dry Run Title']
+
+        reloaded_work = Hyrax.query_service.find_by(id: work_id)
+        expect(reloaded_work.title).to eq ['Original Title']
+      end
+
+      it 'still validates the merge logic' do
+        generator = described_class.new(subject: ['Math'])
+        generator.generate
+        work_id = generator.resource.id
+
+        update_generator = described_class.new(id: work_id, subject: ['Science'])
+        result = update_generator.update(merge: true, dry_run: true)
+
+        expect(result).to be_success
+        expect(update_generator.resource.subject).to contain_exactly('Math', 'Science')
+
+        reloaded_work = Hyrax.query_service.find_by(id: work_id)
+        expect(reloaded_work.subject).to eq ['Math']
+      end
+    end
   end
 
   describe '#destroy' do
@@ -554,6 +640,27 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       generator = described_class.new(id: 'nonexistent-work-id')
 
       expect { generator.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+
+    context 'with dry_run' do
+      it 'validates existence but does not delete the object' do
+        generator = described_class.new
+        generator.generate
+        work_id = generator.resource.id
+
+        destroy_generator = described_class.new(id: work_id)
+        result = destroy_generator.destroy(dry_run: true)
+
+        expect(result).to be_success
+
+        expect(Hyrax.query_service.find_by(id: work_id)).to be_persisted
+      end
+
+      it 'still raises error if the object to destroy is missing' do
+        destroy_generator = described_class.new(id: 'nonexistent-id')
+
+        expect { destroy_generator.destroy(dry_run: true) }.to raise_error(Skullrax::ObjectNotFoundError)
+      end
     end
   end
 end

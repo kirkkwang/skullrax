@@ -5,14 +5,16 @@ module Skullrax
     include ResourceManagementConcern
     include TransactionConcern
     include Skullrax::ObjectNotFound
+    include Dry::Monads[:result]
 
     attr_accessor :errors, :autofill, :except, :fill_mode
-    attr_reader :id, :kwargs, :merge, :merged_kwargs
+    attr_reader :id, :kwargs, :merge, :merged_kwargs, :dry_run
     attr_writer :resource
 
     delegate :required_properties, :settable_properties, to: :parameter_builder
 
-    def generate(autofill: false, fill_required: true, except: [])
+    def generate(autofill: false, fill_required: true, except: [], dry_run: false)
+      @dry_run = dry_run
       @fill_mode = if autofill
                      :all
                    elsif fill_required
@@ -24,20 +26,23 @@ module Skullrax
       execute_creation
     end
 
-    def create
+    def create(dry_run: false)
+      @dry_run = dry_run
       @fill_mode = :none
       @except = []
       execute_creation
     end
 
-    def update(merge: false, autofill: false, except: [])
+    def update(merge: false, autofill: false, except: [], dry_run: false)
+      @dry_run = dry_run
       @merge = merge
       @fill_mode = autofill ? :all : :none
       @except = Array.wrap(except).map(&:to_s)
       execute_update
     end
 
-    def destroy
+    def destroy(dry_run: false)
+      @dry_run = dry_run
       execute_destroy
     end
 
@@ -50,20 +55,51 @@ module Skullrax
     def execute_creation
       check_id
       @merged_kwargs = params_hash
-      validate_form
+      return validation_failure unless valid_for_execution?
+
+      form.sync
+      return dry_run_success if dry_run?
+
       perform_create_action
     end
 
     def execute_update
       retrieve_existing_resource
       merge_attributes
-      validate_form
+      return validation_failure unless valid_for_execution?
+
+      form.sync
+      return dry_run_success if dry_run?
+
       perform_update_action
     end
 
     def execute_destroy
       retrieve_existing_resource
+      return dry_run_success if dry_run?
+
       perform_destroy_action
+    end
+
+    def valid_for_execution?
+      if validate_form
+        true
+      else
+        @errors = form.errors.full_messages
+        false
+      end
+    end
+
+    def validation_failure
+      Failure(@errors)
+    end
+
+    def dry_run_success
+      Success(resource)
+    end
+
+    def dry_run?
+      !!@dry_run
     end
 
     def merge_attributes

@@ -8,9 +8,16 @@ module Skullrax
     end
 
     def handle_failure(result)
-      formatter = ErrorFormatter.new(result)
-      formatter.log
-      @errors << formatter.format
+      val = result.failure
+
+      message = if val.is_a?(Array) && val[1].respond_to?(:full_messages)
+                  "#{val[1].full_messages.to_sentence} [#{val[0]}]"
+                else
+                  val.to_s
+                end
+
+      Rails.logger.error("Skullrax Transaction Failed: #{message}")
+      @errors << message
       result
     end
 

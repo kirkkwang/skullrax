@@ -70,6 +70,34 @@ RSpec.describe Skullrax::ValkyrieFileSetGenerator do
         expect(update_generator.resource.subject).to be_empty
       end
     end
+
+    context 'with dry_run' do
+      it 'applies updates in memory but does not save them to the database' do
+        expect(file_set.subject).to be_empty
+
+        update_generator = described_class.new(id: file_set.id, subject: 'Dry Run Subject')
+        result = update_generator.update(dry_run: true)
+
+        expect(result).to be_success
+
+        expect(update_generator.resource.subject).to eq ['Dry Run Subject']
+
+        reloaded_file_set = Hyrax.query_service.find_by(id: file_set.id)
+        expect(reloaded_file_set.subject).to be_empty
+      end
+
+      it 'still validates the merge logic' do
+        expect(file_set.title).to eq(['Initial File Set'])
+
+        update_generator = described_class.new(id: file_set.id, title: ['Another Title'])
+        result = update_generator.update(merge: true, dry_run: true)
+
+        expect(result).to be_success
+        expect(update_generator.resource.title).to contain_exactly('Initial File Set', 'Another Title')
+        reloaded_file_set = Hyrax.query_service.find_by(id: file_set.id)
+        expect(reloaded_file_set.title).to eq(['Initial File Set'])
+      end
+    end
   end
 
   describe '#destroy' do
@@ -94,6 +122,25 @@ RSpec.describe Skullrax::ValkyrieFileSetGenerator do
       generator = described_class.new(id: 'nonexistent-file-set-id')
 
       expect { generator.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
+    end
+
+    context 'with dry_run' do
+      it 'validates existence but does not delete the object' do
+        expect(file_set).to be_persisted
+
+        destroy_generator = described_class.new(id: file_set.id)
+        result = destroy_generator.destroy(dry_run: true)
+
+        expect(result).to be_success
+
+        expect(Hyrax.query_service.find_by(id: file_set.id)).to be_persisted
+      end
+
+      it 'still raises error if the object to destroy is missing' do
+        destroy_generator = described_class.new(id: 'nonexistent-id')
+
+        expect { destroy_generator.destroy(dry_run: true) }.to raise_error(Skullrax::ObjectNotFoundError)
+      end
     end
   end
 end

@@ -776,6 +776,70 @@ Skullrax::ValkyrieWorkGenerator.new(
 
 The works must exist before adding them to a collection. If any work is not found, a `Skullrax::ObjectNotFoundError` will be raised.
 
+## Advanced Usage: Generators
+
+### Dry Run / Validation Mode
+
+All Generators (`ValkyrieWorkGenerator`, `ValkyrieCollectionGenerator`, etc.) support a `dry_run` flag.
+
+This mode allows you to safe-test your data. It will:
+1.  **Validate** all metadata against your application's forms and schemas.
+2.  **Check** controlled vocabularies and constraints.
+3.  **Construct** the resource in memory (populating defaults like titles or IDs).
+4.  **Return** a Result object (Success/Failure) **without** persisting anything to the database.
+
+#### Examples
+
+**1. Validate a New Work**
+Returns `Success(resource)` if valid, or `Failure(errors)` if invalid.
+
+```ruby
+generator = Skullrax::ValkyrieWorkGenerator.new(
+  title: ['My Proposed Title'],
+  creator: ['Doe, Jane'],
+  visibility: 'open'
+)
+
+# Run with dry_run: true
+result = generator.generate(dry_run: true)
+
+if result.success?
+  puts "Valid! Ready to save."
+  puts "Preview: #{result.value!.title}" # => ["My Proposed Title"]
+else
+  warn "Validation Failed:"
+  warn result.failure # => ["Resource type can't be blank", ...]
+end
+```
+
+**2. safe-test an Update** Check if merging new metadata into an existing work will succeed.
+```ruby
+# Check if we can add a subject to an existing work
+generator = Skullrax::ValkyrieWorkGenerator.new(
+  id: 'existing-work-id',
+  subject: ['New Subject'],
+  merge: true
+)
+
+result = generator.update(dry_run: true)
+
+# The returned resource shows what the object WOULD look like
+puts result.value!.subject
+# => ["Old Subject", "New Subject"]
+```
+
+**3. Safety Check a Destroy** Verifies the object exists and can be retrieved before attempting deletion.
+```ruby
+generator = Skullrax::ValkyrieWorkGenerator.new(id: 'work-to-delete')
+result = generator.destroy(dry_run: true)
+
+if result.success?
+  puts "Object found. Ready to destroy."
+else
+  puts "Object not found. Destroy would have failed."
+end
+```
+
 ## Collection Creation
 
 Skullrax can also create collections with the same ease and flexibility as works.

@@ -13,7 +13,6 @@ require_relative 'skullrax/handlers/based_near_handler'
 require_relative 'skullrax/handlers/controlled_vocabulary_handler'
 require_relative 'skullrax/handlers/file_attachment_handler'
 
-require_relative 'skullrax/error_formatter'
 require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/file_set_params_builder'
 require_relative 'skullrax/work_transaction_executor'
