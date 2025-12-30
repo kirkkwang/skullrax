@@ -22,7 +22,6 @@ require_relative 'skullrax/valkyrie_collection_generator'
 require_relative 'skullrax/valkyrie_work_generator'
 require_relative 'skullrax/valkyrie_file_set_generator'
 
-require_relative 'skullrax/importers/resource_generator_factory'
 require_relative 'skullrax/importers/resource_fetcher'
 require_relative 'skullrax/importers/csv_importer'
 require_relative 'skullrax/importers/csv_parser'

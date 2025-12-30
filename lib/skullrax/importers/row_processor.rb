@@ -39,6 +39,11 @@ module Skullrax
       queue.each { |row| process_row_at_index(row) }
     end
 
+    def rows_ordered_for_destruction
+      file_sets, others = rows.partition(&:file_set?)
+      file_sets + others
+    end
+
     def process_row_at_index(row)
       return if indices_to_skip.include?(row.index)
       return destroy_row(row) if destroy?
@@ -52,7 +57,7 @@ module Skullrax
     end
 
     def import_collection(row)
-      generator = resource_processor.generate_resource(row:)
+      generator = resource_processor.process(row)
       @current_collection = generator.resource
       resources << generator.resource
     end
@@ -83,7 +88,7 @@ module Skullrax
     end
 
     def process_work(work_row)
-      generator = resource_processor.generate_resource(row: work_row)
+      generator = resource_processor.process(work_row)
       resources << generator.resource
       add_work_file_sets(generator.resource) if create?
     end
@@ -101,18 +106,12 @@ module Skullrax
     end
 
     def process_file_set(row)
-      generator = resource_processor.generate_resource(row:)
+      generator = resource_processor.process(row)
       resources << generator.resource
     end
 
     def destroy_row(row)
-      resource_processor.generate_resource(row:)
-    end
-
-    def rows_ordered_for_destruction
-      # Ensure file sets are processed before their parent works
-      file_sets, works_and_collections = rows.partition(&:file_set?)
-      file_sets + works_and_collections
+      resource_processor.process(row)
     end
 
     def resource_processor
