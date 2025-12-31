@@ -12,7 +12,7 @@ module Skullrax
       assign_collection
       return work_row if file_set_rows.empty?
 
-      Skullrax::CsvRow.new(hash: work_row.merge(file_set_data))
+      work_row.merge(file_set_data)
     end
 
     private

@@ -2,22 +2,56 @@
 
 module Skullrax
   class ValkyrieFileSetGenerator
-    attr_reader :id, :kwargs
-
     include Skullrax::GeneratorConcern
 
-    def initialize(id:, **kwargs)
-      @resource = nil
-      @kwargs = kwargs
+    attr_reader :file_path
+
+    alias assign_resource resource=
+
+    def initialize(id: nil, file_path: nil, **kwargs)
       @id = id
+      @file_path = file_path
+      @kwargs = kwargs
       @errors = []
+      @resource = model.new unless id
     end
 
     def resource
       @resource ||= Hyrax.query_service.find_by(id:)
+    rescue *object_not_found_errors
+      nil
     end
 
     private
+
+    def validate_form
+      form_valid = super
+      file_valid = validate_file_presence
+
+      form_valid && file_valid
+    end
+
+    def validate_file_presence
+      return true if metadata_only_update?
+      return false if creation_file_missing?
+
+      validate_attachments(file_path)
+    end
+
+    def metadata_only_update?
+      resource.persisted? && file_path.blank?
+    end
+
+    def creation_file_missing?
+      return false if file_path.present?
+
+      @errors << 'File is required for creation'
+      true
+    end
+
+    def perform_create_action
+      raise NotImplementedError, 'Direct FileSet creation is not yet implemented. Please attach files via the Work.'
+    end
 
     def perform_update_action
       form.validate(merged_kwargs)

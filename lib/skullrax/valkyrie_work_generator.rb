@@ -35,6 +35,16 @@ module Skullrax
       Wings::ModelRegistry.reverse_lookup(model) || model
     end
 
+    def validate_form
+      form_valid = super
+      files_valid = validate_file_presence
+      form_valid && files_valid
+    end
+
+    def validate_file_presence
+      validate_attachments(file_paths)
+    end
+
     def perform_create_action
       action.validate
       result = transaction_executor.create

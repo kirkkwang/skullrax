@@ -259,9 +259,10 @@ RSpec.describe Skullrax::CsvImporter do
     context 'with dry_run' do
       let(:csv) do
         <<~CSV
-          model,title,creator,visibility
+          model,title,creator,visibility,file_path
           Collection,Dry Run Collection,Dry Run Creator,open
           GenericWork,Dry Run Work,Dry Run Creator,open
+          FileSet,Dry Run FileSet,Dry Run Creator,open,spec/fixtures/files/test_file.png
         CSV
       end
 
@@ -270,38 +271,58 @@ RSpec.describe Skullrax::CsvImporter do
 
         expect(Hyrax.query_service.count_all_of_model(model: CollectionResource)).to eq 0
         expect(Hyrax.query_service.count_all_of_model(model: GenericWorkResource)).to eq 0
+        expect(Hyrax.query_service.count_all_of_model(model: Hyrax::FileSet)).to eq 0
 
         importer.import(dry_run: true)
 
         expect(Hyrax.query_service.count_all_of_model(model: CollectionResource)).to eq 0
         expect(Hyrax.query_service.count_all_of_model(model: GenericWorkResource)).to eq 0
+        expect(Hyrax.query_service.count_all_of_model(model: Hyrax::FileSet)).to eq 0
 
         expect(importer.collections.size).to eq 1
         expect(importer.collections.first.title).to eq(['Dry Run Collection'])
         expect(importer.collections.first.creator).to eq(['Dry Run Creator'])
         expect(importer.collections.first.visibility).to eq('open')
         expect(importer.collections.first).not_to be_persisted
+
         expect(importer.works.size).to eq 1
         expect(importer.works.first.title).to eq(['Dry Run Work'])
         expect(importer.works.first.creator).to eq(['Dry Run Creator'])
         expect(importer.works.first.visibility).to eq('open')
         expect(importer.works.first).not_to be_persisted
+
+        expect(importer.file_sets.size).to eq 1
+        expect(importer.file_sets.first.title).to eq(['Dry Run FileSet'])
+        expect(importer.file_sets.first.creator).to eq(['Dry Run Creator'])
+        expect(importer.file_sets.first.visibility).to eq('open')
+        expect(importer.file_sets.first).not_to be_persisted
+
         expect(importer.errors).to be_empty
       end
 
       it 'collects validation errors without persisting' do
         invalid_csv = <<~CSV
-          model,title,creator,visibility
+          model,title,creator,visibility,file_path
+          Collection,,Dry Run Creator,open
           GenericWork,,Dry Run Creator,open
+          FileSet,,Dry Run Creator,open,spec/fixtures/files/test_file.png
         CSV
 
         importer = described_class.new(csv: invalid_csv)
         importer.import(dry_run: true)
 
         expect(importer.errors).not_to be_empty
-        error_entry = importer.errors.first
-        expect(error_entry[:row_number]).to eq 2
-        expect(error_entry[:errors]).to include("Title can't be blank")
+
+        collection_error = importer.errors.find { |e| e[:resource_type] == Hyrax.config.collection_class }
+        work_error = importer.errors.find { |e| e[:resource_type] == GenericWorkResource }
+        file_set_error = importer.errors.find { |e| e[:resource_type] == Hyrax.config.file_set_class }
+
+        expect(collection_error[:row_number]).to eq 2
+        expect(collection_error[:errors]).to include("Title can't be blank")
+        expect(work_error[:row_number]).to eq 3
+        expect(work_error[:errors]).to include("Title can't be blank")
+        expect(file_set_error[:row_number]).to eq 4
+        expect(file_set_error[:errors]).to include("Title can't be blank")
       end
     end
   end

@@ -7,9 +7,8 @@ module Skullrax
     include Skullrax::ObjectNotFound
     include Dry::Monads[:result]
 
-    attr_accessor :errors, :autofill, :except, :fill_mode
+    attr_accessor :errors, :autofill, :except, :fill_mode, :resource
     attr_reader :id, :kwargs, :merge, :merged_kwargs, :dry_run
-    attr_writer :resource
 
     delegate :required_properties, :settable_properties, to: :parameter_builder
 
@@ -85,22 +84,17 @@ module Skullrax
       if validate_form
         true
       else
-        @errors = form.errors.full_messages
+        @errors ||= []
+        @errors.concat(form.errors.full_messages)
         false
       end
     end
 
-    def validation_failure
-      Failure(@errors)
-    end
+    def validation_failure = Failure(@errors)
 
-    def dry_run_success
-      Success(resource)
-    end
+    def dry_run_success = Success(resource)
 
-    def dry_run?
-      !!@dry_run
-    end
+    def dry_run? = !!@dry_run
 
     def merge_attributes
       existing_attrs = resource.attributes
@@ -122,12 +116,21 @@ module Skullrax
       form.validate(merged_kwargs || params[attributes_key])
     end
 
+    def validate_attachments(paths)
+      return true if paths.blank?
+
+      handler_errors = Skullrax::FileAttachmentHandler.new(paths, user).validate
+      return true if handler_errors.empty?
+
+      @errors ||= []
+      @errors.concat(handler_errors)
+      false
+    end
+
     def params_hash
       @params_hash ||= parameter_builder.build
     end
 
-    def attributes_key
-      model.model_name.param_key
-    end
+    def attributes_key = model.model_name.param_key
   end
 end

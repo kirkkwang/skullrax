@@ -78,6 +78,14 @@ module Skullrax
     def import_work_and_file_sets(work_row, file_set_rows)
       prepared_row = prepare_work_row(work_row, file_set_rows)
       process_work(prepared_row)
+      validate_bundled_file_sets(file_set_rows) if dry_run
+    end
+
+    def validate_bundled_file_sets(file_set_rows)
+      file_set_rows.each do |row|
+        generator = resource_processor.process(row)
+        resources << generator.resource
+      end
     end
 
     def update_work_and_file_sets(work_row, file_set_rows)

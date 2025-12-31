@@ -13,6 +13,25 @@ RSpec.describe Skullrax::ValkyrieFileSetGenerator do
   let(:work) { generator.resource }
   let(:file_set) { Hyrax.query_service.find_by(id: work.member_ids.first) }
 
+  describe '#generate' do
+    let(:file_set_params) do
+      [{ title: ['Initial File Set'], creator: ['Test Creator'] }]
+    end
+
+    it 'is not implemented' do
+      create_generator = Skullrax::ValkyrieFileSetGenerator.new(file_path: file_paths)
+
+      expect { create_generator.generate(autofill: true) }.to raise_error(NotImplementedError)
+    end
+
+    it 'will error if file_path is missing during creation' do
+      create_generator = Skullrax::ValkyrieFileSetGenerator.new
+
+      expect(create_generator.generate(dry_run: true)).to be_failure
+      expect(create_generator.errors).to include('File is required for creation')
+    end
+  end
+
   describe '#update' do
     let(:file_set_params) do
       [{ title: ['Initial File Set'] }]
@@ -33,6 +52,7 @@ RSpec.describe Skullrax::ValkyrieFileSetGenerator do
       generator = described_class.new(id: 'nonexistent-file-set-id', title: 'Updated Title')
 
       expect { generator.update }.to raise_error(Skullrax::ObjectNotFoundError)
+      expect(generator.resource).to be_nil
     end
 
     context 'when using the merge option' do

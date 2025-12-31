@@ -25,6 +25,11 @@ module Skullrax
       end
     end
 
+    def merge(other_hash, &block)
+      new_hash = super(other_hash, &block)
+      self.class.new(hash: new_hash, index:)
+    end
+
     private
 
     def define_dynamic_methods

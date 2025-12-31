@@ -242,6 +242,11 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       end
 
       it 'downloads and uploads remote files from URLs' do
+        stub_request(:head, remote_url)
+          .to_return(
+            status: 200,
+            headers: { 'Content-Type' => 'application/pdf' }
+          )
         stub_request(:get, remote_url)
           .to_return(
             status: 200,
@@ -257,6 +262,8 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
       end
 
       it 'handles mixed local and remote files' do
+        stub_request(:head, remote_url)
+          .to_return(status: 200, body: 'fake pdf content')
         stub_request(:get, remote_url)
           .to_return(status: 200, body: 'fake pdf content')
 
@@ -335,6 +342,45 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
           file_set = Hyrax.query_service.find_by(id: generator.resource.member_ids.first)
           expect(file_set.title).to eq ['Some Image']
           expect(file_set.respond_to?(:unknown_property)).to be false
+        end
+      end
+
+      context 'when a file is missing' do
+        context 'with local file' do
+          it 'returns a failure with an appropriate error message' do
+            generator = described_class.new(file_paths: 'nonexistent_file.txt')
+            result = generator.generate
+
+            expect(result).to be_failure
+            expect(generator.errors.first).to include('File not found')
+          end
+        end
+
+        context 'with malformed or bad remote files' do
+          it 'returns a failure with an appropriate error message' do
+            stub_request(:head, remote_url)
+              .to_return(status: 404)
+
+            url_with_illegal_chars = 'https://example.com/remote file.pdf'
+
+            generator = described_class.new(file_paths: [remote_url, url_with_illegal_chars])
+            result = generator.generate
+
+            expect(result).to be_failure
+            expect(generator.errors.first).to include('Remote file unreachable')
+          end
+        end
+
+        context 'with a timeout on remote files' do
+          it 'returns a failure with an appropriate error message' do
+            stub_request(:head, remote_url).to_timeout
+
+            generator = described_class.new(file_paths: remote_url)
+            result = generator.generate
+
+            expect(result).to be_failure
+            expect(generator.errors.first).to include('Remote file connection failed')
+          end
         end
       end
     end
