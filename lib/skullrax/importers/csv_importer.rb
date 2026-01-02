@@ -13,11 +13,11 @@ module Skullrax
       @delimiter = delimiter
     end
 
-    def import(dry_run: false, autofill: false, except: [])
+    def import(dry_run: false, autofill: false, fill_required: false, except: [])
       validate_csv_input!
       @action = :create
 
-      processor.process(parser.parse, dry_run:, autofill:, except:)
+      processor.process(parser.parse, dry_run:, autofill:, fill_required:, except:)
     end
 
     def update(dry_run: false, merge: false, autofill: false, except: [])

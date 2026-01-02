@@ -65,6 +65,7 @@ module Skullrax
 
     def normalize_hash!(hash)
       hash[:model] = normalize_and_constantize(hash[:model])
+      hash.compact!
       split_delimited_values!(hash)
     end
 

@@ -54,8 +54,9 @@ module Skullrax
     end
 
     def perform_update_action
-      form.validate(merged_kwargs)
+      cleanup_visibility!
 
+      form.validate(merged_kwargs)
       result =
         transactions['change_set.update_file_set']
         .with_step_args('file_set.save_acl' => { permissions_params: form.input_params['permissions'] })
@@ -71,6 +72,13 @@ module Skullrax
                .call(resource)
 
       result.success? ? handle_success(result) : handle_failure(result)
+    end
+
+    def cleanup_visibility!
+      return unless Skullrax::VisibilityHandler.cleanup(resource:, params: merged_kwargs)
+
+      @resource = Hyrax.query_service.find_by(id: resource.id)
+      @form = nil
     end
 
     def model

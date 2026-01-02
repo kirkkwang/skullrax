@@ -2,13 +2,14 @@
 
 module Skullrax
   class ResourceProcessor
-    def initialize(action:, errors:, dry_run: false, merge: false, autofill: false, except: []) # rubocop:disable Metrics/ParameterLists
+    def initialize(action:, errors:, dry_run: false, merge: false, autofill: false, except: [], fill_required: false) # rubocop:disable Metrics/ParameterLists
       @action = action
       @errors = errors
       @dry_run = dry_run
       @merge = merge
       @autofill = autofill
       @except = except
+      @fill_required = fill_required
     end
 
     def process(row)
@@ -20,7 +21,7 @@ module Skullrax
 
     private
 
-    attr_reader :action, :errors, :dry_run, :merge, :autofill, :except
+    attr_reader :action, :errors, :dry_run, :merge, :autofill, :except, :fill_required
 
     def instantiate_generator(row)
       row.generator_class.new(**row)
@@ -28,7 +29,7 @@ module Skullrax
 
     def perform_action(generator)
       case action
-      when :create  then generator.generate(autofill:, except:, dry_run:)
+      when :create  then generator.generate(autofill:, except:, dry_run:, fill_required:)
       when :update  then generator.update(merge:, autofill:, except:, dry_run:)
       when :destroy then generator.destroy(dry_run:)
       end

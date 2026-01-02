@@ -576,6 +576,45 @@ importer = Skullrax::CsvImporter.new(csv:)
 importer.import(dry_run: true)
 ```
 
+### CSV Export
+
+Skullrax supports exporting existing resources into a CSV format that is fully compatible with the Importer. This enables a "Round-Trip" workflow where you can export data, edit it in your favorite spreadsheet software, and re-import it to update the resources.
+
+#### Basic Usage
+
+To export specific resources, pass their IDs to the exporter:
+
+```ruby
+ids = ['work-1', 'collection-2', 'file-set-3']
+exporter = Skullrax::CsvExporter.new(ids:)
+csv_content = exporter.export
+
+File.write('export.csv', csv_content)
+```
+
+#### Round-Tripping (Export -> Edit -> Update)
+The exported CSV contains all the necessary IDs and model types to be fed directly back into the update mode of the importer.
+
+1. Export: Generate the CSV.
+1. Edit: Modify titles, fix typos, or change visibility using the exported CSV.
+1. Update: Run the importer with update.
+
+```ruby
+csv = File.read('edited_export.csv')
+importer = Skullrax::CsvImporter.new(csv:)
+importer.update
+```
+
+#### Exporting with Files **(still in development)**
+
+By default, the export only includes metadata. Note that include_files here means it will include rows for the child FileSets of any Works you export, effectively grouping them together in the CSV.
+
+```ruby
+# Exports the work AND its child file sets
+exporter = Skullrax::CsvExporter.new(ids: ['work-1'])
+exporter.export(include_files: true)
+```
+
 ### Updating Works and Collections
 
 Skullrax allows you to update existing works and collections by passing in the resource ID.

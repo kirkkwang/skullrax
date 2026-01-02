@@ -1,0 +1,106 @@
+# frozen_string_literal: true
+
+RSpec.describe Skullrax::CsvExporter do
+  before do
+    create(:admin, email: 'admin@example.com')
+  end
+
+  describe 'export' do
+    it 'exports a roundtrip-able CSV file' do
+      future_date = Date.today + 1.month
+
+      initial_csv = <<~CSV
+        model,title,creator,description,visibility,visibility_during_lease,lease_expiration_date,visibility_after_lease,visibility_during_embargo,embargo_release_date,visibility_after_embargo,file
+        CollectionResource,,Collection Creator;Another Collection Creator,,restricted
+        GenericWorkResource,,,Work description,lease,open,#{future_date},authenticated
+        FileSet,,,,lease,open,#{future_date},authenticated,,,,#{Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png')}
+        Monograph,Monograph Title,,,embargo,,,,restricted,#{future_date},open
+      CSV
+
+      importer = Skullrax::CsvImporter.new(csv: initial_csv)
+      importer.import(autofill: true)
+
+      collection = importer.collections.first
+      work1 = importer.works.first
+      file_set = importer.file_sets.first
+      work2 = importer.works.last
+
+      expect(collection.creator).to eq(['Collection Creator', 'Another Collection Creator'])
+      expect(collection.visibility).to eq('restricted')
+      expect(work1.description).to eq(['Work description'])
+      expect(work1.visibility).to eq('open')
+      expect(work1.lease.visibility_during_lease).to eq('open')
+      expect(work1.lease.lease_expiration_date.to_date).to eq(future_date)
+      expect(work1.lease.visibility_after_lease).to eq('authenticated')
+      expect(file_set.visibility).to eq('open')
+      expect(file_set.lease.visibility_during_lease).to eq('open')
+      expect(file_set.lease.lease_expiration_date.to_date).to eq(future_date)
+      expect(file_set.lease.visibility_after_lease).to eq('authenticated')
+      expect(work2.visibility).to eq('restricted')
+      expect(work2.embargo.visibility_during_embargo).to eq('restricted')
+      expect(work2.embargo.embargo_release_date.to_date).to eq(future_date)
+      expect(work2.embargo.visibility_after_embargo).to eq('open')
+      expect(work2.title).to eq(['Monograph Title'])
+
+      exporter = Skullrax::CsvExporter.new(ids: [collection.id, work1.id, work2.id])
+      exporter.export
+
+      parsed = CSV.parse(exporter.csv, headers: true)
+
+      parsed.each do |row|
+        if row['model'] == 'CollectionResource'
+          row['creator'] = row['creator']&.split(';')&.first
+          row['visibility'] = 'open'
+        end
+
+        if row['model'] == 'GenericWorkResource'
+          row['description'] = 'Updated work description'
+          row['visibility'] = 'open'
+          row['visibility_during_lease'] = nil
+          row['lease_expiration_date'] = nil
+          row['visibility_after_lease'] = nil
+        end
+
+        if row['model'] == 'Hyrax::FileSet'
+          row['title'] = 'Updated FileSet Title'
+          row['visibility'] = 'restricted'
+          row['visibility_during_lease'] = nil
+          row['lease_expiration_date'] = nil
+          row['visibility_after_lease'] = nil
+        end
+
+        next unless row['model'] == 'Monograph'
+
+        row['title'] = 'An Updated Monograph Title'
+        row['visibility'] = 'open'
+        row['visibility_during_embargo'] = nil
+        row['embargo_release_date'] = nil
+        row['visibility_after_embargo'] = nil
+      end
+
+      updated_csv = CSV.generate(headers: true) do |csv|
+        csv << parsed.headers
+        parsed.each { |row| csv << row }
+      end
+
+      update_importer = Skullrax::CsvImporter.new(csv: updated_csv)
+      update_importer.update
+
+      updated_collection = update_importer.collections.first
+      updated_work1 = update_importer.works.first
+      updated_file_set = update_importer.file_sets.first
+      updated_work2 = update_importer.works.last
+
+      expect(updated_collection.creator).to eq(['Collection Creator'])
+      expect(updated_collection.visibility).to eq('open')
+      expect(updated_work1.description).to eq(['Updated work description'])
+      expect(updated_work1.visibility).to eq('open')
+      expect(updated_work1.lease).not_to be_active
+      expect(updated_file_set.visibility).to eq('restricted')
+      expect(updated_file_set.lease).not_to be_active
+      expect(updated_work2.title).to eq(['An Updated Monograph Title'])
+      expect(updated_work2.visibility).to eq('open')
+      expect(updated_work2.embargo).not_to be_active
+    end
+  end
+end

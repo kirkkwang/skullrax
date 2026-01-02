@@ -52,6 +52,10 @@ module Skullrax
     end
 
     def perform_update_action
+      cleanup_visibility!
+
+      form.validate(merged_kwargs)
+
       result = transaction_executor.update
       result.success? ? handle_success(result) : handle_failure(result)
     end
@@ -98,6 +102,13 @@ module Skullrax
 
     def admin_set_id
       @admin_set_id ||= Hyrax::AdminSetCreateService.find_or_create_default_admin_set.id.to_s
+    end
+
+    def cleanup_visibility!
+      return unless Skullrax::VisibilityHandler.cleanup(resource:, params: merged_kwargs)
+
+      @resource = Hyrax.query_service.find_by(id: resource.id)
+      @form = nil
     end
   end
 end

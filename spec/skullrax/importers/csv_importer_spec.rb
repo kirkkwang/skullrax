@@ -309,7 +309,7 @@ RSpec.describe Skullrax::CsvImporter do
         CSV
 
         importer = described_class.new(csv: invalid_csv)
-        importer.import(dry_run: true)
+        importer.import(fill_required: false, dry_run: true)
 
         expect(importer.errors).not_to be_empty
 
@@ -340,7 +340,7 @@ RSpec.describe Skullrax::CsvImporter do
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:)
-      importer.import
+      importer.import(autofill: true)
       resources = importer.resources
       collection = resources.find(&:collection?)
       work1, work2 = resources.select(&:work?)
@@ -648,7 +648,7 @@ RSpec.describe Skullrax::CsvImporter do
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:)
-      importer.import
+      importer.import(autofill: true)
       resources = importer.resources
       collection = resources.find(&:collection?)
       work1, work2 = resources.select(&:work?)

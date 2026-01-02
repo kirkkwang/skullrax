@@ -30,6 +30,9 @@ require_relative 'skullrax/importers/resource_processor'
 require_relative 'skullrax/importers/file_set_collector'
 require_relative 'skullrax/importers/work_row_preparer'
 
+require_relative 'skullrax/exporters/csv_exporter'
+require_relative 'skullrax/exporters/csv_presenter'
+
 module Skullrax
   class Error < StandardError; end
   class InvalidControlledVocabularyTerm < Error; end

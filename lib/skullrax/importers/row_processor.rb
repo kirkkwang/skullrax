@@ -12,13 +12,14 @@ module Skullrax
       @errors = []
     end
 
-    def process(rows, action: :create, dry_run: false, merge: false, autofill: false, except: []) # rubocop:disable Metrics/ParameterLists
+    def process(rows, action: :create, dry_run: false, merge: false, autofill: false, except: [], fill_required: false) # rubocop:disable Metrics/ParameterLists
       @rows = rows
       @action = action
       @dry_run = dry_run
       @merge = merge
       @autofill = autofill
       @except = except
+      @fill_required = fill_required
       @resource_processor = nil
 
       process_each_row
@@ -33,7 +34,7 @@ module Skullrax
 
     private
 
-    attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action, :dry_run
+    attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action, :dry_run, :fill_required
     attr_accessor :rows
 
     def process_each_row
@@ -42,8 +43,7 @@ module Skullrax
     end
 
     def rows_ordered_for_destruction
-      file_sets, others = rows.partition(&:file_set?)
-      file_sets + others
+      rows.sort_by { |row| row.file_set? ? 0 : 1 }
     end
 
     def process_row_at_index(row)
@@ -126,7 +126,7 @@ module Skullrax
 
     def resource_processor
       @resource_processor ||=
-        ResourceProcessor.new(action:, errors:, dry_run:, merge:, autofill:, except:)
+        ResourceProcessor.new(action:, errors:, dry_run:, merge:, autofill:, except:, fill_required:)
     end
 
     def create? = action == :create
