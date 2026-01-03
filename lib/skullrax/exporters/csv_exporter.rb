@@ -1,69 +1,53 @@
 # frozen_string_literal: true
 
-require 'zip'
-
 module Skullrax
   class CsvExporter
-    attr_reader :ids, :delimiter, :include_files, :export_path
-    attr_accessor :resources, :csv
-
-    delegate :headers, :rows, to: :presenter
+    attr_reader :ids, :export_path, :csv
 
     def initialize(ids:, export_path: nil)
       @ids = ids
-      @export_path = export_path || Rails.root.join('tmp', 'exports', "export_#{Time.now.strftime('%Y%m%d%H%M%S')}")
-      @resources = nil
+      @export_path = export_path || default_export_path
       @csv = nil
     end
 
     def export(include_files: false, delimiter: ';')
-      @include_files = include_files
-      @delimiter = delimiter
+      prepare_export_directory if include_files
 
-      FileUtils.mkdir_p(export_path) if include_files
+      @csv = generate_csv(include_files:, delimiter:)
 
-      find_resources
-      self.csv = generate_csv
-
-      return csv unless include_files
-
-      package_zip
-    ensure
-      FileUtils.rm_rf(export_path) if include_files
+      include_files ? package_with_files(csv) : csv
     end
 
     private
 
-    def find_resources
-      self.resources = Skullrax::ResourceFetcher.fetch(ids:)
+    def default_export_path
+      Rails.root.join('tmp', 'exports', "export_#{timestamp}")
     end
 
-    def generate_csv
-      CSV.generate(headers: true) do |csv|
-        csv << headers
-        rows.each { |row| csv << headers.map { |header| row[header] } }
-      end
+    def timestamp
+      Time.now.strftime('%Y%m%d%H%M%S')
     end
 
-    def package_zip
-      File.write(File.join(export_path, 'export.csv'), csv)
-
-      zip_file_path = "#{export_path}.zip"
-
-      Zip::File.open(zip_file_path, create: true) do |zipfile|
-        Dir.glob(File.join(export_path, '**', '*')).each do |file|
-          next if File.directory?(file)
-
-          relative_path = Pathname.new(file).relative_path_from(export_path).to_s
-          zipfile.add(relative_path, file)
-        end
-      end
-
-      zip_file_path
+    def prepare_export_directory
+      FileUtils.mkdir_p(export_path)
     end
 
-    def presenter
-      @presenter ||= Skullrax::CsvPresenter.new(resources:, delimiter:, include_files:, export_path:)
+    def generate_csv(include_files:, delimiter:)
+      presenter = build_presenter(include_files:, delimiter:)
+      Skullrax::CsvGenerator.new(presenter:).generate
+    end
+
+    def build_presenter(include_files:, delimiter:)
+      resources = fetch_resources
+      Skullrax::CsvPresenter.new(resources:, delimiter:, export_path:, include_files:)
+    end
+
+    def fetch_resources
+      Skullrax::ResourceFetcher.fetch(ids:)
+    end
+
+    def package_with_files(csv_content)
+      Skullrax::ZipPackager.new(export_path:, csv_content:).package
     end
   end
 end
