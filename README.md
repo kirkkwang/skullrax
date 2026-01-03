@@ -605,7 +605,7 @@ importer = Skullrax::CsvImporter.new(csv:)
 importer.update
 ```
 
-#### Exporting with Files **(still in development)**
+#### Exporting with Files
 
 By default, the export only includes metadata. Note that include_files here means it will include rows for the child FileSets of any Works you export, effectively grouping them together in the CSV.
 

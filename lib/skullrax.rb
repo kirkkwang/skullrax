@@ -32,6 +32,7 @@ require_relative 'skullrax/importers/work_row_preparer'
 
 require_relative 'skullrax/exporters/csv_exporter'
 require_relative 'skullrax/exporters/csv_presenter'
+require_relative 'skullrax/exporters/file_handler'
 
 module Skullrax
   class Error < StandardError; end

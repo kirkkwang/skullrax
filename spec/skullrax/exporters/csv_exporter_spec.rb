@@ -102,5 +102,54 @@ RSpec.describe Skullrax::CsvExporter do
       expect(updated_work2.visibility).to eq('open')
       expect(updated_work2.embargo).not_to be_active
     end
+
+    context 'with include_files option' do
+      after do
+        FileUtils.rm_rf(Dir.glob(Rails.root.join('tmp', 'exports', '*')))
+        storage_path = Valkyrie::StorageAdapter.storage_adapters[:disk].base_path
+        FileUtils.rm_rf(Dir.glob("#{storage_path}/*"))
+      end
+
+      it 'includes file paths in the exported CSV' do
+        allow(Hyrax::Characterization::ValkyrieCharacterizationService).to receive(:run)
+
+        csv = <<~CSV
+          model,title,creator,description,file
+          GenericWorkResource,,,Work description,
+          FileSet,,,,#{Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt')}
+          FileSet,,,,#{Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png')}
+        CSV
+
+        importer = Skullrax::CsvImporter.new(csv:)
+
+        perform_enqueued_jobs do
+          importer.import(autofill: true)
+        end
+
+        work = importer.works.first
+
+        file_set1 = importer.file_sets.first
+        original_filename1 = file_set1.original_file.original_filename
+
+        file_set2 = importer.file_sets.last
+        original_filename2 = file_set2.original_file.original_filename
+
+        exporter = Skullrax::CsvExporter.new(ids: [work.id])
+        zip_path = exporter.export(include_files: true)
+
+        expect(File.exist?(zip_path)).to be true
+        expect(File.extname(zip_path)).to eq '.zip'
+
+        Zip::File.open(zip_path) do |zip|
+          expect(zip.find_entry('export.csv')).to be_truthy
+
+          expected_path1 = "#{file_set1.id}/#{original_filename1}"
+          expect(zip.find_entry(expected_path1)).to be_truthy
+
+          expected_path2 = "#{file_set2.id}/#{original_filename2}"
+          expect(zip.find_entry(expected_path2)).to be_truthy
+        end
+      end
+    end
   end
 end
