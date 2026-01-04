@@ -7,3 +7,7 @@ Style/Documentation:
 
 Style/BlockComments:
   Enabled: false
+
+Lint/MissingSuper:
+  Exclude:
+    - 'app/components/**/*'

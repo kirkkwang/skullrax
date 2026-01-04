@@ -2,7 +2,7 @@
 
 module Skullrax
   class ResourceProcessor
-    def initialize(action:, errors:, dry_run: false, merge: false, autofill: false, except: [], fill_required: false) # rubocop:disable Metrics/ParameterLists
+    def initialize(action:, errors:, dry_run: false, merge: false, autofill: false, except: [], fill_required: false, files_path: nil) # rubocop:disable Metrics/ParameterLists, Layout/LineLength
       @action = action
       @errors = errors
       @dry_run = dry_run
@@ -10,6 +10,7 @@ module Skullrax
       @autofill = autofill
       @except = except
       @fill_required = fill_required
+      @files_path = files_path
     end
 
     def process(row)
@@ -21,10 +22,22 @@ module Skullrax
 
     private
 
-    attr_reader :action, :errors, :dry_run, :merge, :autofill, :except, :fill_required
+    attr_reader :action, :errors, :dry_run, :merge, :autofill, :except, :fill_required, :files_path
 
     def instantiate_generator(row)
-      row.generator_class.new(**row)
+      attributes = row.to_h
+
+      if files_path.present? && attributes[:file_paths].present?
+        attributes[:file_paths] = resolve_file_paths(Array.wrap(attributes[:file_paths]))
+      end
+
+      row.generator_class.new(**attributes)
+    end
+
+    def resolve_file_paths(filenames)
+      filenames.map do |filename|
+        File.join(files_path, filename)
+      end
     end
 
     def perform_action(generator)

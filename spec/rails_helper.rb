@@ -2,7 +2,7 @@
 
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
-ENV['RAILS_ENV'] ||= 'test'
+ENV['RAILS_ENV'] = 'test'
 require '/app/samvera/hyrax-webapp/config/environment' # require hyrax environment
 # Prevent database truncation if the environment is production
 abort('The Rails environment is running in production mode!') if Rails.env.production?
@@ -39,6 +39,8 @@ WebMock.disable_net_connect!(
 
 require Hyrax::Engine.root.join('lib', 'hyrax', 'specs', 'shared_specs', 'factories', 'users').to_s
 require Hyrax::Engine.root.join('spec', 'support', 'fakes', 'test_hydra_group_service').to_s
+
+Dir[File.expand_path('support/**/*.rb', __dir__)].sort.each { |f| require f }
 
 # Checks for pending migrations and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove these lines.

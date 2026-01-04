@@ -1,0 +1,14 @@
+en:
+  skullrax:
+    dashboard:
+      header: Skullrax Import/Export Dashboard
+      import:
+        title: Import Resources
+        instruction: Select a CSV or ZIP file to batch create resources.
+        label: Upload File
+        submit: Start Import
+      export:
+        title: Export Resources
+        instruction: Enter the Work IDs you wish to export (one per line).
+        placeholder: ID-123\nID-456
+        submit: Generate Export

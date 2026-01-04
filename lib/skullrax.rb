@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'skullrax/version'
+require_relative 'skullrax/engine'
 
 require_relative 'skullrax/concerns/object_not_found'
 require_relative 'skullrax/concerns/schema_property_filter_concern'
@@ -29,6 +30,8 @@ require_relative 'skullrax/importers/row_processor'
 require_relative 'skullrax/importers/resource_processor'
 require_relative 'skullrax/importers/file_set_collector'
 require_relative 'skullrax/importers/work_row_preparer'
+require_relative 'skullrax/importers/uploaded_file_handler'
+require_relative 'skullrax/importers/zip_extractor'
 
 require_relative 'skullrax/exporters/csv_exporter'
 require_relative 'skullrax/exporters/csv_presenter'

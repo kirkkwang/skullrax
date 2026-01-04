@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class RowProcessor
+  class RowProcessor # rubocop:disable Metrics/ClassLength
     attr_reader :resources
     attr_accessor :errors
 
-    def initialize
+    def initialize(files_path: nil)
       @resources = []
+      @files_path = files_path
       @current_collection = nil
       @indices_to_skip = Set.new
       @errors = []
@@ -34,7 +35,8 @@ module Skullrax
 
     private
 
-    attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action, :dry_run, :fill_required
+    attr_reader :current_collection, :indices_to_skip, :merge,
+                :autofill, :except, :action, :dry_run, :fill_required, :files_path
     attr_accessor :rows
 
     def process_each_row
@@ -126,7 +128,7 @@ module Skullrax
 
     def resource_processor
       @resource_processor ||=
-        ResourceProcessor.new(action:, errors:, dry_run:, merge:, autofill:, except:, fill_required:)
+        ResourceProcessor.new(action:, errors:, dry_run:, merge:, autofill:, except:, fill_required:, files_path:)
     end
 
     def create? = action == :create
