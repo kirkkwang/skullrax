@@ -14,7 +14,7 @@ module Skullrax
     def package
       write_csv
       create_zip
-      zip_file_path
+      File.binread(zip_file_path)
     ensure
       cleanup
     end
@@ -52,6 +52,7 @@ module Skullrax
 
     def cleanup
       FileUtils.rm_rf(export_path)
+      FileUtils.rm_f(zip_file_path)
     end
   end
 end

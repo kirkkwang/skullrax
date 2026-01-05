@@ -21,7 +21,7 @@ module Skullrax
     private
 
     def default_export_path
-      Rails.root.join('tmp', 'exports', "export_#{timestamp}")
+      Rails.root.join('tmp', 'exports', "export_#{timestamp}_#{SecureRandom.hex(3)}")
     end
 
     def timestamp

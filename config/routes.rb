@@ -4,4 +4,5 @@ Skullrax::Engine.routes.draw do
   root to: 'dashboard#index'
 
   resources :imports, only: [:create]
+  get 'exports', to: 'exports#create'
 end

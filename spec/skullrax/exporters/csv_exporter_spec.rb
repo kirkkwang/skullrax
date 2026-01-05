@@ -135,19 +135,25 @@ RSpec.describe Skullrax::CsvExporter do
         original_filename2 = file_set2.original_file.original_filename
 
         exporter = Skullrax::CsvExporter.new(ids: [work.id])
-        zip_path = exporter.export(include_files: true)
 
-        expect(File.exist?(zip_path)).to be true
-        expect(File.extname(zip_path)).to eq '.zip'
+        zip_data = exporter.export(include_files: true)
 
-        Zip::File.open(zip_path) do |zip|
-          expect(zip.find_entry('export.csv')).to be_truthy
+        expect(zip_data).to be_present
+        expect(zip_data).to be_a(String)
 
-          expected_path1 = "#{file_set1.id}/#{original_filename1}"
-          expect(zip.find_entry(expected_path1)).to be_truthy
+        Dir.mktmpdir do |dir|
+          temp_zip_path = File.join(dir, 'test_export.zip')
+          File.binwrite(temp_zip_path, zip_data)
 
-          expected_path2 = "#{file_set2.id}/#{original_filename2}"
-          expect(zip.find_entry(expected_path2)).to be_truthy
+          Zip::File.open(temp_zip_path) do |zip|
+            expect(zip.find_entry('export.csv')).to be_truthy
+
+            expected_path1 = "#{file_set1.id}/#{original_filename1}"
+            expect(zip.find_entry(expected_path1)).to be_truthy
+
+            expected_path2 = "#{file_set2.id}/#{original_filename2}"
+            expect(zip.find_entry(expected_path2)).to be_truthy
+          end
         end
       end
     end
