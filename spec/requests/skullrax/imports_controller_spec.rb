@@ -166,5 +166,34 @@ RSpec.describe Skullrax::ImportsController do
         end.to raise_error(ActionController::ParameterMissing)
       end
     end
+
+    context 'with a different admin user' do
+      it 'imports the work with that user as depositor' do
+        other_admin = create(:admin, email: 'other_admin@example.com')
+        sign_in other_admin
+
+        csv_content = <<~CSV
+          id,title,creator
+          test-work-1,Test Title 1,Author One
+        CSV
+
+        csv_file = Tempfile.new(['import', '.csv'])
+        csv_file.write(csv_content)
+        csv_file.rewind
+
+        uploaded_file = Rack::Test::UploadedFile.new(csv_file.path, 'text/csv', original_filename: 'import.csv')
+
+        post skullrax.imports_path, params: { import: { file: uploaded_file } }
+
+        expect(response).to have_http_status(:redirect)
+        expect(response.location).to match(%r{^http://www.example.com/skullrax/\?})
+
+        csv_file.close
+        csv_file.unlink
+
+        work = Hyrax.query_service.find_by(id: 'test-work-1')
+        expect(work.depositor).to eq('other_admin@example.com')
+      end
+    end
   end
 end

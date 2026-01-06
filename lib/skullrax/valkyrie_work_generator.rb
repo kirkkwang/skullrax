@@ -6,10 +6,11 @@ module Skullrax
 
     include Skullrax::GeneratorConcern
 
-    def initialize(model: nil, file_paths: [], file_set_params: [], **kwargs)
+    def initialize(model: nil, file_paths: [], file_set_params: [], user: nil, **kwargs)
       @model = normalize_model(model)
       @file_paths = file_paths
       @file_set_params = file_set_params
+      @user = user
       @kwargs = kwargs
       @id = kwargs.delete(:id)
       @resource = nil

@@ -6,7 +6,7 @@ module Skullrax
       uploaded_file = import_params[:file]
       return redirect_with_alert('Please select a file.') unless uploaded_file.present?
 
-      service = Skullrax::ImportService.new(uploaded_file:).call
+      service = Skullrax::ImportService.new(user: current_user, uploaded_file:).call
 
       if service.success?
         redirect_with_notice('Import completed successfully.')

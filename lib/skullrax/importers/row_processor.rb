@@ -5,9 +5,10 @@ module Skullrax
     attr_reader :resources
     attr_accessor :errors
 
-    def initialize(files_path: nil)
+    def initialize(files_path: nil, user: nil)
       @resources = []
       @files_path = files_path
+      @user = user
       @current_collection = nil
       @indices_to_skip = Set.new
       @errors = []
@@ -35,8 +36,8 @@ module Skullrax
 
     private
 
-    attr_reader :current_collection, :indices_to_skip, :merge,
-                :autofill, :except, :action, :dry_run, :fill_required, :files_path
+    attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action,
+                :dry_run, :fill_required, :files_path, :user
     attr_accessor :rows
 
     def process_each_row
@@ -128,7 +129,9 @@ module Skullrax
 
     def resource_processor
       @resource_processor ||=
-        ResourceProcessor.new(action:, errors:, dry_run:, merge:, autofill:, except:, fill_required:, files_path:)
+        ResourceProcessor.new(
+          action:, errors:, dry_run:, merge:, autofill:, except:, fill_required:, files_path:, user:
+        )
     end
 
     def create? = action == :create

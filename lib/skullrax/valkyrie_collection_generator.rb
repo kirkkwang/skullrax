@@ -4,11 +4,12 @@ module Skullrax
   class ValkyrieCollectionGenerator
     include Skullrax::GeneratorConcern
 
-    def initialize(**kwargs)
+    def initialize(user: nil, **kwargs)
       @resource = nil
       @kwargs = kwargs
       @id = kwargs.delete(:id)
       @errors = []
+      @user = user
     end
 
     def resource

@@ -2,7 +2,8 @@
 
 module Skullrax
   class ImportService
-    def initialize(uploaded_file:)
+    def initialize(user:, uploaded_file:)
+      @user = user
       @uploaded_file = uploaded_file
       @result = nil
       @error_message = nil
@@ -23,7 +24,7 @@ module Skullrax
 
     private
 
-    attr_reader :uploaded_file, :result
+    attr_reader :uploaded_file, :result, :user
 
     def process_import
       @result = Skullrax::UploadedFileHandler.call(uploaded_file)
@@ -42,7 +43,8 @@ module Skullrax
     def build_importer
       Skullrax::CsvImporter.new(
         csv: result.csv_content,
-        files_path: result.files_path
+        files_path: result.files_path,
+        user:
       )
     end
 

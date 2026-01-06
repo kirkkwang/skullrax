@@ -6,12 +6,13 @@ module Skullrax
   class CsvImporter
     delegate :resources, :collections, :works, :file_sets, :errors, to: :processor
 
-    attr_reader :csv, :delimiter, :action, :found_resources, :files_path
+    attr_reader :csv, :delimiter, :action, :found_resources, :files_path, :user
 
-    def initialize(csv:, files_path: nil, delimiter: ';')
+    def initialize(csv:, files_path: nil, delimiter: ';', user: nil)
       @csv = csv
       @files_path = files_path
       @delimiter = delimiter
+      @user = user
     end
 
     def import(dry_run: false, autofill: false, fill_required: false, except: [])
@@ -52,7 +53,7 @@ module Skullrax
     end
 
     def processor
-      @processor ||= Skullrax::RowProcessor.new(files_path:)
+      @processor ||= Skullrax::RowProcessor.new(files_path:, user:)
     end
   end
 end

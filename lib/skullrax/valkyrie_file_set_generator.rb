@@ -8,9 +8,10 @@ module Skullrax
 
     alias assign_resource resource=
 
-    def initialize(id: nil, file_path: nil, **kwargs)
+    def initialize(id: nil, file_path: nil, user: nil, **kwargs)
       @id = id
       @file_path = file_path
+      @user = user
       @kwargs = kwargs
       @errors = []
       @resource = model.new unless id
