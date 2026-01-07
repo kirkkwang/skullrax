@@ -1,0 +1,19 @@
+zh:
+  skullrax:
+    dashboard:
+      header: Skullrax 导入/导出仪表板
+      import:
+        title: 导入资源
+        instruction: 支持集合、作品和文件集
+        action_hint: 创建接受 CSV 或 ZIP 文件。更新和删除仅接受 CSV。
+        action_create: 创建新资源
+        action_update: 更新现有资源
+        action_destroy: 删除现有资源
+        label: 选择文件
+        submit: 处理导入
+      export:
+        title: 导出资源
+        instruction: 输入您想要导出的资源 ID（每行一个）。
+        placeholder: "ab2213e1-1b13-41f1-b568-b4273ba79546\n006319cb-6a19-4075-a212-bdff388743b1"
+        submit: 生成导出
+        include_files: 包含文件（下载为 ZIP）

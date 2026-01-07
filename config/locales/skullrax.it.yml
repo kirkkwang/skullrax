@@ -1,0 +1,19 @@
+it:
+  skullrax:
+    dashboard:
+      header: Dashboard di importazione/esportazione Skullrax
+      import:
+        title: Importa risorse
+        instruction: Supporta collezioni, opere e set di file
+        action_hint: Crea accetta file CSV o ZIP. Aggiorna ed Elimina accettano solo CSV.
+        action_create: Crea nuove risorse
+        action_update: Aggiorna risorse esistenti
+        action_destroy: Elimina risorse esistenti
+        label: Scegli file
+        submit: Elabora importazione
+      export:
+        title: Esporta risorse
+        instruction: Inserisci gli ID delle risorse che desideri esportare (uno per riga).
+        placeholder: "ab2213e1-1b13-41f1-b568-b4273ba79546\n006319cb-6a19-4075-a212-bdff388743b1"
+        submit: Genera esportazione
+        include_files: Includi file (Scarica come ZIP)
