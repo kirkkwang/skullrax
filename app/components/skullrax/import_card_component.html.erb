@@ -1,18 +1,36 @@
 <div class="card h-100">
   <div class="card-body">
     <h3><%= t('skullrax.dashboard.import.title') %></h3>
-    <p class="text-muted"><%= t('skullrax.dashboard.import.instruction') %></p>
+    <p><%= t('skullrax.dashboard.import.instruction') %></p>
     <%= form_with url: import_path, local: true, multipart: true, scope: :import do |f| %>
       <div class="form-group">
-        <%= f.label :file, t('skullrax.dashboard.import.label'), class: "sr-only" %>
-        <%= f.file_field :file,
-              accept: '.csv,.zip',
-              class: 'form-control-file',
-              required: true %>
+        <small class="form-text text-muted mb-2 d-block">
+          <%= t('skullrax.dashboard.import.action_hint') %>
+        </small>
+        <div class="form-check">
+          <%= f.radio_button :action, 'create', checked: true, class: 'form-check-input' %>
+          <%= f.label :action_create, t('skullrax.dashboard.import.action_create'), class: 'form-check-label' %>
+        </div>
+        <div class="form-check">
+          <%= f.radio_button :action, 'update', class: 'form-check-input' %>
+          <%= f.label :action_update, t('skullrax.dashboard.import.action_update'), class: 'form-check-label' %>
+        </div>
+        <div class="form-check">
+          <%= f.radio_button :action, 'destroy', class: 'form-check-input' %>
+          <%= f.label :action_destroy, t('skullrax.dashboard.import.action_destroy'), class: 'form-check-label' %>
+        </div>
       </div>
+
+      <div class="form-group">
+        <%= f.label :file, t('skullrax.dashboard.import.label'), class: "sr-only" %>
+        <%= f.file_field :file, accept: '.csv,.zip', class: 'form-control-file', required: true %>
+      </div>
+
       <div class="mt-3">
         <%= f.submit t('skullrax.dashboard.import.submit'), class: 'btn btn-primary' %>
       </div>
     <% end %>
   </div>
 </div>
+
+<%= file_accept_script %>

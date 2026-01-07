@@ -2,9 +2,10 @@
 
 module Skullrax
   class ImportService
-    def initialize(user:, uploaded_file:)
+    def initialize(user:, uploaded_file:, action:)
       @user = user
       @uploaded_file = uploaded_file
+      @action = action
       @result = nil
       @error_message = nil
     end
@@ -24,7 +25,7 @@ module Skullrax
 
     private
 
-    attr_reader :uploaded_file, :result, :user
+    attr_reader :uploaded_file, :result, :user, :action
 
     def process_import
       @result = Skullrax::UploadedFileHandler.call(uploaded_file)
@@ -35,7 +36,12 @@ module Skullrax
 
     def run_importer
       importer = build_importer
-      importer.import
+
+      case action
+      when :create then importer.import
+      when :update then importer.update
+      when :destroy then importer.destroy
+      end
 
       @error_message = Skullrax::ErrorFormatterService.format(errors: importer.errors) unless importer.errors.empty?
     end

@@ -4,9 +4,11 @@ module Skullrax
   class ImportsController < ApplicationController
     def create
       uploaded_file = import_params[:file]
+      action = import_params[:action].to_sym
+
       return redirect_with_alert('Please select a file.') unless uploaded_file.present?
 
-      service = Skullrax::ImportService.new(user: current_user, uploaded_file:).call
+      service = Skullrax::ImportService.new(user: current_user, uploaded_file:, action:).call
 
       if service.success?
         redirect_with_notice('Import completed successfully.')
@@ -26,7 +28,7 @@ module Skullrax
     end
 
     def import_params
-      params.require(:import).permit(:file)
+      params.require(:import).permit(:file, :action)
     end
   end
 end
