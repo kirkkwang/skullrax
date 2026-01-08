@@ -26,14 +26,14 @@ module Skullrax
     end
 
     def self.default_model
-      Wings::ModelRegistry.reverse_lookup(Hyrax.config.curation_concerns.first)
+      Valkyrie.config.resource_class_resolver.call(Hyrax.config.registered_curation_concern_types.first)
     end
 
     private
 
     def normalize_model(model)
       model = model.to_s.safe_constantize || self.class.default_model
-      Wings::ModelRegistry.reverse_lookup(model) || model
+      Valkyrie.config.resource_class_resolver.call(model.to_s)
     end
 
     def validate_form
