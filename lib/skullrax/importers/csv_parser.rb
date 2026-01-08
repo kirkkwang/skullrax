@@ -37,6 +37,8 @@ module Skullrax
     def parsed_csv_table
       @parsed_csv_table ||=
         CSV.parse(csv, headers: true, header_converters: [->(h) { header_mappings.fetch(h, h) }, :symbol])
+    rescue CSV::MalformedCSVError => e
+      raise Skullrax::CsvParsingError, "Malformed CSV: #{e.message}"
     end
 
     private

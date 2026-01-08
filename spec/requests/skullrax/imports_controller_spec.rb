@@ -82,6 +82,25 @@ RSpec.describe Skullrax::ImportsController do
         end
       end
 
+      context 'with a malformed CSV file' do
+        let(:csv_content) do
+          <<~CSV
+            title,creator,description
+            malformed work,Some Author,12'-6" clearance
+          CSV
+        end
+
+        let(:uploaded_file) { upload_csv(csv_content) }
+
+        it 'raises an error during import' do
+          post_import
+
+          expect(response).to redirect_to(/skullrax/)
+          expect(flash[:alert]).to include('Import failed')
+          expect(flash[:alert]).to match(/Malformed CSV:/)
+        end
+      end
+
       context 'with invalid CSV data' do
         let(:csv_content) do
           <<~CSV
@@ -200,6 +219,25 @@ RSpec.describe Skullrax::ImportsController do
         expect(updated_work.title).to eq(['New Title'])
         expect(updated_work.creator).to eq(['New Author'])
       end
+
+      context 'with a malformed CSV file' do
+        let(:csv_content) do
+          <<~CSV
+            title,creator,description
+            malformed work,Some Author,12'-6" clearance
+          CSV
+        end
+
+        let(:uploaded_file) { upload_csv(csv_content) }
+
+        it 'raises an error during import' do
+          post_import
+
+          expect(response).to redirect_to(/skullrax/)
+          expect(flash[:alert]).to include('Import failed')
+          expect(flash[:alert]).to match(/Malformed CSV:/)
+        end
+      end
     end
 
     context 'when destroying existing resources' do
@@ -231,6 +269,25 @@ RSpec.describe Skullrax::ImportsController do
         expect do
           Hyrax.query_service.find_by(id: 'existing-work-1')
         end.to raise_error(Valkyrie::Persistence::ObjectNotFoundError)
+      end
+
+      context 'with a malformed CSV file' do
+        let(:csv_content) do
+          <<~CSV
+            title,creator,description
+            malformed work,Some Author,12'-6" clearance
+          CSV
+        end
+
+        let(:uploaded_file) { upload_csv(csv_content) }
+
+        it 'raises an error during import' do
+          post_import
+
+          expect(response).to redirect_to(/skullrax/)
+          expect(flash[:alert]).to include('Import failed')
+          expect(flash[:alert]).to match(/Malformed CSV:/)
+        end
       end
     end
   end

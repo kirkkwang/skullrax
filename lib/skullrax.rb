@@ -47,6 +47,7 @@ module Skullrax
   class ObjectNotFoundError < Error; end
   class IdAlreadyExistsError < Error; end
   class ArgumentError < Error; end
+  class CsvParsingError < StandardError; end
 
   def self.root
     @root ||= Pathname.new(File.expand_path('..', __dir__))

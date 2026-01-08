@@ -43,7 +43,10 @@ module Skullrax
     end
 
     def format_error(error)
-      "Row #{error[:row_number]}: #{error[:errors].join(', ')}"
+      return error if error.is_a?(String)
+
+      error_messages = Array.wrap(error[:errors]).map(&:to_s)
+      "Row #{error[:row_number]}: #{error_messages.join(', ')}"
     end
 
     def too_many_errors?

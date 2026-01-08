@@ -20,6 +20,8 @@ module Skullrax
       @action = :create
 
       processor.process(parser.parse, dry_run:, autofill:, fill_required:, except:)
+    rescue Skullrax::CsvParsingError => e
+      errors << e.message
     end
 
     def update(dry_run: false, merge: false, autofill: false, except: [])
@@ -30,6 +32,8 @@ module Skullrax
       parser.found_resources = ResourceFetcher.fetch(ids: parser.raw_ids)
 
       processor.process(parser.parse, action:, dry_run:, merge:, autofill:, except:)
+    rescue Skullrax::CsvParsingError => e
+      errors << e.message
     end
 
     def destroy(dry_run: false)
@@ -40,6 +44,8 @@ module Skullrax
       parser.found_resources = ResourceFetcher.fetch(ids: parser.raw_ids)
 
       processor.process(parser.parse, action:, dry_run:)
+    rescue Skullrax::CsvParsingError => e
+      errors << e.message
     end
 
     private
