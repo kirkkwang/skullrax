@@ -119,7 +119,7 @@ module Skullrax
     def validate_attachments(paths)
       return true if paths.blank?
 
-      handler_errors = Skullrax::FileAttachmentHandler.new(paths, user).validate
+      handler_errors = Skullrax::FileAttachmentHandler.new(file_paths: paths, user:).validate
       return true if handler_errors.empty?
 
       @errors ||= []

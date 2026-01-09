@@ -4,7 +4,7 @@ module Skullrax
   class FileAttachmentHandler
     attr_reader :file_paths, :user
 
-    def initialize(file_paths, user)
+    def initialize(file_paths:, user:)
       @file_paths = Array.wrap(file_paths)
       @user = user
     end
