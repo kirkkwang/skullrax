@@ -10,7 +10,7 @@ module Skullrax
 
     def initialize(id: nil, file_path: nil, user: nil, **kwargs)
       @id = id
-      @file_path = file_path
+      @file_path = file_path || Array.wrap(kwargs.delete(:file_paths))&.first
       @user = user
       @kwargs = kwargs
       @errors = []

@@ -2,7 +2,7 @@
 
 module Skullrax
   class ErrorFormatterService
-    MAX_DISPLAYED_ERRORS = 5
+    delegate :content_tag, :safe_join, to: :controller_helpers
 
     def self.format(errors:)
       new(errors:).format
@@ -15,27 +15,26 @@ module Skullrax
     def format
       return nil if errors.empty?
 
-      "Import failed: #{formatted_messages}"
+      build_html_message
     end
 
     private
 
     attr_reader :errors
 
-    def formatted_messages
-      if too_many_errors?
-        "#{displayed_messages} ...and #{remaining_count} more errors."
-      else
-        all_messages
+    def build_html_message
+      content_tag(:div, class: 'import-errors') do
+        content_tag(:strong, 'Import failed:') +
+          content_tag(:ul, class: 'error-list') do
+            safe_join(error_list_items)
+          end
       end
     end
 
-    def displayed_messages
-      error_messages.first(MAX_DISPLAYED_ERRORS).join(' | ')
-    end
-
-    def all_messages
-      error_messages.join(' | ')
+    def error_list_items
+      error_messages.map do |error|
+        content_tag(:li, error)
+      end
     end
 
     def error_messages
@@ -49,12 +48,8 @@ module Skullrax
       "Row #{error[:row_number]}: #{error_messages.join(', ')}"
     end
 
-    def too_many_errors?
-      errors.size > MAX_DISPLAYED_ERRORS
-    end
-
-    def remaining_count
-      errors.size - MAX_DISPLAYED_ERRORS
+    def controller_helpers
+      @controller_helpers ||= ActionController::Base.helpers
     end
   end
 end

@@ -121,29 +121,6 @@ RSpec.describe Skullrax::ImportsController do
         end
       end
 
-      context 'with more than 5 errors' do
-        let(:csv_content) do
-          <<~CSV
-            title,creator,visibility
-            ,Author One,open
-            ,Author Two,open
-            ,Author Three,open
-            ,Author Four,open
-            ,Author Five,open
-            ,Author Six,open
-          CSV
-        end
-
-        let(:uploaded_file) { upload_csv(csv_content) }
-
-        it 'truncates error messages and shows count' do
-          post_import
-
-          expect(response).to redirect_to(/skullrax/)
-          expect(flash[:alert]).to include('...and 1 more errors')
-        end
-      end
-
       context 'with no file' do
         let(:uploaded_file) { nil }
 
