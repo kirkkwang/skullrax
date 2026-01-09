@@ -215,6 +215,33 @@ RSpec.describe Skullrax::ImportsController do
           expect(flash[:alert]).to match(/Malformed CSV:/)
         end
       end
+
+      context 'when reporting errors on file set rows' do
+        it 'reports the correct row number for file set errors' do
+          csv_content = <<~CSV
+            model,title,creator,file
+            GenericWork,Test Work 1,Work Creator 1
+            FileSet,,,fake1.jpg
+            FileSet,,,fake2.jpg
+            GenericWork,Test Work 2,Work Creator 2
+            FileSet,,,fake3.jpg
+            FileSet,,,fake4.jpg
+          CSV
+
+          uploaded_file = upload_csv(csv_content)
+
+          post skullrax.imports_path, params: { import: { file: uploaded_file, action: 'create' } }
+
+          expect(response).to redirect_to(/skullrax/)
+          expect(flash[:alert]).to include('Import failed')
+          expect(flash[:alert]).not_to match(/Row 2:/)
+          expect(flash[:alert]).to match(/Row 3: File not found: fake1.jpg/)
+          expect(flash[:alert]).to match(/Row 4: File not found: fake2.jpg/)
+          expect(flash[:alert]).not_to match(/Row 5:/)
+          expect(flash[:alert]).to match(/Row 6: File not found: fake3.jpg/)
+          expect(flash[:alert]).to match(/Row 7: File not found: fake4.jpg/)
+        end
+      end
     end
 
     context 'when destroying existing resources' do

@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module Skullrax
-  module GeneratorConcern
+  module GeneratorConcern # rubocop:disable Metrics/ModuleLength
     include ResourceManagementConcern
     include TransactionConcern
     include Skullrax::ObjectNotFound
     include Dry::Monads[:result]
 
     attr_accessor :errors, :autofill, :except, :fill_mode, :resource
-    attr_reader :id, :kwargs, :merge, :merged_kwargs, :dry_run
+    attr_reader :id, :kwargs, :merge, :merged_kwargs, :dry_run, :validated_file_paths
 
     delegate :required_properties, :settable_properties, to: :parameter_builder
 
@@ -119,7 +119,10 @@ module Skullrax
     def validate_attachments(paths)
       return true if paths.blank?
 
-      handler_errors = Skullrax::FileAttachmentHandler.new(file_paths: paths, user:).validate
+      paths_to_validate = Array.wrap(paths).reject { |path| @validated_file_paths&.include?(path) }
+      return true if paths_to_validate.empty?
+
+      handler_errors = Skullrax::FileAttachmentHandler.new(file_paths: paths_to_validate, user:).validate
       return true if handler_errors.empty?
 
       @errors ||= []

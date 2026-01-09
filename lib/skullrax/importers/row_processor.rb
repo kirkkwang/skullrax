@@ -79,9 +79,55 @@ module Skullrax
     end
 
     def import_work_and_file_sets(work_row, file_set_rows)
-      prepared_row = prepare_work_row(work_row, file_set_rows)
+      valid_file_set_rows = prevalidate_file_sets(file_set_rows)
+
+      prepared_row = prepare_work_row(work_row, valid_file_set_rows)
       process_work(prepared_row)
       validate_bundled_file_sets(file_set_rows) if dry_run
+
+      resource_processor.clear_validated_paths
+    end
+
+    def prevalidate_file_sets(file_set_rows)
+      file_set_rows.each_with_object([]) do |fs_row, valid_rows|
+        next if skip_file_set_validation?(fs_row, valid_rows)
+      end
+    end
+
+    def skip_file_set_validation?(fs_row, valid_rows)
+      file_paths = extract_file_paths(fs_row)
+      return true if file_paths.empty?
+
+      validation_errors = validate_file_paths(file_paths)
+
+      if validation_errors.present?
+        capture_file_set_error(fs_row, validation_errors)
+        return true
+      end
+
+      mark_paths_as_validated(file_paths)
+      valid_rows << fs_row
+      false
+    end
+
+    def extract_file_paths(fs_row)
+      Array.wrap(fs_row.to_h[:file_paths])
+    end
+
+    def validate_file_paths(file_paths)
+      Skullrax::FileAttachmentHandler.new(file_paths:, user:).validate
+    end
+
+    def capture_file_set_error(fs_row, validation_errors)
+      errors << {
+        row_number: fs_row.number,
+        resource_type: 'FileSet',
+        errors: validation_errors
+      }
+    end
+
+    def mark_paths_as_validated(file_paths)
+      file_paths.each { |path| resource_processor.mark_as_validated(path) }
     end
 
     def validate_bundled_file_sets(file_set_rows)
