@@ -4,6 +4,35 @@ es:
       object_not_found:
         one: "No se puede realizar la acción: 1 ID no encontrado: %{ids}"
         other: "No se puede realizar la acción: %{count} IDs no encontrados: %{ids}"
+      object_not_found_single: "%{id} no encontrado. Créelo primero o use un ID válido."
+      no_resource_found: "No se encontró ningún recurso con ID '%{id}'."
+      id_already_exists: "El ID '%{id}' ya está en uso."
+      ids_missing:
+        one: Actualizar y eliminar requiere columna de ID para todas las filas. 1 fila sin ID.
+        other: "Actualizar y eliminar requiere columna de ID para todas las filas. %{count} filas sin IDs."
+      malformed_csv: "CSV malformado: %{message}"
+      invalid_model_class: Clase de modelo inválida en CSV
+      unauthorized_access: Debe ser administrador para acceder a Skullrax.
+      unauthorized_alert: No está autorizado para acceder a Skullrax.
+      fileset_not_implemented: La creación directa de FileSet aún no está implementada. Por favor adjunte archivos a través del Work.
+      id_required: ID requerido
+      invalid_controlled_vocabulary: "'%{value}' no es un término activo en el vocabulario controlado para '%{property}'"
+      csv_must_be_string: La entrada CSV debe ser un String
+      zip_extraction_failed: "Falló la extracción del ZIP: %{message}"
+      no_csv_in_zip: No se encontró archivo CSV dentro del ZIP.
+      row_error: "Fila %{row_number}: %{errors}"
+      file_error: "Error de archivo: %{message}"
+      file_not_found: "Archivo no encontrado: %{path}"
+      remote_file_unreachable: "Archivo remoto inaccesible (%{code}): %{url}"
+      invalid_url_format: "Formato de URL inválido: %{url}"
+      remote_connection_failed: "Falló la conexión al archivo remoto: %{message}"
+      file_required_for_creation: Se requiere archivo para la creación
+    alerts:
+      enter_at_least_one_id: Por favor ingrese al menos un ID.
+      select_a_file: Por favor seleccione un archivo.
+    notices:
+      import_completed: Importación completada exitosamente.
+    import_failed: "Importación fallida:"
     dashboard:
       header: Panel de Importación/Exportación de Skullrax
       import:

@@ -4,6 +4,35 @@ fr:
       object_not_found:
         one: "Action impossible : 1 ID introuvable : %{ids}"
         other: "Action impossible : %{count} IDs introuvables : %{ids}"
+      object_not_found_single: "%{id} introuvable. Créez-le d'abord ou utilisez un ID valide."
+      no_resource_found: "Aucune ressource trouvée avec l'ID '%{id}'."
+      id_already_exists: "L'ID '%{id}' est déjà utilisé."
+      ids_missing:
+        one: La mise à jour et la suppression nécessitent une colonne ID pour toutes les lignes. 1 ligne sans ID.
+        other: "La mise à jour et la suppression nécessitent une colonne ID pour toutes les lignes. %{count} lignes sans IDs."
+      malformed_csv: "CSV malformé : %{message}"
+      invalid_model_class: Classe de modèle invalide dans le CSV
+      unauthorized_access: Vous devez être administrateur pour accéder à Skullrax.
+      unauthorized_alert: Vous n'êtes pas autorisé à accéder à Skullrax.
+      fileset_not_implemented: La création directe de FileSet n'est pas encore implémentée. Veuillez joindre les fichiers via le Work.
+      id_required: ID requis
+      invalid_controlled_vocabulary: "'%{value}' n'est pas un terme actif dans le vocabulaire contrôlé pour '%{property}'"
+      csv_must_be_string: L'entrée CSV doit être une chaîne de caractères
+      zip_extraction_failed: "Échec de l'extraction du ZIP : %{message}"
+      no_csv_in_zip: Aucun fichier CSV trouvé dans le ZIP.
+      row_error: "Ligne %{row_number} : %{errors}"
+      file_error: "Erreur de fichier : %{message}"
+      file_not_found: "Fichier introuvable : %{path}"
+      remote_file_unreachable: "Fichier distant inaccessible (%{code}) : %{url}"
+      invalid_url_format: "Format d'URL invalide : %{url}"
+      remote_connection_failed: "Échec de la connexion au fichier distant : %{message}"
+      file_required_for_creation: Le fichier est requis pour la création
+    alerts:
+      enter_at_least_one_id: Veuillez saisir au moins un ID.
+      select_a_file: Veuillez sélectionner un fichier.
+    notices:
+      import_completed: Importation terminée avec succès.
+    import_failed: "Échec de l'importation :"
     dashboard:
       header: Tableau de bord d'importation/exportation Skullrax
       import:

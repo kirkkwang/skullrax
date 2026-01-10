@@ -86,7 +86,7 @@ module Skullrax
       Array.wrap(ids).each do |id|
         Hyrax.query_service.find_by(id:)
       rescue *object_not_found_errors
-        raise Skullrax::ObjectNotFoundError, "#{id} not found.  Create it first or use a valid ID."
+        raise Skullrax::ObjectNotFoundError, I18n.t('skullrax.errors.object_not_found_single', id:)
       end
     end
 

@@ -4,7 +4,7 @@ module Skullrax
   class ExportsController < ApplicationController
     def create
       ids = fetch_ids
-      return redirect_to skullrax.root_path, alert: 'Please enter at least one ID.' if ids.empty?
+      return redirect_to skullrax.root_path, alert: I18n.t('skullrax.alerts.enter_at_least_one_id') if ids.empty?
 
       generate_and_send(ids, include_files?)
     end

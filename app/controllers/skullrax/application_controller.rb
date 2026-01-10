@@ -13,9 +13,9 @@ module Skullrax
     private
 
     def ensure_admin!
-      raise CanCan::AccessDenied, 'You must be an admin to access Skullrax.' unless current_ability.admin?
+      raise CanCan::AccessDenied, I18n.t('skullrax.errors.unauthorized_access') unless current_ability.admin?
     rescue CanCan::AccessDenied
-      redirect_to main_app.root_path, alert: 'You are not authorized to access Skullrax.'
+      redirect_to main_app.root_path, alert: I18n.t('skullrax.errors.unauthorized_alert')
     end
 
     def build_breadcrumbs

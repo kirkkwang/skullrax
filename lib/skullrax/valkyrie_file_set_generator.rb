@@ -46,12 +46,12 @@ module Skullrax
     def creation_file_missing?
       return false if file_path.present?
 
-      @errors << 'File is required for creation'
+      @errors << I18n.t('skullrax.errors.file_required_for_creation')
       true
     end
 
     def perform_create_action
-      raise NotImplementedError, 'Direct FileSet creation is not yet implemented. Please attach files via the Work.'
+      raise NotImplementedError, I18n.t('skullrax.errors.fileset_not_implemented')
     end
 
     def perform_update_action

@@ -3,12 +3,12 @@
 module Skullrax
   module ResourceManagementConcern
     def retrieve_existing_resource
-      raise Skullrax::ArgumentError, 'ID required' unless id.present?
+      raise Skullrax::ArgumentError, I18n.t('skullrax.errors.id_required') unless id.present?
 
       existing_resource = Hyrax.query_service.find_by(id:)
       assign_resource(existing_resource)
     rescue *object_not_found_errors
-      raise Skullrax::ObjectNotFoundError, "No resource found with ID '#{id}'."
+      raise Skullrax::ObjectNotFoundError, I18n.t('skullrax.errors.no_resource_found', id:)
     end
 
     def check_id
@@ -16,7 +16,7 @@ module Skullrax
 
       begin
         Hyrax.query_service.find_by(id:)
-        raise Skullrax::IdAlreadyExistsError, "ID '#{id}' is already in use."
+        raise Skullrax::IdAlreadyExistsError, I18n.t('skullrax.errors.id_already_exists', id:)
       rescue *object_not_found_errors
         true
       end

@@ -51,7 +51,7 @@ module Skullrax
     end
 
     def error_message(value)
-      "'#{value}' is not an active term in the controlled vocabulary for '#{property}'"
+      I18n.t('skullrax.errors.invalid_controlled_vocabulary', value:, property:)
     end
   end
 end

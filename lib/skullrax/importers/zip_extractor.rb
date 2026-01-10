@@ -14,7 +14,8 @@ module Skullrax
       build_result
     rescue Zip::Error, StandardError => e
       cleanup
-      raise Skullrax::UploadedFileHandler::Error, "Zip Extraction Failed: #{e.message}"
+      raise Skullrax::UploadedFileHandler::Error,
+            I18n.t('skullrax.errors.zip_extraction_failed', message: e.message)
     end
 
     private
@@ -80,7 +81,7 @@ module Skullrax
       return if csv_content
 
       cleanup
-      raise Skullrax::UploadedFileHandler::Error, 'No CSV file found inside the ZIP.'
+      raise Skullrax::UploadedFileHandler::Error, I18n.t('skullrax.errors.no_csv_in_zip')
     end
 
     def build_result

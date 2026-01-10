@@ -4,6 +4,35 @@ en:
       object_not_found:
         one: "Cannot action: 1 ID not found: %{ids}"
         other: "Cannot action: %{count} IDs not found: %{ids}"
+      object_not_found_single: "%{id} not found. Create it first or use a valid ID."
+      no_resource_found: "No resource found with ID '%{id}'."
+      id_already_exists: "ID '%{id}' is already in use."
+      ids_missing:
+        one: Update and destroy requires ID column for all rows. 1 row missing ID.
+        other: "Update and destroy requires ID column for all rows. %{count} rows missing IDs."
+      malformed_csv: "Malformed CSV: %{message}"
+      invalid_model_class: Invalid model class in CSV
+      unauthorized_access: You must be an admin to access Skullrax.
+      unauthorized_alert: You are not authorized to access Skullrax.
+      fileset_not_implemented: Direct FileSet creation is not yet implemented. Please attach files via the Work.
+      id_required: ID required
+      invalid_controlled_vocabulary: "'%{value}' is not an active term in the controlled vocabulary for '%{property}'"
+      csv_must_be_string: CSV input must be a String
+      zip_extraction_failed: "Zip Extraction Failed: %{message}"
+      no_csv_in_zip: No CSV file found inside the ZIP.
+      row_error: "Row %{row_number}: %{errors}"
+      file_error: "File Error: %{message}"
+      file_not_found: "File not found: %{path}"
+      remote_file_unreachable: "Remote file unreachable (%{code}): %{url}"
+      invalid_url_format: "Invalid URL format: %{url}"
+      remote_connection_failed: "Remote file connection failed: %{message}"
+      file_required_for_creation: File is required for creation
+    alerts:
+      enter_at_least_one_id: Please enter at least one ID.
+      select_a_file: Please select a file.
+    notices:
+      import_completed: Import completed successfully.
+    import_failed: "Import failed:"
     dashboard:
       header: Skullrax Import/Export Dashboard
       import:

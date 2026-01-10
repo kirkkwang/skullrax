@@ -51,7 +51,7 @@ module Skullrax
     private
 
     def validate_csv_input!
-      raise Skullrax::ArgumentError, 'CSV input must be a String' unless csv.is_a?(String)
+      raise Skullrax::ArgumentError, I18n.t('skullrax.errors.csv_must_be_string') unless csv.is_a?(String)
     end
 
     def parser

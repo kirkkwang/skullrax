@@ -4,6 +4,35 @@ de:
       object_not_found:
         one: "Aktion nicht möglich: 1 ID nicht gefunden: %{ids}"
         other: "Aktion nicht möglich: %{count} IDs nicht gefunden: %{ids}"
+      object_not_found_single: "%{id} nicht gefunden. Erstellen Sie es zuerst oder verwenden Sie eine gültige ID."
+      no_resource_found: "Keine Ressource mit ID '%{id}' gefunden."
+      id_already_exists: "ID '%{id}' wird bereits verwendet."
+      ids_missing:
+        one: Aktualisieren und Löschen erfordert eine ID-Spalte für alle Zeilen. 1 Zeile fehlt ID.
+        other: "Aktualisieren und Löschen erfordert eine ID-Spalte für alle Zeilen. %{count} Zeilen fehlen IDs."
+      malformed_csv: "Fehlerhafte CSV: %{message}"
+      invalid_model_class: Ungültige Modellklasse in CSV
+      unauthorized_access: Sie müssen Administrator sein, um auf Skullrax zuzugreifen.
+      unauthorized_alert: Sie sind nicht berechtigt, auf Skullrax zuzugreifen.
+      fileset_not_implemented: Direkte FileSet-Erstellung ist noch nicht implementiert. Bitte hängen Sie Dateien über das Werk an.
+      id_required: ID erforderlich
+      invalid_controlled_vocabulary: "'%{value}' ist kein aktiver Begriff im kontrollierten Vokabular für '%{property}'"
+      csv_must_be_string: CSV-Eingabe muss ein String sein
+      zip_extraction_failed: "Zip-Extraktion fehlgeschlagen: %{message}"
+      no_csv_in_zip: Keine CSV-Datei im ZIP gefunden.
+      row_error: "Zeile %{row_number}: %{errors}"
+      file_error: "Dateifehler: %{message}"
+      file_not_found: "Datei nicht gefunden: %{path}"
+      remote_file_unreachable: "Remote-Datei nicht erreichbar (%{code}): %{url}"
+      invalid_url_format: "Ungültiges URL-Format: %{url}"
+      remote_connection_failed: "Remote-Dateiverbindung fehlgeschlagen: %{message}"
+      file_required_for_creation: Datei ist für die Erstellung erforderlich
+    alerts:
+      enter_at_least_one_id: Bitte geben Sie mindestens eine ID ein.
+      select_a_file: Bitte wählen Sie eine Datei aus.
+    notices:
+      import_completed: Import erfolgreich abgeschlossen.
+    import_failed: "Import fehlgeschlagen:"
     dashboard:
       header: Skullrax Import/Export Dashboard
       import:

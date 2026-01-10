@@ -36,7 +36,7 @@ module Skullrax
       elsif File.exist?(path)
         nil
       else
-        "File not found: #{path}"
+        I18n.t('skullrax.errors.file_not_found', path:)
       end
     end
 
@@ -48,11 +48,11 @@ module Skullrax
 
       return nil if response.is_a?(Net::HTTPSuccess)
 
-      "Remote file unreachable (#{response.code}): #{url}"
+      I18n.t('skullrax.errors.remote_file_unreachable', code: response.code, url:)
     rescue URI::InvalidURIError
-      "Invalid URL format: #{url}"
+      I18n.t('skullrax.errors.invalid_url_format', url:)
     rescue SocketError, Errno::ECONNREFUSED, Net::OpenTimeout => e
-      "Remote file connection failed: #{e.message}"
+      I18n.t('skullrax.errors.remote_connection_failed', message: e.message)
     end
 
     def create_uploaded_file(path)

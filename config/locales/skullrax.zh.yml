@@ -4,6 +4,35 @@ zh:
       object_not_found:
         one: "无法执行操作:未找到 1 个 ID:%{ids}"
         other: "无法执行操作:未找到 %{count} 个 ID:%{ids}"
+      object_not_found_single: "未找到 %{id}。请先创建或使用有效的 ID。"
+      no_resource_found: "未找到 ID 为 '%{id}' 的资源。"
+      id_already_exists: "ID '%{id}' 已被使用。"
+      ids_missing:
+        one: 更新和删除需要所有行都有 ID 列。1 行缺少 ID。
+        other: "更新和删除需要所有行都有 ID 列。%{count} 行缺少 ID。"
+      malformed_csv: "CSV 格式错误:%{message}"
+      invalid_model_class: CSV 中的模型类无效
+      unauthorized_access: 您必须是管理员才能访问 Skullrax。
+      unauthorized_alert: 您无权访问 Skullrax。
+      fileset_not_implemented: 尚未实现直接创建 FileSet。请通过 Work 附加文件。
+      id_required: 需要 ID
+      invalid_controlled_vocabulary: "'%{value}' 不是 '%{property}' 受控词汇表中的活动术语"
+      csv_must_be_string: CSV 输入必须是字符串
+      zip_extraction_failed: "ZIP 解压失败:%{message}"
+      no_csv_in_zip: ZIP 中未找到 CSV 文件。
+      row_error: "行 %{row_number}:%{errors}"
+      file_error: "文件错误:%{message}"
+      file_not_found: "未找到文件:%{path}"
+      remote_file_unreachable: "远程文件不可访问 (%{code}):%{url}"
+      invalid_url_format: "URL 格式无效:%{url}"
+      remote_connection_failed: "远程文件连接失败:%{message}"
+      file_required_for_creation: 创建需要文件
+    alerts:
+      enter_at_least_one_id: 请至少输入一个 ID。
+      select_a_file: 请选择一个文件。
+    notices:
+      import_completed: 导入成功完成。
+    import_failed: "导入失败:"
     dashboard:
       header: Skullrax 导入/导出仪表板
       import:

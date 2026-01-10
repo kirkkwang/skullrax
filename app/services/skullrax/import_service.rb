@@ -31,7 +31,7 @@ module Skullrax
       @result = Skullrax::UploadedFileHandler.call(uploaded_file)
       run_importer
     rescue Skullrax::UploadedFileHandler::Error => e
-      @error_message = "File Error: #{e.message}"
+      @error_message = I18n.t('skullrax.errors.file_error', message: e.message)
     end
 
     def run_importer

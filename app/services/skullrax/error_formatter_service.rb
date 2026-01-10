@@ -24,7 +24,7 @@ module Skullrax
 
     def build_html_message
       content_tag(:div, class: 'import-errors') do
-        content_tag(:strong, 'Import failed:') +
+        content_tag(:strong, I18n.t('skullrax.import_failed')) +
           content_tag(:ul, class: 'error-list') do
             safe_join(error_list_items)
           end
@@ -45,7 +45,7 @@ module Skullrax
       return error if error.is_a?(String)
 
       error_messages = Array.wrap(error[:errors]).map(&:to_s)
-      "Row #{error[:row_number]}: #{error_messages.join(', ')}"
+      I18n.t('skullrax.errors.row_error', row_number: error[:row_number], errors: error_messages.join(', '))
     end
 
     def controller_helpers

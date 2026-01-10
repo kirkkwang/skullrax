@@ -27,7 +27,7 @@ module Skullrax
       return if missing_count.zero?
 
       raise Skullrax::ArgumentError,
-            "Update and destroy requires ID column for all rows. #{missing_count} rows missing IDs."
+            I18n.t('skullrax.errors.ids_missing', count: missing_count)
     end
 
     def raw_ids
@@ -38,7 +38,7 @@ module Skullrax
       @parsed_csv_table ||=
         CSV.parse(csv, headers: true, header_converters: [->(h) { header_mappings.fetch(h, h) }, :symbol])
     rescue CSV::MalformedCSVError => e
-      raise Skullrax::CsvParsingError, "Malformed CSV: #{e.message}"
+      raise Skullrax::CsvParsingError, I18n.t('skullrax.errors.malformed_csv', message: e.message)
     end
 
     private
@@ -112,7 +112,7 @@ module Skullrax
     end
 
     def validate_model!(model)
-      raise Skullrax::ArgumentError, 'Invalid model class in CSV' if model.nil?
+      raise Skullrax::ArgumentError, I18n.t('skullrax.errors.invalid_model_class') if model.nil?
     end
   end
 end
