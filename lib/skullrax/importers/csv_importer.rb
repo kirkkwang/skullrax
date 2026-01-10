@@ -32,7 +32,7 @@ module Skullrax
       parser.found_resources = ResourceFetcher.fetch(ids: parser.raw_ids)
 
       processor.process(parser.parse, action:, dry_run:, merge:, autofill:, except:)
-    rescue Skullrax::CsvParsingError => e
+    rescue Skullrax::CsvParsingError, Skullrax::ObjectNotFoundError => e
       errors << e.message
     end
 
@@ -44,7 +44,7 @@ module Skullrax
       parser.found_resources = ResourceFetcher.fetch(ids: parser.raw_ids)
 
       processor.process(parser.parse, action:, dry_run:)
-    rescue Skullrax::CsvParsingError => e
+    rescue Skullrax::CsvParsingError, Skullrax::ObjectNotFoundError => e
       errors << e.message
     end
 

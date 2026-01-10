@@ -242,6 +242,25 @@ RSpec.describe Skullrax::ImportsController do
           expect(flash[:alert]).to match(/Row 7: File not found: fake4.jpg/)
         end
       end
+
+      context 'when updating non-existent resources' do
+        let(:csv_content) do
+          <<~CSV
+            id,title,creator
+            non-existent-work,Title,Author
+          CSV
+        end
+
+        let(:uploaded_file) { upload_csv(csv_content) }
+
+        it 'raises an object not found error during import' do
+          post_import
+
+          expect(response).to redirect_to(/skullrax/)
+          expect(flash[:alert]).to include('Import failed')
+          expect(flash[:alert]).to match(/Cannot action: 1 ID not found: non-existent-work/)
+        end
+      end
     end
 
     context 'when destroying existing resources' do
@@ -291,6 +310,26 @@ RSpec.describe Skullrax::ImportsController do
           expect(response).to redirect_to(/skullrax/)
           expect(flash[:alert]).to include('Import failed')
           expect(flash[:alert]).to match(/Malformed CSV:/)
+        end
+      end
+
+      context 'when destroying non-existent resources' do
+        let(:csv_content) do
+          <<~CSV
+            id
+            non-existent-work
+            another-non-existent-work
+          CSV
+        end
+
+        let(:uploaded_file) { upload_csv(csv_content) }
+
+        it 'raises an object not found error during import' do
+          post_import
+
+          expect(response).to redirect_to(/skullrax/)
+          expect(flash[:alert]).to include('Import failed')
+          expect(flash[:alert]).to match(/Cannot action: 2 IDs not found: non-existent-work, another-non-existent-work/)
         end
       end
     end

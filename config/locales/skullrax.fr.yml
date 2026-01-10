@@ -1,5 +1,9 @@
 fr:
   skullrax:
+    errors:
+      object_not_found:
+        one: "Action impossible : 1 ID introuvable : %{ids}"
+        other: "Action impossible : %{count} IDs introuvables : %{ids}"
     dashboard:
       header: Tableau de bord d'importation/exportation Skullrax
       import:

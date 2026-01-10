@@ -1,5 +1,9 @@
 zh:
   skullrax:
+    errors:
+      object_not_found:
+        one: "无法执行操作:未找到 1 个 ID:%{ids}"
+        other: "无法执行操作:未找到 %{count} 个 ID:%{ids}"
     dashboard:
       header: Skullrax 导入/导出仪表板
       import:

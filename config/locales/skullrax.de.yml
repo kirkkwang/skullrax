@@ -1,5 +1,9 @@
 de:
   skullrax:
+    errors:
+      object_not_found:
+        one: "Aktion nicht möglich: 1 ID nicht gefunden: %{ids}"
+        other: "Aktion nicht möglich: %{count} IDs nicht gefunden: %{ids}"
     dashboard:
       header: Skullrax Import/Export Dashboard
       import:

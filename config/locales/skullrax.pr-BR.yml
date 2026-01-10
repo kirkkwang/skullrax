@@ -1,5 +1,9 @@
 pt-BR:
   skullrax:
+    errors:
+      object_not_found:
+        one: "Não é possível realizar a ação: 1 ID não encontrado: %{ids}"
+        other: "Não é possível realizar a ação: %{count} IDs não encontrados: %{ids}"
     dashboard:
       header: Painel de Importação/Exportação do Skullrax
       import:

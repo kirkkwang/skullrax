@@ -406,8 +406,10 @@ RSpec.describe Skullrax::CsvImporter do
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:)
+      importer.update
 
-      expect { importer.update }.to raise_error(Skullrax::ObjectNotFoundError)
+      expect(importer.errors).to be_present
+      expect(importer.errors.first).to include('not found')
     end
 
     context 'when using merge option' do
@@ -719,8 +721,10 @@ RSpec.describe Skullrax::CsvImporter do
       CSV
 
       importer = Skullrax::CsvImporter.new(csv:)
+      importer.destroy
 
-      expect { importer.destroy }.to raise_error(Skullrax::ObjectNotFoundError)
+      expect(importer.errors).to be_present
+      expect(importer.errors.first).to include('not found')
     end
   end
 
@@ -741,15 +745,17 @@ RSpec.describe Skullrax::CsvImporter do
       expect(Hyrax.query_service.find_by(id: work.id)).to be_persisted
     end
 
-    it 'raises an error if ID does not exist (validation still runs)' do
+    it 'captures an error if ID does not exist (validation still runs)' do
       csv = <<~CSV
         id
         nonexistent-id
       CSV
 
       importer = described_class.new(csv:)
+      importer.destroy(dry_run: true)
 
-      expect { importer.destroy(dry_run: true) }.to raise_error(Skullrax::ObjectNotFoundError)
+      expect(importer.errors).to be_present
+      expect(importer.errors.first).to include('not found')
     end
   end
 end

@@ -21,7 +21,9 @@ module Skullrax
         return if missing_ids.empty?
 
         raise Skullrax::ObjectNotFoundError,
-              "Cannot update: #{missing_ids.count} IDs not found: #{missing_ids.join(', ')}"
+              I18n.t('skullrax.errors.object_not_found',
+                     count: missing_ids.count,
+                     ids: missing_ids.join(', '))
       end
     end
   end
