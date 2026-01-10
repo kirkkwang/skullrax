@@ -5,7 +5,7 @@ en:
       import:
         title: Import Resources
         instruction: Supports collections, works, and file sets
-        action_hint: Create accepts CSV or ZIP files. Update and Delete accept CSV only.
+        action_hint: Accepts CSV or ZIP files only
         action_create: Create new resources
         action_update: Update existing resources
         action_destroy: Delete existing resources
