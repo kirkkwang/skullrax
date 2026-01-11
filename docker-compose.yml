@@ -1,6 +1,6 @@
 services:
   web:
-    platform: linux/amd64
+    platform: linux/amd64 # Comment out if not using Apple Silicon otherwise build may fail
     build: .
     ports:
       - "3000:3000"
@@ -16,6 +16,7 @@ services:
       - solr
       - redis
       - fcrepo
+      - chrome
     environment:
       - DATABASE_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_test
       - DB_HOST=postgres
@@ -30,6 +31,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_URL=redis://redis:6379/0
+      - SE_DRIVER_URL=http://chrome:4444/wd/hub
       - SOLR_HOST=solr
       - SOLR_PORT=8983
       - SOLR_URL=http://solr:8983/solr/hydra-development
@@ -52,6 +54,16 @@ services:
 
   redis:
     image: redis:alpine
+
+  chrome:
+    image: selenium/standalone-chromium:4
+    shm_size: 2g
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    environment:
+      - SE_NODE_SESSION_TIMEOUT=800
+      - SE_ENABLE_TRACING=false
 
   fcrepo:
     image: ghcr.io/samvera/fcrepo4:4.7.5

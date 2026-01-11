@@ -21,4 +21,5 @@ end
 
 RSpec.configure do |config|
   config.include ControllerHelpers, type: :request
+  config.include BatchCreateHelpers, type: :feature
 end

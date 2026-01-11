@@ -9,10 +9,12 @@ gem 'irb'
 gem 'rake', '~> 13.0'
 
 group :development, :test do
+  gem 'capybara'
   gem 'debug', '~> 1.0'
   gem 'rspec', '~> 3.0'
   gem 'rspec-rails', '> 6.1'
   gem 'rubocop', '~> 1.82'
+  gem 'selenium-webdriver'
   gem 'simplecov', require: false
   gem 'webmock', '~> 3.0'
 end

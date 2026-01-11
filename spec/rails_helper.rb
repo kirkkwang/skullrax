@@ -27,13 +27,41 @@ require 'rspec/rails'
 require 'database_cleaner/active_record'
 require 'factory_bot'
 require 'webmock/rspec'
+require 'capybara/rspec'
+require 'selenium-webdriver'
+
+Capybara.register_driver :selenium_chrome_headless do |app|
+  options = Selenium::WebDriver::Chrome::Options.new
+  options.add_argument('--headless=new')
+  options.add_argument('--disable-gpu')
+  options.add_argument('--window-size=1400,1400')
+  options.add_argument('--disable-dev-shm-usage')
+
+  driver = Capybara::Selenium::Driver.new(
+    app,
+    browser: :remote,
+    url: ENV.fetch('SE_DRIVER_URL', 'http://chrome:4444/wd/hub'),
+    options:
+  )
+
+  driver.browser.file_detector = lambda do |args|
+    str = args.first.to_s
+    str if File.exist?(str)
+  end
+
+  driver
+end
+
+Capybara.javascript_driver = :selenium_chrome_headless
+
 WebMock.disable_net_connect!(
   allow_localhost: true,
   allow: [
     'fcrepo:8080',
     'solr:8983',
     'redis:6379',
-    'postgres:5432'
+    'postgres:5432',
+    'chrome:4444'
   ]
 )
 
@@ -94,4 +122,40 @@ RSpec.configure do |config|
   end
 
   config.include ActiveJob::TestHelper
+
+  config.before(:each, type: :feature, js: true) do
+    # Force the test server to listen on all interfaces (0.0.0.0) so the external 'chrome' container can reach it.
+    Capybara.server_host = '0.0.0.0'
+
+    # Use a fixed port (3001) to prevent race conditions and ensure we know where to point Chrome.
+    Capybara.server_port = 3001
+
+    # Tell Chrome: "When I say visit '/', go to http://web:3001"
+    # 'web' is the name of the web service in docker-compose.yml
+    Capybara.app_host = "http://web:#{Capybara.server_port}"
+  end
+
+  config.include Warden::Test::Helpers
+
+  config.after(:each, type: :feature) do
+    Warden.test_reset!
+  end
+
+  config.before(:each) do
+    # Kept getting test failures because of external HTTP calls made during tests so sticking this here.
+    # This handles the 'autofill: true' behavior in generators
+    stub_request(:get, 'http://www.geonames.org/getJSON?geonameId=5391811&username=')
+      .with(
+        headers: {
+          'Accept' => 'application/json',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'User-Agent' => 'Faraday v2.14.0'
+        }
+      )
+      .to_return(
+        status: 200,
+        body: '{"name": "San Diego", "geonameId": 5391811, "countryCode": "US"}',
+        headers: { 'Content-Type' => 'application/json' }
+      )
+  end
 end
