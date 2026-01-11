@@ -4,12 +4,17 @@
 
 <div class="card">
   <div class="card-body">
-    <div class="row mt-4">
-      <div class="col-sm-6">
+    <div class="row">
+      <div class="col-xl-6 mb-4">
         <%= render Skullrax::ImportCardComponent.new %>
       </div>
-      <div class="col-sm-6">
+      <div class="col-xl-6 mb-4">
         <%= render Skullrax::ExportCardComponent.new %>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <%= render Skullrax::BatchCreateCardComponent.new %>
       </div>
     </div>
   </div>

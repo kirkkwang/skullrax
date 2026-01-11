@@ -34,6 +34,21 @@ en:
       import_completed: Import completed successfully.
     import_failed: "Import failed:"
     dashboard:
+      batch_create:
+        title: Batch Create (🚧 Under construction! 🚧)
+        instruction: Create collections, works, or file sets
+        resources: Resources
+        add_resource: "Add Resource:"
+        select_resource_type: Select resource type...
+        select_work_type: Select work type...
+        add_fileset: Add FileSet
+        choose_file: Choose File
+        choose_files: Choose Files
+        file_required_help: Required - one file per FileSet
+        files_optional_help: Optional - each file will become a FileSet
+        select_to_begin: Select a resource type from the dropdown to begin
+        remove: Remove
+        submit: Submit Batch
       header: Skullrax Import/Export Dashboard
       import:
         title: Import Resources
