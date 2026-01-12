@@ -5,13 +5,22 @@ module Skullrax
     source_root File.expand_path('templates', __dir__)
 
     def mount_skullrax_route
-      return skip_message if already_mounted?
+      return skip_message('Skullrax route already mounted') if already_mounted?
 
       inject_into_file route_file_path, after: route_draw_line do
         skullrax_route
       end
 
-      success_message
+      success_message('Skullrax route mounted at /skullrax')
+    end
+
+    def add_asset_precompile
+      return skip_message('Skullrax assets already added to precompile list') if assets_already_added?
+      return skip_message('assets.rb not found, skipping asset precompile config') unless File.exist?(assets_file_path)
+
+      append_to_file assets_file_path, skullrax_precompile_line
+
+      success_message('Added Skullrax assets to precompile list')
     end
 
     private
@@ -20,12 +29,18 @@ module Skullrax
       File.read(route_file_path).include?('mount Skullrax::Engine')
     end
 
-    def skip_message
-      say_status('skipped', 'Skullrax route already mounted', :yellow)
+    def assets_already_added?
+      return false unless File.exist?(assets_file_path)
+
+      File.read(assets_file_path).include?('skullrax/*')
     end
 
-    def success_message
-      say_status('success', 'Skullrax route mounted at /skullrax', :green)
+    def skip_message(message)
+      say_status('skipped', message, :yellow)
+    end
+
+    def success_message(message)
+      say_status('success', message, :green)
     end
 
     def skullrax_route
@@ -42,6 +57,18 @@ module Skullrax
 
     def route_draw_line
       /Rails\.application\.routes\.draw do.*\n/
+    end
+
+    def assets_initializer
+      'config/initializers/assets.rb'
+    end
+
+    def assets_file_path
+      File.join(destination_root, assets_initializer)
+    end
+
+    def skullrax_precompile_line
+      "Rails.application.config.assets.precompile += %w(skullrax/*)\n"
     end
   end
 end

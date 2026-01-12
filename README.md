@@ -27,7 +27,8 @@ gem 'skullrax', github: 'kirkkwang/skullrax', branch: 'main'
 
 And then execute:
 ```bash
-$ bundle install
+bundle install
+rails generate skullrax:install
 ```
 
 ## Usage

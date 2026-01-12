@@ -2,6 +2,10 @@
   <%= header_content %>
 <% end %>
 
+<% content_for :head do %>
+  <%= javascript_include_tag 'skullrax/batch_create', defer: true %>
+<% end %>
+
 <div class="card">
   <div class="card-body">
     <div class="row">
