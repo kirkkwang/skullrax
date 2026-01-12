@@ -1,827 +1,481 @@
-document.addEventListener('DOMContentLoaded', function() {
-  const config = document.getElementById('batch-create-config');
-  const COLLECTION_VALUE = config.dataset.collectionValue;
-  const FILE_SET_VALUE = config.dataset.fileSetValue;
+document.addEventListener('DOMContentLoaded', () => {
+  const CONFIG = {
+    resourceTypeSelect: document.getElementById('resource-type'),
+    resourcesList: document.getElementById('resources-list'),
+    formsContainer: document.getElementById('forms-container'),
+    collectionValue: document.getElementById('batch-create-config')?.dataset.collectionValue,
+    fileSetValue: document.getElementById('batch-create-config')?.dataset.fileSetValue
+  };
 
-  const resourceTypeSelect = document.getElementById('resource-type');
-  const resourcesList = document.getElementById('resources-list');
-  const formsContainer = document.getElementById('forms-container');
-  let resourceCounter = 0;
+  let globalCounter = 0;
 
-  resourceTypeSelect.addEventListener('change', function() {
-    const selectedValue = this.value;
-    const selectedText = this.options[this.selectedIndex].text;
+  class FormRenderer {
+    static render(node, templateId, inputNamePrefix) {
+      const formId = `${node.idPrefix}-form-wrapper-${node.id}`;
+      let wrapper = document.getElementById(formId);
 
-    if (selectedValue) {
-      const resourceId = addResource(selectedValue, selectedText);
+      if (wrapper) return wrapper;
 
-      // Clear empty state if this is the first resource
-      if (resourcesList.children.length === 1) {
-        formsContainer.innerHTML = '';
+      const template = document.querySelector(`#form-templates .form-template[data-resource-type="${node.type}"]`);
+      if (!template) {
+        console.error(`Template not found for type: ${node.type}`);
+        return null;
       }
 
-      showResourceForm(resourceId, selectedValue, selectedText);
-      this.value = '';
-    }
-  });
+      const content = template.cloneNode(true);
 
-  function createRemoveButton(text = 'Remove') {
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'btn btn-sm btn-link text-danger float-right';
-    removeBtn.innerHTML = `<small>${text}</small>`;
-    return removeBtn;
-  }
+      wrapper = document.createElement('div');
+      wrapper.id = formId;
+      wrapper.className = node.formWrapperClass;
+      wrapper.dataset.parentId = node.parentId || '';
+      wrapper.dataset.ownerId = node.id;
 
-  function addResource(value, displayText) {
-    const resourceId = `resource-${resourceCounter++}`;
+      const header = this.createHeader(node.displayText, () => node.remove());
+      wrapper.appendChild(header);
 
-    // Clone template
-    const template = document.getElementById('resource-item-template');
-    const content = template.content.cloneNode(true);
+      this.scopeInputs(content, node.id, inputNamePrefix);
+      wrapper.appendChild(content);
 
-    // Get the resource div and set dynamic attributes
-    const resourceDiv = content.querySelector('.resource-item');
-    resourceDiv.dataset.resourceId = resourceId;
-    resourceDiv.dataset.resourceType = value;
+      if (node.requiresOuterWrapper) {
+        const outerWrapper = document.createElement('div');
+        outerWrapper.className = 'border-left pl-4';
+        outerWrapper.dataset.parentId = node.parentId;
 
-    // Populate with data
-    content.querySelector('.resource-label').textContent = displayText;
-    const hiddenInput = content.querySelector('input[type="hidden"]');
-    hiddenInput.name = `resources[${resourceId}][type]`;
-    hiddenInput.value = value;
+        const innerWrapper = document.createElement('div');
+        innerWrapper.className = 'border-left pl-4';
+        innerWrapper.appendChild(wrapper);
+        outerWrapper.appendChild(innerWrapper);
 
-    resourcesList.appendChild(content);
+        this.injectIntoDOM(outerWrapper, node);
 
-    // Click to edit - attach after it's in the DOM
-    resourcesList.querySelector(`[data-resource-id="${resourceId}"] .resource-label`).addEventListener('click', function() {
-      scrollToResourceForm(resourceId);
-    });
-
-    // Remove resource - attach after it's in the DOM
-    resourcesList.querySelector(`[data-resource-id="${resourceId}"] .remove-resource`).addEventListener('click', function(e) {
-      e.stopPropagation();
-      resourcesList.querySelector(`[data-resource-id="${resourceId}"]`).remove();
-
-      // Also remove the form
-      const formWrapper = document.getElementById(`resource-form-wrapper-${resourceId}`);
-      if (formWrapper) {
-        formWrapper.remove();
+        this.initializeLogic(wrapper);
+        return outerWrapper;
       }
 
-      // Remove all nested children (works and filesets)
-      const children = Array.from(formsContainer.children).filter(el =>
-        el.dataset.parentId === resourceId
-      );
-      children.forEach(child => child.remove());
+      this.injectIntoDOM(wrapper, node);
+      this.initializeLogic(wrapper);
 
-      // If no more resources, show empty state
-      if (resourcesList.children.length === 0) {
-        showEmptyState();
-      }
-    });
-
-    // Show work type selector for Collections
-    if (value === COLLECTION_VALUE) {
-      const addWorkSection = resourcesList.querySelector(`[data-resource-id="${resourceId}"] .add-work-section`);
-      addWorkSection.style.display = 'block';
-
-      const workTypeSelect = addWorkSection.querySelector('.work-type-select');
-      workTypeSelect.addEventListener('change', function() {
-        const workType = this.value;
-        const workTypeText = this.options[this.selectedIndex].text;
-
-        if (workType) {
-          addWork(resourceId, workType, workTypeText);
-          this.value = ''; // Reset the select
-        }
-      });
+      return wrapper;
     }
 
-    // Add FileSet button click handler (for Works)
-    if (value !== COLLECTION_VALUE) {
-      const addFileSetBtn = resourcesList.querySelector(`[data-resource-id="${resourceId}"] .add-fileset-btn`);
-      addFileSetBtn.style.display = 'block';
-      addFileSetBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        addFileSet(resourceId);
-      });
+    static initializeLogic(wrapper) {
+      if (window.jQuery) $(wrapper).find('.multi_value').manage_fields();
+      this.initializeSecondaryFields(wrapper);
+      this.initializeVisibilityControls(wrapper);
     }
 
-    return resourceId;
-  }
-
-  function addWork(parentCollectionId, workType, workTypeText) {
-    const workId = `work-${resourceCounter++}`;
-
-    // Clone template
-    const template = document.getElementById('work-item-template');
-    const content = template.content.cloneNode(true);
-
-    // Get the work div and set attributes
-    const workItem = content.querySelector('.work-item');
-    workItem.dataset.workId = workId;
-    workItem.dataset.parentId = parentCollectionId;
-    workItem.dataset.workType = workType;
-
-    // Set label
-    content.querySelector('.work-label').textContent = workTypeText;
-
-    // Update hidden input
-    const hiddenInput = content.querySelector('input[type="hidden"]');
-    hiddenInput.name = `resources[${parentCollectionId}][works][${workId}][type]`;
-    hiddenInput.value = workType;
-
-    // Add to nested works area
-    const parentResourceDiv = resourcesList.querySelector(`[data-resource-id="${parentCollectionId}"]`);
-    const nestedWorks = parentResourceDiv.querySelector('.nested-works');
-    nestedWorks.appendChild(content);
-
-    // Attach event handlers AFTER appending to DOM
-    const addedWorkItem = nestedWorks.querySelector(`[data-work-id="${workId}"]`);
-
-    // Click to show Work form
-    addedWorkItem.querySelector('.work-label').addEventListener('click', function() {
-      showWorkForm(workId, parentCollectionId, workType, workTypeText, true);
-    });
-
-    // Remove Work
-    addedWorkItem.querySelector('.remove-work').addEventListener('click', function(e) {
-      e.stopPropagation();
-      addedWorkItem.remove();
-
-      // Remove the work form
-      const formWrapper = document.getElementById(`work-form-wrapper-${workId}`);
-      if (formWrapper) {
-        formWrapper.remove();
-      }
-
-      // Remove all FileSets that belong to this work
-      const fileSetForms = Array.from(formsContainer.children).filter(el =>
-        el.dataset.parentId === workId
-      );
-      fileSetForms.forEach(form => form.remove());
-    });
-
-    // Add FileSet button for this work
-    addedWorkItem.querySelector('.add-fileset-btn').addEventListener('click', function(e) {
-      e.stopPropagation();
-      addFileSetToWork(workId, parentCollectionId);
-    });
-
-    showWorkForm(workId, parentCollectionId, workType, workTypeText);
-  }
-
-  function showWorkForm(workId, parentCollectionId, workType, workTypeText, shouldScroll = false) {
-    let existingForm = document.getElementById(`work-form-wrapper-${workId}`);
-
-    if (!existingForm) {
-      const formTemplate = document.querySelector(`#form-templates .form-template[data-resource-type="${workType}"]`);
-
-      if (!formTemplate) {
-        console.error('No form template found for work type:', workType);
-        return;
-      }
-
-      const clonedForm = formTemplate.cloneNode(true);
-
-      const wrapper = document.createElement('div');
-      wrapper.id = `work-form-wrapper-${workId}`;
-      wrapper.className = 'mb-4 pb-4 border-bottom border-left pl-4';
-      wrapper.dataset.parentId = parentCollectionId;
-      wrapper.dataset.resourceType = 'work';
-
-      // Add title with remove button
-      const titleWrapper = document.createElement('div');
-      titleWrapper.className = 'clearfix mb-3';
-
-      const title = document.createElement('h5');
-      title.textContent = workTypeText;
-      title.className = 'float-left';
-
-      const removeBtn = createRemoveButton();
-      removeBtn.addEventListener('click', function() {
-        // Remove from sidebar
-        const sidebarItem = resourcesList.querySelector(`[data-work-id="${workId}"]`);
-        if (sidebarItem) {
-          sidebarItem.remove();
-        }
-
-        // Remove this form
-        wrapper.remove();
-
-        // Remove all nested filesets
-        const fileSetForms = Array.from(formsContainer.children).filter(el =>
-          el.dataset.parentId === workId
-        );
-        fileSetForms.forEach(form => form.remove());
-      });
-
-      titleWrapper.appendChild(title);
-      titleWrapper.appendChild(removeBtn);
-      wrapper.appendChild(titleWrapper);
-
-      const inputs = clonedForm.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => {
-        if (input.name) {
-          input.name = input.name.replace(/^[^\[]+/, `resources[${parentCollectionId}][works][${workId}]`);
-        }
-        if (input.id) {
-          input.id = `${workId}_${input.id}`;
-        }
-      });
-
-      const labels = clonedForm.querySelectorAll('label');
-      labels.forEach(label => {
-        if (label.htmlFor) {
-          label.htmlFor = `${workId}_${label.htmlFor}`;
-        }
-      });
-
-      wrapper.appendChild(clonedForm);
-
-      // Find the last WORK child of the parent collection (not filesets)
-      const parentForm = document.getElementById(`resource-form-wrapper-${parentCollectionId}`);
-      if (parentForm) {
-        // Find all work siblings with the same parent (exclude filesets)
-        const workSiblings = Array.from(formsContainer.children).filter(el =>
-          el.dataset.parentId === parentCollectionId && el.dataset.resourceType === 'work'
-        );
-
-        if (workSiblings.length > 0) {
-          // Find the last work's last descendant (could be the work itself or its last fileset)
-          const lastWork = workSiblings[workSiblings.length - 1];
-          const lastWorkId = lastWork.id.replace('work-form-wrapper-', '');
-
-          // Find all descendants of this last work
-          const lastWorkDescendants = Array.from(formsContainer.children).filter(el =>
-            el.dataset.parentId === lastWorkId
-          );
-
-          if (lastWorkDescendants.length > 0) {
-            // Insert after the last descendant
-            lastWorkDescendants[lastWorkDescendants.length - 1].insertAdjacentElement('afterend', wrapper);
-          } else {
-            // No descendants, insert after the work itself
-            lastWork.insertAdjacentElement('afterend', wrapper);
-          }
-        } else {
-          // No work siblings yet, insert after parent
-          parentForm.insertAdjacentElement('afterend', wrapper);
-        }
-      } else {
-        formsContainer.appendChild(wrapper);
-      }
-
-      $(wrapper).find('.multi_value').manage_fields();
-
-      if (shouldScroll) {
-        scrollToForm(wrapper);
-      }
-    } else if (shouldScroll) {
-      scrollToForm(existingForm);
-    }
-
-    initializeSecondaryFields(wrapper || existingForm);
-    initializeVisibilityControls(wrapper || existingForm);
-  }
-
-  function addFileSetToWork(workId, parentCollectionId) {
-    const fileSetId = `fileset-${resourceCounter++}`;
-
-    const template = document.getElementById('fileset-item-template');
-    const content = template.content.cloneNode(true);
-
-    const fileSetItem = content.querySelector('.fileset-item');
-    fileSetItem.dataset.filesetId = fileSetId;
-    fileSetItem.dataset.parentId = workId;
-
-    const hiddenInput = content.querySelector('input[type="hidden"]');
-    hiddenInput.name = `resources[${parentCollectionId}][works][${workId}][filesets][${fileSetId}][type]`;
-    hiddenInput.value = FILE_SET_VALUE;
-
-    const workItem = resourcesList.querySelector(`[data-work-id="${workId}"]`);
-    const nestedFilesets = workItem.querySelector('.nested-filesets');
-    nestedFilesets.appendChild(content);
-
-    const addedFileSetItem = nestedFilesets.querySelector(`[data-fileset-id="${fileSetId}"]`);
-
-    addedFileSetItem.querySelector('.fileset-label').addEventListener('click', function() {
-      showFileSetFormForWork(fileSetId, workId, parentCollectionId, true);
-    });
-
-    addedFileSetItem.querySelector('.remove-fileset').addEventListener('click', function(e) {
-      e.stopPropagation();
-      addedFileSetItem.remove();
-
-      const formWrapper = document.getElementById(`fileset-form-wrapper-${fileSetId}`);
-      if (formWrapper) {
-        // For nested filesets, we need to remove the outerWrapper
-        const outerWrapper = formWrapper.closest('.border-left.pl-4');
-        if (outerWrapper) {
-          outerWrapper.remove();
-        } else {
-          formWrapper.remove();
-        }
-      }
-    });
-
-    showFileSetFormForWork(fileSetId, workId, parentCollectionId);
-  }
-
-  function showFileSetFormForWork(fileSetId, parentWorkId, parentCollectionId, shouldScroll = false) {
-    let existingForm = document.getElementById(`fileset-form-wrapper-${fileSetId}`);
-
-    if (!existingForm) {
-      const formTemplate = document.querySelector(`#form-templates .form-template[data-resource-type="${FILE_SET_VALUE}"]`);
-
-      if (!formTemplate) {
-        console.error('No FileSet form template found');
-        return;
-      }
-
-      const clonedForm = formTemplate.cloneNode(true);
-
-      const wrapper = document.createElement('div');
-      wrapper.id = `fileset-form-wrapper-${fileSetId}`;
-      wrapper.className = 'mb-4 pb-4 border-bottom';
-      wrapper.dataset.parentId = parentWorkId;
-
-      // Add title with remove button
-      const titleWrapper = document.createElement('div');
-      titleWrapper.className = 'clearfix mb-3';
+    static createHeader(text, removeCallback) {
+      const div = document.createElement('div');
+      div.className = 'clearfix mb-3';
 
       const title = document.createElement('h4');
-      title.textContent = 'FileSet';
       title.className = 'float-left';
+      title.textContent = text;
 
-      const removeBtn = createRemoveButton();
-      removeBtn.addEventListener('click', function() {
-        // Remove from sidebar
-        const sidebarItem = resourcesList.querySelector(`[data-fileset-id="${fileSetId}"]`);
-        if (sidebarItem) {
-          sidebarItem.remove();
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-sm btn-link text-danger float-right';
+      btn.innerHTML = '<small>Remove</small>';
+      btn.addEventListener('click', removeCallback);
+
+      div.appendChild(title);
+      div.appendChild(btn);
+      return div;
+    }
+
+    static scopeInputs(container, id, namePrefix) {
+      container.querySelectorAll('input, select, textarea').forEach(el => {
+        if (el.name) {
+          el.name = el.name.replace('RESOURCE_ID', id).replace(/^[^\[]+/, namePrefix);
         }
-
-        // Remove this form (which is inside outerWrapper)
-        outerWrapper.remove();
+        if (el.id) el.id = `${id}_${el.id}`;
       });
 
-      titleWrapper.appendChild(title);
-      titleWrapper.appendChild(removeBtn);
-      wrapper.appendChild(titleWrapper);
-
-      const inputs = clonedForm.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => {
-        if (input.name) {
-          input.name = input.name.replace(/^[^\[]+/, `resources[${parentCollectionId}][works][${parentWorkId}][filesets][${fileSetId}]`);
-        }
-        if (input.id) {
-          input.id = `${fileSetId}_${input.id}`;
-        }
+      container.querySelectorAll('label').forEach(el => {
+        if (el.htmlFor) el.htmlFor = `${id}_${el.htmlFor}`;
       });
+    }
 
-      const labels = clonedForm.querySelectorAll('label');
-      labels.forEach(label => {
-        if (label.htmlFor) {
-          label.htmlFor = `${fileSetId}_${label.htmlFor}`;
-        }
-      });
+    static injectIntoDOM(wrapper, node) {
+      const parentForm = document.querySelector(`[id$="-form-wrapper-${node.parentId}"]`);
 
-      wrapper.appendChild(clonedForm);
-
-      // Wrap in double-border container
-      const outerWrapper = document.createElement('div');
-      outerWrapper.className = 'border-left pl-4';
-      outerWrapper.dataset.parentId = parentWorkId;
-      const innerWrapper = document.createElement('div');
-      innerWrapper.className = 'border-left pl-4';
-      innerWrapper.appendChild(wrapper);
-      outerWrapper.appendChild(innerWrapper);
-
-      // Find the last child of this parent (could be the work itself or its last fileset)
-      const parentForm = document.getElementById(`work-form-wrapper-${parentWorkId}`);
       if (parentForm) {
-        // Find all siblings with the same parent
-        const siblings = Array.from(formsContainer.children).filter(el =>
-          el.dataset.parentId === parentWorkId
+        const siblings = Array.from(CONFIG.formsContainer.children).filter(el =>
+          el.dataset.parentId === node.parentId
         );
 
         if (siblings.length > 0) {
-          // Insert after the last sibling
-          siblings[siblings.length - 1].insertAdjacentElement('afterend', outerWrapper);
+          const lastSibling = siblings[siblings.length - 1];
+          let lastSiblingId = lastSibling.dataset.ownerId;
+
+          if (!lastSiblingId && lastSibling.querySelector('[data-owner-id]')) {
+            lastSiblingId = lastSibling.querySelector('[data-owner-id]').dataset.ownerId;
+          }
+
+          const descendants = Array.from(CONFIG.formsContainer.children).filter(el =>
+            el.dataset.parentId === lastSiblingId
+          );
+
+          if (descendants.length > 0) {
+             descendants[descendants.length - 1].insertAdjacentElement('afterend', wrapper);
+          } else {
+             lastSibling.insertAdjacentElement('afterend', wrapper);
+          }
         } else {
-          // No siblings yet, insert after parent
-          parentForm.insertAdjacentElement('afterend', outerWrapper);
+          parentForm.insertAdjacentElement('afterend', wrapper);
         }
       } else {
-        formsContainer.appendChild(outerWrapper);
+        CONFIG.formsContainer.appendChild(wrapper);
       }
+    }
 
-      $(wrapper).find('.multi_value').manage_fields();
+    static initializeSecondaryFields(formWrapper) {
+      const dropdownMenu = formWrapper.querySelector('.secondary-field-selector');
+      const secondaryTermsContainer = formWrapper.querySelector('.secondary-terms');
+      const additionalFieldsSection = formWrapper.querySelector('.additional-fields-section');
 
-      if (shouldScroll) {
-        scrollToForm(outerWrapper);
-      }
+      if (!dropdownMenu || !secondaryTermsContainer) return;
 
-      initializeSecondaryFields(wrapper);
-      initializeVisibilityControls(wrapper);
+      const addItemSorted = (menu, fieldName, displayLabel) => {
+        const item = document.createElement('button');
+        item.className = 'dropdown-item';
+        item.type = 'button';
+        item.dataset.fieldName = fieldName;
+        item.textContent = displayLabel;
 
-    } else if (shouldScroll) {
-      scrollToForm(existingForm);
+        const items = Array.from(menu.querySelectorAll('.dropdown-item'));
+        let inserted = false;
+
+        for (let i = 0; i < items.length; i++) {
+          if (item.textContent.localeCompare(items[i].textContent) < 0) {
+            menu.insertBefore(item, items[i]);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) menu.appendChild(item);
+        return item;
+      };
+
+      const fieldWrappers = secondaryTermsContainer.querySelectorAll('.secondary-field-wrapper');
+
+      fieldWrappers.forEach(wrapper => {
+        const fieldName = wrapper.dataset.fieldName;
+        const label = wrapper.querySelector('label');
+        let displayLabel = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        if (label) {
+          const labelClone = label.cloneNode(true);
+          labelClone.querySelectorAll('.badge, .required-tag, span').forEach(el => el.remove());
+          displayLabel = labelClone.textContent.trim();
+        }
+
+        const item = addItemSorted(dropdownMenu, fieldName, displayLabel);
+
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+
+          const currentFieldName = this.dataset.fieldName;
+          const currentWrapper = secondaryTermsContainer.querySelector(`[data-field-name="${currentFieldName}"]`);
+
+          if (currentWrapper) {
+            const container = document.createElement('div');
+            container.className = 'added-field mb-3 p-3 border rounded position-relative';
+            container.dataset.fieldName = currentFieldName;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-link text-danger position-absolute';
+            removeBtn.style.top = '10px';
+            removeBtn.style.right = '10px';
+            removeBtn.innerHTML = '<small>Remove</small>';
+
+            container.appendChild(removeBtn);
+            container.appendChild(currentWrapper);
+
+            additionalFieldsSection.parentNode.insertBefore(container, additionalFieldsSection);
+
+            const currentLabel = this.textContent;
+            this.remove();
+
+            removeBtn.addEventListener('click', () => {
+              secondaryTermsContainer.appendChild(currentWrapper);
+              container.remove();
+              addItemSorted(dropdownMenu, currentFieldName, currentLabel);
+            });
+
+            if (window.jQuery) $(container).find('.multi_value').manage_fields();
+          }
+        });
+      });
+    }
+
+    static initializeVisibilityControls(formWrapper) {
+      const visibilityRadios = formWrapper.querySelectorAll('.visibility-radio');
+
+      visibilityRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          const targetId = this.dataset.target;
+          const embargoFields = formWrapper.querySelector('.embargo-fields');
+          const leaseFields = formWrapper.querySelector('.lease-fields');
+
+          if (embargoFields) {
+            embargoFields.style.display = 'none';
+            embargoFields.querySelectorAll('input, select').forEach(input => input.disabled = true);
+          }
+          if (leaseFields) {
+            leaseFields.style.display = 'none';
+            leaseFields.querySelectorAll('input, select').forEach(input => input.disabled = true);
+          }
+
+          if (targetId && targetId !== 'none') {
+            const targetFields = formWrapper.querySelector(`#${targetId}`);
+            if (targetFields) {
+              targetFields.style.display = 'block';
+              targetFields.querySelectorAll('input, select').forEach(input => input.disabled = false);
+            }
+          }
+        });
+      });
     }
   }
 
-  function scrollToResourceForm(resourceId) {
-    const formWrapper = document.getElementById(`resource-form-wrapper-${resourceId}`);
+  class BatchNode {
+    constructor({ type, displayText, parentId, inputPrefix, listContainer }) {
+      this.id = `${this.idPrefix}-${globalCounter++}`;
+      this.type = type;
+      this.displayText = displayText;
+      this.parentId = parentId;
+      this.inputPrefix = `${inputPrefix}[${this.id}]`;
+      this.listContainer = listContainer;
+      this.element = this.createSidebarElement();
+      this.mount();
+    }
 
-    if (formWrapper) {
-      const defaultHeaderHeight = 56;
-      const elementPosition = formWrapper.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - defaultHeaderHeight;
+    get idPrefix() { throw new Error('Implement idPrefix'); }
+    get templateId() { throw new Error('Implement templateId'); }
+    get formWrapperClass() { return 'mb-4 pb-4 border-bottom'; }
+    get requiresOuterWrapper() { return false; }
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
+    createSidebarElement() {
+      const template = document.getElementById(this.templateId);
+      const content = template.content.cloneNode(true);
+
+      let item, label, removeBtn;
+
+      if (this.idPrefix === 'resource') {
+        item = content.querySelector('.resource-item');
+        label = content.querySelector('.resource-label');
+        removeBtn = content.querySelector('.remove-resource');
+        item.dataset.resourceId = this.id;
+        item.dataset.resourceType = this.type;
+      } else if (this.idPrefix === 'work') {
+        item = content.querySelector('.work-item');
+        label = content.querySelector('.work-label');
+        removeBtn = content.querySelector('.remove-work');
+        item.dataset.workId = this.id;
+        item.dataset.parentId = this.parentId;
+        item.dataset.workType = this.type;
+      } else if (this.idPrefix === 'fileset') {
+        item = content.querySelector('.fileset-item');
+        label = content.querySelector('.fileset-label');
+        removeBtn = content.querySelector('.remove-fileset');
+        item.dataset.filesetId = this.id;
+        item.dataset.parentId = this.parentId;
+      }
+
+      label.textContent = this.displayText;
+      label.addEventListener('click', () => this.showForm(true));
+
+      const hiddenInput = content.querySelector('input[type="hidden"]');
+      if (hiddenInput) {
+        hiddenInput.name = `${this.inputPrefix}[type]`;
+        hiddenInput.value = this.type;
+      }
+
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.remove();
       });
+
+      return content;
+    }
+
+    mount() {
+      this.listContainer.appendChild(this.element);
+
+      if (this.idPrefix === 'resource') {
+        this.domElement = this.listContainer.querySelector(`[data-resource-id="${this.id}"]`);
+      } else if (this.idPrefix === 'work') {
+        this.domElement = this.listContainer.querySelector(`[data-work-id="${this.id}"]`);
+      } else {
+        this.domElement = this.listContainer.querySelector(`[data-fileset-id="${this.id}"]`);
+      }
+
+      this.postMount();
+      this.showForm(false);
+    }
+
+    postMount() {}
+
+    showForm(shouldScroll = false) {
+      const wrapper = FormRenderer.render(this, this.templateId, this.inputPrefix);
+      if (shouldScroll && wrapper) {
+        const offset = wrapper.getBoundingClientRect().top + window.pageYOffset - 56;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
+    }
+
+    remove() {
+      if (this.domElement) this.domElement.remove();
+
+      const formId = `${this.idPrefix}-form-wrapper-${this.id}`;
+      let formWrapper = document.getElementById(formId);
+
+      if (formWrapper) {
+        if (this.requiresOuterWrapper) {
+            const outer = formWrapper.closest('.border-left.pl-4');
+            if (outer && outer.contains(formWrapper)) {
+                outer.remove();
+            } else {
+                formWrapper.remove();
+            }
+        } else {
+            formWrapper.remove();
+        }
+      }
+
+      const childForms = Array.from(CONFIG.formsContainer.children).filter(el =>
+        el.dataset.parentId === this.id
+      );
+
+      childForms.forEach(child => {
+        let childId = child.dataset.ownerId;
+        if (!childId) {
+             const inner = child.querySelector('[data-owner-id]');
+             if (inner) childId = inner.dataset.ownerId;
+        }
+
+        if (childId) {
+            const sidebarItem =
+                document.querySelector(`[data-work-id="${childId}"]`) ||
+                document.querySelector(`[data-fileset-id="${childId}"]`);
+
+            if (sidebarItem) sidebarItem.remove();
+        }
+        child.remove();
+      });
+
+      if (CONFIG.resourcesList.children.length === 0) {
+        showEmptyState();
+      }
     }
   }
 
-  function showResourceForm(resourceId, resourceType, displayText) {
-    // Check if form already exists
-    let existingForm = document.getElementById(`resource-form-wrapper-${resourceId}`);
+  class ResourceNode extends BatchNode {
+    get idPrefix() { return 'resource'; }
+    get templateId() { return 'resource-item-template'; }
 
-    if (!existingForm) {
-      // Find the template for this resource type
-      const formTemplate = document.querySelector(`#form-templates .form-template[data-resource-type="${resourceType}"]`);
+    postMount() {
+      const isCollection = (this.type === CONFIG.collectionValue);
 
-      if (!formTemplate) {
-        console.error('No form template found for resource type:', resourceType);
-        return;
+      if (isCollection) {
+        const section = this.domElement.querySelector('.add-work-section');
+        if (section) {
+            section.style.display = 'block';
+            const select = section.querySelector('.work-type-select');
+            select.addEventListener('change', () => {
+                if (!select.value) return;
+                new WorkNode({
+                    type: select.value,
+                    displayText: select.options[select.selectedIndex].text,
+                    parentId: this.id,
+                    inputPrefix: `${this.inputPrefix}[works]`,
+                    listContainer: this.domElement.querySelector('.nested-works')
+                });
+                select.value = '';
+            });
+        }
+      } else {
+        const addFsBtn = this.domElement.querySelector('.add-fileset-btn');
+        if (addFsBtn) {
+            addFsBtn.style.display = 'block';
+            addFsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                new FileSetNode({
+                    type: CONFIG.fileSetValue,
+                    displayText: 'FileSet',
+                    parentId: this.id,
+                    inputPrefix: `${this.inputPrefix}[filesets]`,
+                    listContainer: this.domElement.querySelector('.nested-filesets')
+                });
+            });
+        }
       }
+    }
+  }
 
-      // Clone the entire form
-      const clonedForm = formTemplate.cloneNode(true);
+  class WorkNode extends BatchNode {
+    get idPrefix() { return 'work'; }
+    get templateId() { return 'work-item-template'; }
+    get formWrapperClass() { return 'mb-4 pb-4 border-bottom border-left pl-4'; }
 
-      // Create wrapper
-      const wrapper = document.createElement('div');
-      wrapper.id = `resource-form-wrapper-${resourceId}`;
-      wrapper.className = 'mb-4 pb-4 border-bottom';
+    postMount() {
+      const addBtn = this.domElement.querySelector('.add-fileset-btn');
+      if (addBtn) {
+        addBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            new FileSetNode({
+                type: CONFIG.fileSetValue,
+                displayText: 'FileSet',
+                parentId: this.id,
+                inputPrefix: `${this.inputPrefix}[filesets]`,
+                listContainer: this.domElement.querySelector('.nested-filesets')
+            });
+        });
+      }
+    }
+  }
 
-      // Add title with remove button
-      const titleWrapper = document.createElement('div');
-      titleWrapper.className = 'clearfix mb-3';
+  class FileSetNode extends BatchNode {
+    get idPrefix() { return 'fileset'; }
+    get templateId() { return 'fileset-item-template'; }
+    get requiresOuterWrapper() {
+      return this.parentId && this.parentId.startsWith('work-');
+    }
 
-      const title = document.createElement('h4');
-      title.textContent = displayText;
-      title.className = 'float-left';
-
-      const removeBtn = createRemoveButton();
-      removeBtn.addEventListener('click', function() {
-        // Remove from sidebar
-        const sidebarItem = resourcesList.querySelector(`[data-resource-id="${resourceId}"]`);
-        if (sidebarItem) {
-          sidebarItem.remove();
-        }
-
-        // Remove this form
-        wrapper.remove();
-
-        // Remove all nested children (works and filesets)
-        const children = Array.from(formsContainer.children).filter(el =>
-          el.dataset.parentId === resourceId
-        );
-        children.forEach(child => child.remove());
-
-        // If no more resources, show empty state
-        if (resourcesList.children.length === 0) {
-          showEmptyState();
-        }
-      });
-
-      titleWrapper.appendChild(title);
-      titleWrapper.appendChild(removeBtn);
-      wrapper.appendChild(titleWrapper);
-
-      // Update all input names to use the resource ID
-      const inputs = clonedForm.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => {
-        if (input.name) {
-          // Replace RESOURCE_ID placeholder or form name with our resources array structure
-          input.name = input.name.replace('RESOURCE_ID', resourceId).replace(/^[^\[]+/, `resources[${resourceId}]`);
-        }
-        if (input.id) {
-          input.id = `${resourceId}_${input.id}`;
-        }
-      });
-
-      // Update all labels to point to the new IDs
-      const labels = clonedForm.querySelectorAll('label');
-      labels.forEach(label => {
-        if (label.htmlFor) {
-          label.htmlFor = `${resourceId}_${label.htmlFor}`;
-        }
-      });
-
-      wrapper.appendChild(clonedForm);
-      formsContainer.appendChild(wrapper);
-
-      // Initialize the multi-value fields with hydra-editor
-      $(wrapper).find('.multi_value').manage_fields();
-
-      initializeSecondaryFields(wrapper);
-      initializeVisibilityControls(wrapper);
+    get formWrapperClass() {
+      if (this.requiresOuterWrapper) {
+        return 'mb-4 pb-4 border-bottom';
+      } else {
+        return 'mb-4 pb-4 border-bottom border-left pl-4';
+      }
     }
   }
 
   function showEmptyState() {
     const template = document.getElementById('empty-state-template');
-    const content = template.content.cloneNode(true);
-
-    formsContainer.innerHTML = '';
-    formsContainer.appendChild(content);
+    CONFIG.formsContainer.innerHTML = '';
+    CONFIG.formsContainer.appendChild(template.content.cloneNode(true));
   }
 
-  function addFileSet(parentResourceId) {
-    const fileSetId = `fileset-${resourceCounter++}`;
+  if (CONFIG.resourceTypeSelect) {
+    CONFIG.resourceTypeSelect.addEventListener('change', function() {
+      if (!this.value) return;
 
-    // Clone template
-    const template = document.getElementById('fileset-item-template');
-    const content = template.content.cloneNode(true);
-
-    // Get the fileset div and set attributes
-    const fileSetItem = content.querySelector('.fileset-item');
-    fileSetItem.dataset.filesetId = fileSetId;
-    fileSetItem.dataset.parentId = parentResourceId;
-
-    // Update hidden input
-    const hiddenInput = content.querySelector('input[type="hidden"]');
-    hiddenInput.name = `resources[${parentResourceId}][filesets][${fileSetId}][type]`;
-    hiddenInput.value = FILE_SET_VALUE;
-
-    // Add to nested filesets area
-    const parentResourceDiv = resourcesList.querySelector(`[data-resource-id="${parentResourceId}"]`);
-    const nestedFilesets = parentResourceDiv.querySelector('.nested-filesets');
-    nestedFilesets.appendChild(content);
-
-    // Attach event handlers AFTER appending to DOM
-    const addedFileSetItem = nestedFilesets.querySelector(`[data-fileset-id="${fileSetId}"]`);
-
-    // Click to show FileSet form
-    addedFileSetItem.querySelector('.fileset-label').addEventListener('click', function() {
-      showFileSetForm(fileSetId, parentResourceId, true);
-    });
-
-    // Remove FileSet
-    addedFileSetItem.querySelector('.remove-fileset').addEventListener('click', function(e) {
-      e.stopPropagation();
-      addedFileSetItem.remove();
-
-      // Remove the form too
-      const formWrapper = document.getElementById(`fileset-form-wrapper-${fileSetId}`);
-      if (formWrapper) {
-        formWrapper.remove();
-      }
-    });
-
-    // Create the form (without scrolling)
-    showFileSetForm(fileSetId, parentResourceId);
-  }
-
-  function showFileSetForm(fileSetId, parentResourceId, shouldScroll = false) {
-    let existingForm = document.getElementById(`fileset-form-wrapper-${fileSetId}`);
-
-    if (!existingForm) {
-      const formTemplate = document.querySelector(`#form-templates .form-template[data-resource-type="${FILE_SET_VALUE}"]`);
-
-      if (!formTemplate) {
-        console.error('No FileSet form template found');
-        return;
+      if (CONFIG.resourcesList.children.length === 0) {
+        CONFIG.formsContainer.innerHTML = '';
       }
 
-      const clonedForm = formTemplate.cloneNode(true);
-
-      const wrapper = document.createElement('div');
-      wrapper.id = `fileset-form-wrapper-${fileSetId}`;
-      wrapper.className = 'mb-4 pb-4 border-bottom border-left pl-4';
-      wrapper.dataset.parentId = parentResourceId;
-
-      // Add title with remove button
-      const titleWrapper = document.createElement('div');
-      titleWrapper.className = 'clearfix mb-3';
-
-      const title = document.createElement('h4');
-      title.textContent = 'FileSet';
-      title.className = 'float-left';
-
-      const removeBtn = createRemoveButton();
-      removeBtn.addEventListener('click', function() {
-        // Remove from sidebar
-        const sidebarItem = resourcesList.querySelector(`[data-fileset-id="${fileSetId}"]`);
-        if (sidebarItem) {
-          sidebarItem.remove();
-        }
-
-        // Remove this form
-        wrapper.remove();
+      new ResourceNode({
+        type: this.value,
+        displayText: this.options[this.selectedIndex].text,
+        parentId: null,
+        inputPrefix: 'resources',
+        listContainer: CONFIG.resourcesList
       });
 
-      titleWrapper.appendChild(title);
-      titleWrapper.appendChild(removeBtn);
-      wrapper.appendChild(titleWrapper);
-
-      const inputs = clonedForm.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => {
-        if (input.name) {
-          input.name = input.name.replace(/^[^\[]+/, `resources[${parentResourceId}][filesets][${fileSetId}]`);
-        }
-        if (input.id) {
-          input.id = `${fileSetId}_${input.id}`;
-        }
-      });
-
-      const labels = clonedForm.querySelectorAll('label');
-      labels.forEach(label => {
-        if (label.htmlFor) {
-          label.htmlFor = `${fileSetId}_${label.htmlFor}`;
-        }
-      });
-
-      wrapper.appendChild(clonedForm);
-
-      // Find the last child of this parent
-      const parentForm = document.getElementById(`resource-form-wrapper-${parentResourceId}`);
-      if (parentForm) {
-        // Find all siblings with the same parent
-        const siblings = Array.from(formsContainer.children).filter(el =>
-          el.dataset.parentId === parentResourceId
-        );
-
-        if (siblings.length > 0) {
-          // Insert after the last sibling
-          siblings[siblings.length - 1].insertAdjacentElement('afterend', wrapper);
-        } else {
-          // No siblings yet, insert after parent
-          parentForm.insertAdjacentElement('afterend', wrapper);
-        }
-      } else {
-        formsContainer.appendChild(wrapper);
-      }
-
-      $(wrapper).find('.multi_value').manage_fields();
-
-      if (shouldScroll) {
-        scrollToForm(wrapper);
-      }
-
-      initializeSecondaryFields(wrapper);
-      initializeVisibilityControls(wrapper);
-    } else if (shouldScroll) {
-      scrollToForm(existingForm);
-    }
-  }
-
-  function scrollToForm(wrapper) {
-    const defaultHeaderHeight = 56;
-    const elementPosition = wrapper.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.pageYOffset - defaultHeaderHeight;
-
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: 'smooth'
-    });
-  }
-
-  function initializeSecondaryFields(formWrapper) {
-    const dropdownMenu = formWrapper.querySelector('.secondary-field-selector');
-    const secondaryTermsContainer = formWrapper.querySelector('.secondary-terms');
-    const additionalFieldsSection = formWrapper.querySelector('.additional-fields-section');
-
-    if (!dropdownMenu || !secondaryTermsContainer) return;
-
-    // Helper function to add item in alphabetical order
-    function addItemSorted(menu, fieldName, displayLabel) {
-      const item = document.createElement('button');
-      item.className = 'dropdown-item';
-      item.type = 'button';
-      item.dataset.fieldName = fieldName;
-      item.textContent = displayLabel;
-
-      // Find the right position to insert
-      const items = Array.from(menu.querySelectorAll('.dropdown-item'));
-      let inserted = false;
-
-      for (let i = 0; i < items.length; i++) {
-        if (item.textContent.localeCompare(items[i].textContent) < 0) {
-          menu.insertBefore(item, items[i]);
-          inserted = true;
-          break;
-        }
-      }
-
-      if (!inserted) {
-        menu.appendChild(item);
-      }
-
-      return item;
-    }
-
-    // Build dropdown items from hidden fields
-    const fieldWrappers = secondaryTermsContainer.querySelectorAll('.secondary-field-wrapper');
-    fieldWrappers.forEach(wrapper => {
-      const fieldName = wrapper.dataset.fieldName;
-
-      // Try to find the label text from the rendered field
-      const label = wrapper.querySelector('label');
-      let displayLabel = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-      if (label) {
-        const labelClone = label.cloneNode(true);
-        labelClone.querySelectorAll('.badge, .required-tag, span').forEach(el => el.remove());
-        displayLabel = labelClone.textContent.trim();
-      }
-
-      const item = addItemSorted(dropdownMenu, fieldName, displayLabel);
-
-      // Handle field selection
-      item.addEventListener('click', function(e) {
-        e.preventDefault();
-
-        const fieldName = this.dataset.fieldName;
-        const fieldWrapper = secondaryTermsContainer.querySelector(`[data-field-name="${fieldName}"]`);
-
-        if (fieldWrapper) {
-          // Create container with remove button
-          const container = document.createElement('div');
-          container.className = 'added-field mb-3 p-3 border rounded position-relative';
-          container.dataset.fieldName = fieldName;
-
-          const removeBtn = document.createElement('button');
-          removeBtn.type = 'button';
-          removeBtn.className = 'btn btn-sm btn-link text-danger position-absolute';
-          removeBtn.style.top = '10px';
-          removeBtn.style.right = '10px';
-          removeBtn.innerHTML = '<small>Remove</small>';
-
-          container.appendChild(removeBtn);
-          container.appendChild(fieldWrapper);
-
-          // Insert BEFORE the additional-fields-section instead of appending to it
-          additionalFieldsSection.parentNode.insertBefore(container, additionalFieldsSection);
-
-          // Remove from dropdown
-          const displayLabel = this.textContent;
-          this.remove();
-
-          // Handle remove
-          removeBtn.addEventListener('click', function() {
-            // Move field back to hidden container
-            secondaryTermsContainer.appendChild(fieldWrapper);
-
-            // Remove the container
-            container.remove();
-
-            // Add back to dropdown (sorted)
-            addItemSorted(dropdownMenu, fieldName, displayLabel);
-          });
-
-          // Initialize any multi-value fields that were just added
-          $(container).find('.multi_value').manage_fields();
-        }
-      });
-    });
-  }
-
-  function initializeVisibilityControls(formWrapper) {
-    const visibilityRadios = formWrapper.querySelectorAll('.visibility-radio');
-
-    visibilityRadios.forEach(radio => {
-      radio.addEventListener('change', function() {
-        const targetId = this.dataset.target;
-
-        // Hide all embargo/lease fields in this form
-        const embargoFields = formWrapper.querySelector('.embargo-fields');
-        const leaseFields = formWrapper.querySelector('.lease-fields');
-
-        if (embargoFields) {
-          embargoFields.style.display = 'none';
-          embargoFields.querySelectorAll('input, select').forEach(input => input.disabled = true);
-        }
-
-        if (leaseFields) {
-          leaseFields.style.display = 'none';
-          leaseFields.querySelectorAll('input, select').forEach(input => input.disabled = true);
-        }
-
-        // Show and enable the selected fields
-        if (targetId && targetId !== 'none') {
-          const targetFields = formWrapper.querySelector(`#${targetId}`);
-          if (targetFields) {
-            targetFields.style.display = 'block';
-            targetFields.querySelectorAll('input, select').forEach(input => input.disabled = false);
-          }
-        }
-      });
+      this.value = '';
     });
   }
 });
