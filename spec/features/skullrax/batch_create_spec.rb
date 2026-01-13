@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.feature 'Batch Create Interface', js: true do
+  include Devise::Test::IntegrationHelpers
+
+  let(:admin) { create(:admin, email: 'admin@example.com') }
+
   before do
-    admin = create(:admin)
-    login_as(admin, scope: :user)
+    sign_in admin
     visit skullrax.root_path
   end
 
@@ -248,21 +251,30 @@ RSpec.feature 'Batch Create Interface', js: true do
       expect(page).not_to have_css('#forms-container [id^="fileset-form-wrapper-"]')
     end
 
-    scenario 'removing a collection with nested works also removes all works and their filesets' do
+    scenario 'removing one collection does not leave orphaned filesets' do
       add_collection
 
       add_nested_work_to_collection('#resources-list [data-resource-id="resource-0"]', 'Generic Work')
-
       add_fileset_to_work('.work-item[data-work-id="work-1"]')
+
+      add_collection
+      add_nested_work_to_collection('#resources-list [data-resource-id="resource-3"]', 'Generic Work')
+      add_fileset_to_work('.work-item[data-work-id="work-4"]')
+
+      expect(page).to have_css('.fileset-item', count: 2)
 
       within '#resources-list [data-resource-id="resource-0"]' do
         find('.remove-resource').click
       end
 
-      expect(page).not_to have_css('.work-item')
-      expect(page).not_to have_css('.fileset-item')
-      expect(page).not_to have_css('#forms-container [id^="work-form-wrapper-"]')
-      expect(page).not_to have_css('#forms-container [id^="fileset-form-wrapper-"]')
+      expect(page).not_to have_css('#forms-container #resource-form-wrapper-resource-0')
+      expect(page).not_to have_css('#forms-container #work-form-wrapper-work-1')
+      # [THE BUG]: Without recursive delete, this form usually remains orphaned in the DOM
+      expect(page).not_to have_css('#forms-container #fileset-form-wrapper-fileset-2')
+
+      expect(page).to have_css('#forms-container #resource-form-wrapper-resource-3')
+      expect(page).to have_css('#forms-container #work-form-wrapper-work-4')
+      expect(page).to have_css('#forms-container #fileset-form-wrapper-fileset-5')
     end
 
     scenario 'removing a nested work removes it but keeps parent collection' do
@@ -487,12 +499,10 @@ RSpec.feature 'Batch Create Interface', js: true do
 
       within '#forms-container #resource-form-wrapper-resource-0' do
         expect(page).to have_select('resources[resource-0][admin_set_id]',
-          options: ['Default Admin Set', 'Some Other Admin Set']
-        )
+                                    options: ['Default Admin Set', 'Some Other Admin Set'])
 
         expect(page).to have_select('resources[resource-0][admin_set_id]',
-          selected: 'Default Admin Set'
-        )
+                                    selected: 'Default Admin Set')
       end
     end
   end

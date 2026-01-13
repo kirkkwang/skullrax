@@ -86,8 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
     static scopeInputs(container, id, namePrefix) {
       container.querySelectorAll('input, select, textarea').forEach(el => {
         if (el.name) {
-          el.name = el.name.replace('RESOURCE_ID', id).replace(/^[^\[]+/, namePrefix);
+          if (el.name.includes('[RESOURCE_ID]')) {
+            // Replaces "resources[RESOURCE_ID]" with "resources[resource-0]"
+            el.name = el.name.replace(/^[^\[]+\[RESOURCE_ID\]/, namePrefix);
+          } else {
+            // Fallback for standard inputs like "generic_work[title]" -> "resources[resource-0][title]"
+            el.name = el.name.replace(/^[^\[]+/, namePrefix);
+          }
         }
+
+        // Update IDs and Labels
         if (el.id) el.id = `${id}_${el.id}`;
       });
 
@@ -345,30 +353,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      const childForms = Array.from(CONFIG.formsContainer.children).filter(el =>
-        el.dataset.parentId === this.id
-      );
-
-      childForms.forEach(child => {
-        let childId = child.dataset.ownerId;
-        if (!childId) {
-             const inner = child.querySelector('[data-owner-id]');
-             if (inner) childId = inner.dataset.ownerId;
-        }
-
-        if (childId) {
-            const sidebarItem =
-                document.querySelector(`[data-work-id="${childId}"]`) ||
-                document.querySelector(`[data-fileset-id="${childId}"]`);
-
-            if (sidebarItem) sidebarItem.remove();
-        }
-        child.remove();
-      });
+      this.removeDescendants(this.id);
 
       if (CONFIG.resourcesList.children.length === 0) {
         showEmptyState();
       }
+    }
+
+    removeDescendants(parentId) {
+      const children = Array.from(CONFIG.formsContainer.children).filter(el =>
+        el.dataset.parentId === parentId
+      );
+
+      children.forEach(childForm => {
+        let childId = childForm.dataset.ownerId;
+
+        if (!childId) {
+          const inner = childForm.querySelector('[data-owner-id]');
+          if (inner) childId = inner.dataset.ownerId;
+        }
+
+        if (childId) {
+          this.removeDescendants(childId);
+
+          const sidebarItem =
+            document.querySelector(`[data-work-id="${childId}"]`) ||
+            document.querySelector(`[data-fileset-id="${childId}"]`);
+
+          if (sidebarItem) sidebarItem.remove();
+        }
+
+        childForm.remove();
+      });
     }
   }
 
