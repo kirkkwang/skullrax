@@ -506,4 +506,95 @@ RSpec.feature 'Batch Create Interface', js: true do
       end
     end
   end
+
+  describe 'remote files' do
+    scenario 'works show multi-value remote files field' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(page).to have_css('.remote_files')
+        expect(page).to have_field('resources[resource-0][remote_files][]', type: 'url')
+        expect(page).to have_button('Add another Remote Files (URLs)')
+      end
+    end
+
+    scenario 'adding multiple remote files to a work' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][remote_files][]', with: 'https://example.com/image1.jpg'
+        click_button 'Add another Remote Files (URLs)'
+
+        # Find the second input that was added
+        inputs = all('input[name="resources[resource-0][remote_files][]"]')
+        expect(inputs.count).to eq(2)
+
+        inputs.last.fill_in with: 'https://example.com/image2.jpg'
+      end
+    end
+
+    scenario 'filesets show single remote file field' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        expect(page).to have_css('.remote_file')
+        expect(page).to have_field('resources[resource-0][filesets][fileset-1][remote_file]', type: 'url')
+        expect(page).not_to have_css('.remote_file.multi_value')
+      end
+    end
+
+    scenario 'fileset file upload disables when remote URL is entered' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        file_input = find('input[type="file"]', match: :first)
+        url_input = find('input[type="url"]')
+
+        expect(file_input).not_to be_disabled
+        expect(url_input).not_to be_disabled
+
+        # Enter URL
+        url_input.fill_in with: 'https://example.com/image.jpg'
+
+        expect(file_input).to be_disabled
+        expect(url_input).not_to be_disabled
+      end
+    end
+
+    scenario 'fileset remote URL disables when file is selected' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        file_input = find('input[type="file"]', match: :first)
+        url_input = find('input[type="url"]')
+
+        # Attach a file
+        file_input.attach_file(Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png'))
+
+        expect(file_input).not_to be_disabled
+        expect(url_input).to be_disabled
+        expect(url_input.value).to be_empty
+      end
+    end
+
+    scenario 'fileset clearing remote URL re-enables file upload' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        file_input = find('input[type="file"]', match: :first)
+        url_input = find('input[type="url"]')
+
+        # Enter and then clear URL
+        url_input.fill_in with: 'https://example.com/image.jpg'
+        expect(file_input).to be_disabled
+
+        url_input.fill_in with: ''
+        expect(file_input).not_to be_disabled
+      end
+    end
+  end
 end

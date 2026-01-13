@@ -191,6 +191,21 @@
               <input type="file" name="resources[RESOURCE_ID][file]" class="form-control-file file-upload-input" required>
               <small class="form-text text-muted"><%= t('skullrax.dashboard.batch_create.file_required_help') %></small>
             </div>
+
+            <!-- Remote File -->
+            <div class="form-group string optional remote_file">
+              <label class="control-label string optional" for="RESOURCE_ID_remote_file">
+                Remote File (URL)
+              </label>
+              <p class="help-block">
+                Add a link to a remote file, e.g. https://example.com/image.jpg
+              </p>
+              <input
+                class="form-control string optional"
+                type="url"
+                name="resources[RESOURCE_ID][remote_file]"
+                id="RESOURCE_ID_remote_file">
+            </div>
           </div>
         <% end %>
 
@@ -202,6 +217,36 @@
               <label><%= t('skullrax.dashboard.batch_create.choose_files') %></label>
               <input type="file" name="resources[RESOURCE_ID][files][]" class="form-control-file file-upload-input" multiple>
               <small class="form-text text-muted"><%= t('skullrax.dashboard.batch_create.files_optional_help') %></small>
+            </div>
+
+            <!-- Remote Files -->
+            <div class="form-group multi_value optional remote_files">
+              <label class="control-label multi_value optional" for="RESOURCE_ID_remote_files" id="RESOURCE_ID_remote_files_label">
+                Remote Files (URLs)
+              </label>
+              <p class="help-block">Add a link to a remote file, e.g. https://example.com/image.jpg</p>
+              <ul class="listing">
+                <li class="field-wrapper input-group input-append">
+                  <input
+                    class="string multi_value optional form-control remote_files multi-text-field"
+                    name="resources[RESOURCE_ID][remote_files][]"
+                    value=""
+                    id="RESOURCE_ID_remote_files"
+                    aria-labelledby="RESOURCE_ID_remote_files_label"
+                    type="url">
+                  <span class="input-group-btn field-controls">
+                    <button type="button" class="btn btn-link remove">
+                      <span class="glyphicon glyphicon-remove"></span>
+                      <span class="controls-remove-text">Remove</span>
+                      <span class="sr-only"> previous <span class="controls-field-name-text">Remote Files (URLs)</span></span>
+                    </button>
+                  </span>
+                </li>
+              </ul>
+              <button type="button" class="btn btn-link add">
+                <span class="glyphicon glyphicon-plus"></span>
+                <span class="controls-add-text">Add another Remote Files (URLs)</span>
+              </button>
             </div>
           </div>
         <% end %>

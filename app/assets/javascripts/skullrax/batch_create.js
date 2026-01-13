@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window.jQuery) $(wrapper).find('.multi_value').manage_fields();
       this.initializeSecondaryFields(wrapper);
       this.initializeVisibilityControls(wrapper);
+      this.initializeFileSetFileToggle(wrapper);
     }
 
     static createHeader(text, removeCallback) {
@@ -244,6 +245,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
         });
+      });
+    }
+
+    static initializeFileSetFileToggle(wrapper) {
+      const fileInput = wrapper.querySelector('input[type="file"]');
+      const urlInput = wrapper.querySelector('.remote_file input[type="url"]');
+
+      if (!fileInput || !urlInput) return;
+
+      // When file is selected, disable URL input
+      fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+          urlInput.disabled = true;
+          urlInput.value = '';
+        } else {
+          urlInput.disabled = false;
+        }
+      });
+
+      // When URL is entered, disable file input
+      urlInput.addEventListener('input', function() {
+        if (this.value.trim()) {
+          fileInput.disabled = true;
+        } else {
+          fileInput.disabled = false;
+        }
       });
     }
   }
