@@ -1,47 +1,7 @@
-<div class="card h-100">
-  <div class="card-body">
-    <h3><%= t('skullrax.dashboard.batch_create.title') %></h3>
-    <p class="text-muted"><%= t('skullrax.dashboard.batch_create.instruction') %></p>
-    <div id="batch-create-config"
-        data-collection-value="<%= collection_value %>"
-        data-file-set-value="<%= file_set_value %>"
-        style="display: none;">
-    </div>
-    <%= form_with url: batch_create_path, local: true, multipart: true, id: "batch-create-form" do |f| %>
-      <div class="row">
-        <div class="col-xl-3">
-          <div class="bg-light border rounded p-3 mb-3 sticky-top" style="top: 4.5rem; max-height: calc(100vh - 5.5rem); overflow-y: auto;">
-            <h4 class="mb-3"><%= t('skullrax.dashboard.batch_create.resources') %></h4>
-            <div id="resources-list">
-            </div>
-            <div class="form-group">
-              <label for="resource-type"><%= t('skullrax.dashboard.batch_create.add_resource') %></label>
-              <select id="resource-type" name="resource_type" class="form-control">
-                <option value=""><%= t('skullrax.dashboard.batch_create.select_resource_type') %></option>
-                <option value="<%= collection_value %>"><%= t('hyrax.models.hyrax/pcdm_collection') %></option>
-                <%= work_options %>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xl-9">
-          <div class="border rounded p-4" style="min-height: 400px;" id="forms-container">
-            <div class="text-muted text-center py-5">
-              <p><%= t('skullrax.dashboard.batch_create.select_to_begin') %></p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-3">
-        <button type="submit" class="btn btn-primary" id="submit-batch" disabled>
-          <%= t('skullrax.dashboard.batch_create.submit') %>
-        </button>
-      </div>
-    <% end %>
-  </div>
-</div>
+<%= render Skullrax::BatchCreate::ResourceItemTemplateComponent.new %>
+<%= render Skullrax::BatchCreate::WorkItemTemplateComponent.new %>
+<%= render Skullrax::BatchCreate::FileSetItemTemplateComponent.new %>
+<%= render Skullrax::BatchCreate::EmptyStateTemplateComponent.new %>
 
 <!-- Hidden form templates for each resource type -->
 <div id="form-templates" style="display: none;">
@@ -254,5 +214,3 @@
     </div>
   <% end %>
 </div>
-
-<%= render Skullrax::BatchCreateTemplatesComponent.new(work_options:) %>
