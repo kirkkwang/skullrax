@@ -47,6 +47,23 @@
 <div id="form-templates" style="display: none;">
   <% all_resource_types.each do |resource_type| %>
     <div class="form-template" data-resource-type="<%= resource_type %>">
+
+      <!-- AdminSet Section -->
+      <% if Flipflop.assign_admin_set? && work_types.include?(resource_type) %>
+        <div class="admin-set-section mt-4 mb-4">
+          <h5><%= t('hyrax.collection_type.admin_set_title') %></h5>
+          <div class="form-group">
+            <select class="form-control admin-set-select" name="resources[RESOURCE_ID][admin_set_id]">
+              <% helpers.admin_set_options.each do |title, id| %>
+                <option value="<%= id %>" <%= 'selected' if title == 'Default Admin Set' %>>
+                  <%= title %>
+                </option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+      <% end %>
+
       <% form = form_for_resource_type(resource_type) %>
       <%= simple_form_for form, url: '#', html: { class: 'resource-form-template' } do |form_builder| %>
         <div class="base-terms">
@@ -76,7 +93,7 @@
 
         <!-- Visibility Section -->
         <div class="visibility-section mt-4">
-          <h4><%= t('hyrax.base.form_visibility_component.visibility') %></h4>
+          <h5><%= t('hyrax.base.form_visibility_component.visibility') %></h5>
 
           <div class="form-check">
             <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="open" id="visibility-open-RESOURCE_ID" checked data-target="none">
@@ -167,7 +184,7 @@
 
         <!-- Add file upload for FileSets (required) -->
         <% if resource_type == file_set_value %>
-          <h4 class="mt-4"><%= t('hyrax.works.form.tab.files').singularize %></h4>
+          <h5 class="mt-4"><%= t('hyrax.works.form.tab.files').singularize %></h5>
           <div class="files-section">
             <div class="form-group">
               <label><%= t('skullrax.dashboard.batch_create.choose_file') %> <span class="text-danger">*</span></label>
@@ -179,7 +196,7 @@
 
         <!-- Add files section for works (optional, multiple) -->
         <% if resource_type != collection_value && resource_type != file_set_value %>
-          <h4 class="mt-4"><%= t('hyrax.works.form.tab.files') %></h4>
+          <h5 class="mt-4"><%= t('hyrax.works.form.tab.files') %></h5>
           <div class="files-section">
             <div class="form-group">
               <label><%= t('skullrax.dashboard.batch_create.choose_files') %></label>

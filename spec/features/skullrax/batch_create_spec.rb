@@ -430,4 +430,70 @@ RSpec.feature 'Batch Create Interface', js: true do
       end
     end
   end
+
+  describe 'admin set selection' do
+    scenario 'admin set dropdown appears for top-level works' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(page).to have_css('.admin-set-section', visible: true)
+        expect(page).to have_select('resources[resource-0][admin_set_id]')
+      end
+    end
+
+    scenario 'admin set dropdown appears for nested works' do
+      add_collection
+      add_nested_work_to_collection('#resources-list [data-resource-id="resource-0"]', 'Generic Work')
+
+      within '#forms-container #work-form-wrapper-work-1' do
+        expect(page).to have_css('.admin-set-section', visible: true)
+        expect(page).to have_select('resources[resource-0][works][work-1][admin_set_id]')
+      end
+    end
+
+    scenario 'admin set dropdown does NOT appear for collections' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(page).not_to have_css('.admin-set-section')
+        expect(page).not_to have_css('select.admin-set-select')
+      end
+    end
+
+    scenario 'admin set dropdown does NOT appear for filesets' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(page).to have_css('.admin-set-section')
+      end
+
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        expect(page).not_to have_css('.admin-set-section')
+        expect(page).not_to have_css('select.admin-set-select')
+      end
+    end
+
+    scenario 'default admin set is pre-selected' do
+      default_set_id = valkyrie_create(:hyrax_admin_set, title: 'Default Admin Set').id
+      create(:permission_template, source_id: default_set_id, deposit_users: [admin])
+
+      other_set_id = valkyrie_create(:hyrax_admin_set, title: 'Some Other Admin Set').id
+      create(:permission_template, source_id: other_set_id, deposit_users: [admin])
+
+      visit skullrax.root_path
+
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(page).to have_select('resources[resource-0][admin_set_id]',
+          options: ['Default Admin Set', 'Some Other Admin Set']
+        )
+
+        expect(page).to have_select('resources[resource-0][admin_set_id]',
+          selected: 'Default Admin Set'
+        )
+      end
+    end
+  end
 end

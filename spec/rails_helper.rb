@@ -65,8 +65,16 @@ WebMock.disable_net_connect!(
   ]
 )
 
+require Hyrax::Engine.root.join('lib', 'hyrax', 'specs', 'shared_specs', 'factories', 'strategies',
+                                'valkyrie_resource').to_s
+require Hyrax::Engine.root.join('lib', 'hyrax', 'specs', 'shared_specs', 'factories', 'administrative_sets').to_s
+require Hyrax::Engine.root.join('lib', 'hyrax', 'specs', 'shared_specs', 'factories', 'permission_templates').to_s
+require Hyrax::Engine.root.join('lib', 'hyrax', 'specs', 'shared_specs', 'factories',
+                                'permission_template_accesses').to_s
 require Hyrax::Engine.root.join('lib', 'hyrax', 'specs', 'shared_specs', 'factories', 'users').to_s
 require Hyrax::Engine.root.join('spec', 'support', 'fakes', 'test_hydra_group_service').to_s
+
+FactoryBot.register_strategy(:valkyrie_create, ValkyrieCreateStrategy)
 
 Dir[File.expand_path('support/**/*.rb', __dir__)].sort.each { |f| require f }
 
