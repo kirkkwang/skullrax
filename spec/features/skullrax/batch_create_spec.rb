@@ -831,5 +831,73 @@ RSpec.feature 'Batch Create Interface', js: true do
 
       expect(submit_button).not_to be_disabled
     end
+
+    scenario 'autofill checkbox enables submit button with incomplete forms' do
+      add_work('Generic Work')
+
+      # Button disabled because form is empty
+      expect(submit_button).to be_disabled
+
+      # Check autofill
+      check 'autofill-checkbox'
+
+      # Button now enabled even though form is empty
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'autofill checkbox bypasses all validation' do
+      add_collection
+      add_work('Generic Work')
+
+      # Both forms empty, button disabled
+      expect(submit_button).to be_disabled
+
+      # Check autofill
+      check 'autofill-checkbox'
+
+      # Button enabled with empty forms
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'unchecking autofill re-enables validation' do
+      add_work('Generic Work')
+
+      check 'autofill-checkbox'
+      expect(submit_button).not_to be_disabled
+
+      # Uncheck autofill
+      uncheck 'autofill-checkbox'
+
+      # Button disabled again because form is empty
+      expect(submit_button).to be_disabled
+    end
+
+    scenario 'autofill checkbox disables button when no forms exist' do
+      # No forms yet
+      expect(submit_button).to be_disabled
+
+      check 'autofill-checkbox'
+
+      # Still disabled because there are no forms
+      expect(submit_button).to be_disabled
+
+      add_work('Generic Work')
+
+      # Now enabled because there's a form (even if empty)
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'autofill checkbox with filesets' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      # Button disabled (work and fileset both empty)
+      expect(submit_button).to be_disabled
+
+      check 'autofill-checkbox'
+
+      # Button enabled with autofill, even with empty filesets
+      expect(submit_button).not_to be_disabled
+    end
   end
 end

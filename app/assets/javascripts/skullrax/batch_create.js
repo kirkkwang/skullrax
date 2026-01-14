@@ -13,15 +13,31 @@ document.addEventListener('DOMContentLoaded', () => {
     constructor() {
       this.submitButton = document.getElementById('submit-batch');
       this.formsContainer = document.getElementById('forms-container');
+      this.autofillCheckbox = document.getElementById('autofill-checkbox');
       this.setupValidation();
     }
 
     setupValidation() {
       this.formsContainer.addEventListener('input', () => this.validateAllForms());
       this.formsContainer.addEventListener('change', () => this.validateAllForms());
+
+      // Listen to autofill checkbox changes
+      if (this.autofillCheckbox) {
+        this.autofillCheckbox.addEventListener('change', () => this.validateAllForms());
+      }
     }
 
     validateAllForms() {
+      // If autofill is checked, enable button if there are any forms
+      if (this.autofillCheckbox && this.autofillCheckbox.checked) {
+        const forms = Array.from(this.formsContainer.querySelectorAll(
+          '[id^="resource-form-wrapper-"], [id^="work-form-wrapper-"], [id^="fileset-form-wrapper-"]'
+        ));
+        this.submitButton.disabled = forms.length === 0;
+        return;
+      }
+
+      // Otherwise, validate normally
       const allValid = this.areAllFormsValid();
       this.submitButton.disabled = !allValid;
     }
