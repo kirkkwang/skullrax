@@ -9,8 +9,8 @@
     </div>
     <%= form_with url: batch_create_path, local: true, multipart: true, id: "batch-create-form" do |f| %>
       <div class="row">
-        <div class="col-xl-3">
-          <div class="bg-light border rounded p-3 mb-3 sticky-top" style="top: 4.5rem; max-height: calc(100vh - 5.5rem); overflow-y: auto;">
+        <div class="col-xl-3 sticky-top" style="top: 4.5rem; max-height: calc(100vh - 5.5rem); overflow-y: auto;">
+          <div class="bg-light border rounded p-3 mb-3">
             <h4 class="mb-3"><%= t('skullrax.dashboard.batch_create.resources') %></h4>
             <div id="resources-list">
             </div>
@@ -23,6 +23,19 @@
               </select>
             </div>
           </div>
+
+          <div class="mt-3 d-flex align-items-center">
+            <button type="submit" class="btn btn-primary" id="submit-batch" disabled>
+              <%= t('skullrax.dashboard.batch_create.submit') %>
+            </button>
+
+            <div class="form-check ml-3 mb-0">
+              <input class="form-check-input" type="checkbox" name="autofill" value="true" id="autofill-checkbox">
+              <label class="form-check-label" for="autofill-checkbox">
+                Autofill
+              </label>
+            </div>
+          </div>
         </div>
 
         <div class="col-xl-9">
@@ -31,19 +44,6 @@
               <p><%= t('skullrax.dashboard.batch_create.select_to_begin') %></p>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="mt-3 d-flex align-items-center">
-        <button type="submit" class="btn btn-primary" id="submit-batch" disabled>
-          <%= t('skullrax.dashboard.batch_create.submit') %>
-        </button>
-
-        <div class="form-check ml-3 mb-0">
-          <input class="form-check-input" type="checkbox" name="autofill" value="true" id="autofill-checkbox">
-          <label class="form-check-label" for="autofill-checkbox">
-            Autofill
-          </label>
         </div>
       </div>
     <% end %>
