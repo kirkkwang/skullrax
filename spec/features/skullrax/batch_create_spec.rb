@@ -441,6 +441,45 @@ RSpec.feature 'Batch Create Interface', js: true do
         expect(page).to have_css('.embargo-fields', visible: false)
       end
     end
+
+    scenario 'visibility defaults to private/restricted' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        # Check that restricted radio is selected by default
+        restricted_radio = find('input[type="radio"][value="restricted"]', visible: :all)
+        expect(restricted_radio).to be_checked
+
+        # Verify other options are not checked
+        expect(find('input[type="radio"][value="open"]', visible: :all)).not_to be_checked
+        expect(find('input[type="radio"][value="authenticated"]', visible: :all)).not_to be_checked
+      end
+    end
+
+    scenario 'each form has independent visibility selection' do
+      add_work('Generic Work')
+      add_collection
+
+      # First work defaults to restricted
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(find('input[type="radio"][value="restricted"]', visible: :all)).to be_checked
+      end
+
+      # Second collection also defaults to restricted
+      within '#forms-container #resource-form-wrapper-resource-1' do
+        expect(find('input[type="radio"][value="restricted"]', visible: :all)).to be_checked
+      end
+
+      # Change first work to open
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        find('input[type="radio"][value="open"]', visible: :all).click
+      end
+
+      # Second collection should still be restricted
+      within '#forms-container #resource-form-wrapper-resource-1' do
+        expect(find('input[type="radio"][value="restricted"]', visible: :all)).to be_checked
+      end
+    end
   end
 
   describe 'admin set selection' do

@@ -182,12 +182,31 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        // Update IDs and Labels
-        if (el.id) el.id = `${id}_${el.id}`;
+        if (el.id) {
+          el.id = el.id.includes('RESOURCE_ID')
+            ? el.id.replace(/RESOURCE_ID/g, id)
+            : `${id}_${el.id}`;
+        }
+
+        if (el.dataset.target && el.dataset.target.includes('RESOURCE_ID')) {
+          el.dataset.target = el.dataset.target.replace(/RESOURCE_ID/g, id);
+        }
+
+        if (el.hasAttribute('checked')) {
+            el.checked = true;
+        }
       });
 
       container.querySelectorAll('label').forEach(el => {
-        if (el.htmlFor) el.htmlFor = `${id}_${el.htmlFor}`;
+        if (el.htmlFor) {
+          el.htmlFor = el.htmlFor.includes('RESOURCE_ID')
+            ? el.htmlFor.replace(/RESOURCE_ID/g, id)
+            : `${id}_${el.htmlFor}`;
+        }
+      });
+
+      container.querySelectorAll('[id*="RESOURCE_ID"]').forEach(el => {
+        el.id = el.id.replace(/RESOURCE_ID/g, id);
       });
     }
 

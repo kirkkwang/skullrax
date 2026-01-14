@@ -2,7 +2,7 @@
   <h5><%= t('hyrax.base.form_visibility_component.visibility') %></h5>
 
   <div class="form-check">
-    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="open" id="visibility-open-RESOURCE_ID" checked data-target="none">
+    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="open" id="visibility-open-RESOURCE_ID" data-target="none">
     <label class="form-check-label" for="visibility-open-RESOURCE_ID">
       <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_PUBLIC) %>
       <small class="form-text text-muted"><%= t('hyrax.visibility.open.note_html', type: resource_type.split('::').last) %></small>
@@ -80,7 +80,7 @@
   </div>
 
   <div class="form-check">
-    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="restricted" id="visibility-restricted-RESOURCE_ID" data-target="none">
+    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="restricted" id="visibility-restricted-RESOURCE_ID" data-target="none" checked>
     <label class="form-check-label" for="visibility-restricted-RESOURCE_ID">
       <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_PRIVATE) %>
       <small class="form-text text-muted"><%= t('hyrax.visibility.restricted.note_html') %></small>
