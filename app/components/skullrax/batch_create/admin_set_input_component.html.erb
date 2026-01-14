@@ -1,0 +1,12 @@
+<div class="admin-set-section mt-4 mb-4">
+  <h5><%= t('hyrax.collection_type.admin_set_title') %></h5>
+  <div class="form-group">
+    <select class="form-control admin-set-select" name="resources[RESOURCE_ID][admin_set_id]">
+      <% helpers.admin_set_options.each do |title, id| %>
+        <option value="<%= id %>" <%= 'selected' if title == 'Default Admin Set' %>>
+          <%= title %>
+        </option>
+      <% end %>
+    </select>
+  </div>
+</div>

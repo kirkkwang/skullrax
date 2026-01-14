@@ -1,0 +1,89 @@
+<div class="visibility-section mt-4">
+  <h5><%= t('hyrax.base.form_visibility_component.visibility') %></h5>
+
+  <div class="form-check">
+    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="open" id="visibility-open-RESOURCE_ID" checked data-target="none">
+    <label class="form-check-label" for="visibility-open-RESOURCE_ID">
+      <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_PUBLIC) %>
+      <small class="form-text text-muted"><%= t('hyrax.visibility.open.note_html', type: resource_type.split('::').last) %></small>
+    </label>
+  </div>
+
+  <div class="form-check">
+    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="authenticated" id="visibility-authenticated-RESOURCE_ID" data-target="none">
+    <label class="form-check-label" for="visibility-authenticated-RESOURCE_ID">
+      <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_AUTHENTICATED) %>
+      <small class="form-text text-muted"><%= t('hyrax.visibility.authenticated.note_html', institution: institution_name) %></small>
+    </label>
+  </div>
+
+  <div class="form-check">
+    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="embargo" id="visibility-embargo-RESOURCE_ID" data-target="embargo-fields-RESOURCE_ID">
+    <label class="form-check-label" for="visibility-embargo-RESOURCE_ID">
+      <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_EMBARGO) %>
+      <small class="form-text text-muted"><%= t('hyrax.visibility.embargo.note_html') %></small>
+    </label>
+  </div>
+
+  <div id="embargo-fields-RESOURCE_ID" class="embargo-fields ml-4 mt-2" style="display: none;">
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label for="visibility-during-embargo-RESOURCE_ID">Visibility during embargo</label>
+        <select class="form-control" name="resources[RESOURCE_ID][visibility_during_embargo]" id="visibility-during-embargo-RESOURCE_ID" disabled>
+          <option value="authenticated">Institution</option>
+          <option value="restricted" selected>Private</option>
+        </select>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="embargo-release-date-RESOURCE_ID">Release date</label>
+        <input type="date" class="form-control" name="resources[RESOURCE_ID][embargo_release_date]" id="embargo-release-date-RESOURCE_ID" min="<%= Date.tomorrow %>" value="<%= Date.tomorrow %>" disabled>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="visibility-after-embargo-RESOURCE_ID">Visibility after embargo</label>
+        <select class="form-control" name="resources[RESOURCE_ID][visibility_after_embargo]" id="visibility-after-embargo-RESOURCE_ID" disabled>
+          <option value="open" selected>Public</option>
+          <option value="authenticated">Institution</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-check">
+    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="lease" id="visibility-lease-RESOURCE_ID" data-target="lease-fields-RESOURCE_ID">
+    <label class="form-check-label" for="visibility-lease-RESOURCE_ID">
+      <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_LEASE) %>
+      <small class="form-text text-muted"><%= t('hyrax.visibility.lease.note_html') %></small>
+    </label>
+  </div>
+
+  <div id="lease-fields-RESOURCE_ID" class="lease-fields ml-4 mt-2" style="display: none;">
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label for="visibility-during-lease-RESOURCE_ID">Visibility during lease</label>
+        <select class="form-control" name="resources[RESOURCE_ID][visibility_during_lease]" id="visibility-during-lease-RESOURCE_ID" disabled>
+          <option value="open" selected>Public</option>
+          <option value="authenticated">Institution</option>
+        </select>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="lease-expiration-date-RESOURCE_ID">Expiration date</label>
+        <input type="date" class="form-control" name="resources[RESOURCE_ID][lease_expiration_date]" id="lease-expiration-date-RESOURCE_ID" min="<%= Date.tomorrow %>" value="<%= Date.tomorrow %>" disabled>
+      </div>
+      <div class="form-group col-md-4">
+        <label for="visibility-after-lease-RESOURCE_ID">Visibility after lease</label>
+        <select class="form-control" name="resources[RESOURCE_ID][visibility_after_lease]" id="visibility-after-lease-RESOURCE_ID" disabled>
+          <option value="authenticated" selected>Institution</option>
+          <option value="restricted">Private</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-check">
+    <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="restricted" id="visibility-restricted-RESOURCE_ID" data-target="none">
+    <label class="form-check-label" for="visibility-restricted-RESOURCE_ID">
+      <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_PRIVATE) %>
+      <small class="form-text text-muted"><%= t('hyrax.visibility.restricted.note_html') %></small>
+    </label>
+  </div>
+</div>

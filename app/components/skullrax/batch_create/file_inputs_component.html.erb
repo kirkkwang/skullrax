@@ -1,0 +1,58 @@
+<h5 class="mt-4"><%= file_input_config[:title] %></h5>
+<div class="files-section">
+  <!-- File upload input -->
+  <div class="form-group">
+    <label>
+      <%= file_input_config[:label] %>
+      <% if file_input_config[:required] %>
+        <span class="text-danger">*</span>
+      <% end %>
+    </label>
+    <input
+      type="file"
+      name="<%= file_input_config[:name] %>"
+      class="form-control-file file-upload-input"
+      <%= 'required' if file_input_config[:required] %>
+      <%= 'multiple' if file_input_config[:multiple] %>>
+    <small class="form-text text-muted"><%= file_input_config[:help] %></small>
+  </div>
+
+  <!-- Remote file(s) input -->
+  <div class="<%= remote_file_config[:wrapper_classes] %>">
+    <label class="<%= remote_file_config[:label_classes] %>" for="<%= remote_file_config[:input_id] %>" <%= 'id="' + remote_file_config[:input_id] + '_label"' if remote_file_config[:multi_value] %>>
+      <%= remote_file_config[:label] %>
+    </label>
+    <p class="help-block">Add a link to a remote file, e.g. https://example.com/image.jpg</p>
+
+    <% if remote_file_config[:multi_value] %>
+      <ul class="listing">
+        <li class="field-wrapper input-group input-append">
+    <% end %>
+
+    <input
+      class="<%= remote_file_config[:input_classes] %>"
+      type="url"
+      name="<%= remote_file_config[:input_name] %>"
+      id="<%= remote_file_config[:input_id] %>"
+      <% if remote_file_config[:multi_value] %>
+        value=""
+        aria-labelledby="<%= remote_file_config[:input_id] %>_label"
+      <% end %>>
+
+    <% if remote_file_config[:multi_value] %>
+          <span class="input-group-btn field-controls">
+            <button type="button" class="btn btn-link remove">
+              <span class="glyphicon glyphicon-remove"></span>
+              <span class="controls-remove-text">Remove</span>
+              <span class="sr-only"> previous <span class="controls-field-name-text"><%= remote_file_config[:label] %></span></span>
+            </button>
+          </span>
+        </li>
+      </ul>
+      <button type="button" class="btn btn-link add">
+        <span class="glyphicon glyphicon-plus"></span>
+        <span class="controls-add-text">Add another <%= remote_file_config[:label] %></span>
+      </button>
+    <% end %>
+  </div>
+</div>

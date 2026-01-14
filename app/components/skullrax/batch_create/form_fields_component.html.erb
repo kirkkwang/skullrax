@@ -1,0 +1,25 @@
+<div class="base-terms">
+  <% primary_terms.each do |term| %>
+    <%= render_edit_field_partial(term, f: form_builder, curation_concern: model_class) %>
+  <% end %>
+</div>
+
+<% if display_additional_fields? %>
+  <div class="additional-fields-section mt-3">
+    <div class="dropdown">
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="secondary-field-selector-RESOURCE_ID" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <%= t('hyrax.works.form.additional_fields') %>
+      </button>
+      <div class="dropdown-menu secondary-field-selector" aria-labelledby="secondary-field-selector-RESOURCE_ID">
+        <!-- Options will be added here by JavaScript -->
+      </div>
+    </div>
+  </div>
+  <div class="secondary-terms" style="display: none;">
+    <% secondary_terms.each do |term| %>
+      <div class="secondary-field-wrapper" data-field-name="<%= term %>">
+        <%= render_edit_field_partial(term, f: form_builder, curation_concern: model_class) %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
