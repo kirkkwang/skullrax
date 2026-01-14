@@ -9,6 +9,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let globalCounter = 0;
 
+  class FormValidator {
+    constructor() {
+      this.submitButton = document.getElementById('submit-batch');
+      this.formsContainer = document.getElementById('forms-container');
+      this.setupValidation();
+    }
+
+    setupValidation() {
+      this.formsContainer.addEventListener('input', () => this.validateAllForms());
+      this.formsContainer.addEventListener('change', () => this.validateAllForms());
+    }
+
+    validateAllForms() {
+      const allValid = this.areAllFormsValid();
+      this.submitButton.disabled = !allValid;
+    }
+
+    areAllFormsValid() {
+      const forms = Array.from(this.formsContainer.querySelectorAll(
+        '[id^="resource-form-wrapper-"], [id^="work-form-wrapper-"], [id^="fileset-form-wrapper-"]'
+      ));
+
+      if (forms.length === 0) return false;
+      return forms.every(form => this.isFormValid(form));
+    }
+
+    isFormValid(form) {
+      const requiredFields = form.querySelectorAll('[required]');
+
+      // Group by name to handle multi-value fields
+      const fieldsByName = {};
+      Array.from(requiredFields).forEach(field => {
+        if (!fieldsByName[field.name]) {
+          fieldsByName[field.name] = [];
+        }
+        fieldsByName[field.name].push(field);
+      });
+
+      // Check each group - at least one must be valid
+      return Object.values(fieldsByName).every(fields => {
+        return fields.some(field => this.checkFieldValidity(field));
+      });
+    }
+
+    checkFieldValidity(field) {
+      if (field.type === 'file') {
+        const wrapper = field.closest('.files-section');
+        if (wrapper) {
+          const remoteInput = wrapper.querySelector('input[type="url"]');
+          return field.files.length > 0 || (remoteInput && remoteInput.value.trim());
+        }
+        return field.files.length > 0;
+      }
+
+      if (field.type === 'checkbox' || field.type === 'radio') {
+        const name = field.name;
+        const form = field.closest('form') || field.closest('[id$="-form-wrapper-"]');
+        const checked = form.querySelector(`input[name="${name}"]:checked`);
+        return !!checked;
+      }
+
+      return field.value.trim() !== '';
+    }
+  }
+
+  const validator = new FormValidator();
+  window.batchValidator = validator;
+
   class FormRenderer {
     static render(node, templateId, inputNamePrefix) {
       const formId = `${node.idPrefix}-form-wrapper-${node.id}`;
@@ -63,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
       this.initializeSecondaryFields(wrapper);
       this.initializeVisibilityControls(wrapper);
       this.initializeFileSetFileToggle(wrapper);
+
+      if (window.batchValidator) window.batchValidator.validateAllForms();
     }
 
     static createHeader(text, removeCallback) {
@@ -385,6 +455,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (CONFIG.resourcesList.children.length === 0) {
         showEmptyState();
       }
+
+      if (window.batchValidator) window.batchValidator.validateAllForms();
     }
 
     removeDescendants(parentId) {
@@ -500,6 +572,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const template = document.getElementById('empty-state-template');
     CONFIG.formsContainer.innerHTML = '';
     CONFIG.formsContainer.appendChild(template.content.cloneNode(true));
+
+    if (window.batchValidator) window.batchValidator.validateAllForms();
   }
 
   if (CONFIG.resourceTypeSelect) {

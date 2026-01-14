@@ -597,4 +597,239 @@ RSpec.feature 'Batch Create Interface', js: true do
       end
     end
   end
+
+  describe 'form validation and submit button' do
+    let(:submit_button) { find('#submit-batch') }
+
+    scenario 'submit button starts disabled' do
+      expect(submit_button).to be_disabled
+    end
+
+    scenario 'submit button stays disabled with empty forms' do
+      add_collection
+
+      expect(submit_button).to be_disabled
+    end
+
+    scenario 'submit button enables when collection form is filled' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Collection Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'submit button enables when work form is filled' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Work'
+        fill_in 'resources[resource-0][creator][]', with: 'Test Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'submit button disables when required field is cleared' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Work'
+        fill_in 'resources[resource-0][creator][]', with: 'Test Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: ''
+      end
+
+      expect(submit_button).to be_disabled
+    end
+
+    scenario 'submit button requires ALL forms to be valid' do
+      add_collection
+      add_work('Generic Work')
+
+      # Fill first form
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Collection Creator'
+      end
+
+      # Button still disabled because second form is empty
+      expect(submit_button).to be_disabled
+
+      # Fill second form
+      within '#forms-container #resource-form-wrapper-resource-1' do
+        fill_in 'resources[resource-1][title][]', with: 'My Work'
+        fill_in 'resources[resource-1][creator][]', with: 'Test Creator'
+      end
+
+      # Now button enables
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'submit button validates nested works' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Collection Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+
+      add_nested_work_to_collection('#resources-list [data-resource-id="resource-0"]', 'Generic Work')
+
+      # Adding nested work disables button
+      expect(submit_button).to be_disabled
+
+      # Fill nested work
+      within '#forms-container #work-form-wrapper-work-1' do
+        fill_in 'resources[resource-0][works][work-1][title][]', with: 'Nested Work'
+        fill_in 'resources[resource-0][works][work-1][creator][]', with: 'Test Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'submit button validates filesets require file OR remote URL' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Work'
+        fill_in 'resources[resource-0][creator][]', with: 'Test Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      # Adding fileset disables button (needs title, creator, and file/URL)
+      expect(submit_button).to be_disabled
+
+      # Fill in FileSet required fields
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        fill_in 'resources[resource-0][filesets][fileset-1][title][]', with: 'My File'
+        fill_in 'resources[resource-0][filesets][fileset-1][creator][]', with: 'File Creator'
+        fill_in 'resources[resource-0][filesets][fileset-1][remote_file]',
+                with: 'https://example.com/file.jpg'
+      end
+
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'submit button accepts file upload for fileset' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Work'
+        fill_in 'resources[resource-0][creator][]', with: 'Test Creator'
+      end
+
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      expect(submit_button).to be_disabled
+
+      # Fill in FileSet required fields and attach file
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        fill_in 'resources[resource-0][filesets][fileset-1][title][]', with: 'My File'
+        fill_in 'resources[resource-0][filesets][fileset-1][creator][]', with: 'File Creator'
+        file_input = find('input[type="file"]', match: :first)
+        file_input.attach_file(Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png'))
+      end
+
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'submit button re-disables when form is removed' do
+      add_collection
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Collection Creator' # ADD THIS
+      end
+
+      within '#forms-container #resource-form-wrapper-resource-1' do
+        fill_in 'resources[resource-1][title][]', with: 'My Work'
+        fill_in 'resources[resource-1][creator][]', with: 'Test Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+
+      # Remove the work
+      within '#resources-list [data-resource-id="resource-1"]' do
+        find('.remove-resource').click
+      end
+
+      # Still enabled because collection is valid
+      expect(submit_button).not_to be_disabled
+
+      # Remove collection
+      within '#resources-list [data-resource-id="resource-0"]' do
+        find('.remove-resource').click
+      end
+
+      # Now disabled because no forms
+      expect(submit_button).to be_disabled
+    end
+
+    scenario 'submit button validates complex hierarchy' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Collection Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+
+      add_nested_work_to_collection('#resources-list [data-resource-id="resource-0"]', 'Generic Work')
+
+      expect(submit_button).to be_disabled
+
+      within '#forms-container #work-form-wrapper-work-1' do
+        fill_in 'resources[resource-0][works][work-1][title][]', with: 'Nested Work'
+        fill_in 'resources[resource-0][works][work-1][creator][]', with: 'Test Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+
+      add_fileset_to_work('.work-item[data-work-id="work-1"]')
+
+      expect(submit_button).to be_disabled
+
+      within '#forms-container #fileset-form-wrapper-fileset-2' do
+        fill_in 'resources[resource-0][works][work-1][filesets][fileset-2][title][]', with: 'My File'
+        fill_in 'resources[resource-0][works][work-1][filesets][fileset-2][creator][]', with: 'File Creator'
+        fill_in 'resources[resource-0][works][work-1][filesets][fileset-2][remote_file]',
+                with: 'https://example.com/file.jpg'
+      end
+
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'submit button handles multi-value fields correctly' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        # Fill required fields
+        fill_in 'resources[resource-0][title][]', with: 'My Work'
+        fill_in 'resources[resource-0][creator][]', with: 'First Creator'
+
+        # Add another creator
+        click_button 'Add another Creator'
+
+        inputs = all('input[name="resources[resource-0][creator][]"]')
+        inputs.last.fill_in with: 'Second Creator'
+      end
+
+      expect(submit_button).not_to be_disabled
+    end
+  end
 end
