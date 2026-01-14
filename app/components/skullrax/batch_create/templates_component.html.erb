@@ -4,16 +4,17 @@
 <%= render Skullrax::BatchCreate::EmptyStateTemplateComponent.new %>
 
 <!-- Hidden form templates for each resource type -->
-<div id="form-templates" style="display: none;">
+<div id="form-templates" class="d-none">
   <% all_resource_types.each do |resource_type| %>
     <div class="form-template" data-resource-type="<%= resource_type %>">
       <% form = form_for_resource_type(resource_type) %>
-      <%= simple_form_for form, url: '#', html: { class: 'resource-form-template' } do |form_builder| %>
+      <% form_builder = form_builder(form) %>
+      <div class="resource-form-template">
         <%= render Skullrax::BatchCreate::AdminSetInputComponent.new(work_types:, resource_type:) %>
         <%= render Skullrax::BatchCreate::FormFieldsComponent.new(form:, form_builder:) %>
         <%= render Skullrax::BatchCreate::VisibilityInputComponent.new(resource_type:) %>
         <%= render Skullrax::BatchCreate::FileInputsComponent.new(resource_type:, collection_value:, file_set_value:) %>
-      <% end %>
+      </div>
     </div>
   <% end %>
 </div>
