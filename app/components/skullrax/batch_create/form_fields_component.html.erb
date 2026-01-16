@@ -1,6 +1,6 @@
 <div class="base-terms">
   <% primary_terms.each do |term| %>
-    <%= render_edit_field_partial(term, f: form_builder, curation_concern: model_class) %>
+    <%= render_field(term) %>
   <% end %>
 </div>
 
@@ -18,7 +18,7 @@
   <div class="secondary-terms" style="display: none;">
     <% secondary_terms.each do |term| %>
       <div class="secondary-field-wrapper" data-field-name="<%= term %>">
-        <%= render_edit_field_partial(term, f: form_builder, curation_concern: model_class) %>
+        <%= render_field(term) %>
       </div>
     <% end %>
   </div>

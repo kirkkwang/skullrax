@@ -939,4 +939,65 @@ RSpec.feature 'Batch Create Interface', js: true do
       expect(submit_button).not_to be_disabled
     end
   end
+
+  describe 'based_near field override' do
+    scenario 'based_near renders as simple multi-value input without autocomplete' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        # Open Additional fields dropdown
+        click_button 'Additional fields'
+
+        # Click on "Location" (based_near)
+        click_button 'Location'
+
+        # Now the field should be visible
+        expect(page).to have_css('.added-field', text: 'Location')
+
+        # Should NOT have autocomplete data attributes
+        within '.added-field[data-field-name="based_near"]' do
+          based_near_input = find('input[name="resources[resource-0][based_near][]"]')
+          expect(based_near_input['data-autocomplete-url']).to be_nil
+          expect(based_near_input['data-autocomplete']).to be_nil
+
+          # Should have "Add another" button (multi-value)
+          expect(page).to have_button('Add another Location')
+        end
+      end
+    end
+
+    scenario 'based_near shows custom hint text for batch create' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        click_button 'Additional fields'
+        click_button 'Location'
+
+        within '.added-field[data-field-name="based_near"]' do
+          # Should show batch create hint, not the GeoNames hint
+          expect(page).to have_css('.help-block', text: %r{e.g., 'San Diego' or 'https://sws.geonames.org/5391811/})
+          expect(page).not_to have_css('.help-block', text: /GeoNames web service/)
+        end
+      end
+    end
+
+    scenario 'based_near allows adding multiple locations' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        click_button 'Additional fields'
+        click_button 'Location'
+
+        within '.added-field[data-field-name="based_near"]' do
+          fill_in 'resources[resource-0][based_near][]', with: 'Paris, France'
+          click_button 'Add another Location'
+
+          inputs = all('input[name="resources[resource-0][based_near][]"]')
+          expect(inputs.count).to eq(2)
+
+          inputs.last.fill_in with: 'New York, USA'
+        end
+      end
+    end
+  end
 end

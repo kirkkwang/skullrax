@@ -49,6 +49,8 @@ en:
         select_to_begin: Select a resource type from the dropdown to begin
         remove: Remove
         submit: Submit Batch
+        hints:
+          based_near: "Simple way to add a place name related to the work, such as its site of publication, or the city, state, or country the work contents are about. Enter location names directly or the URI (e.g., 'San Diego' or 'https://sws.geonames.org/5391811/')."
       header: Skullrax Import/Export Dashboard
       import:
         title: Import Resources
