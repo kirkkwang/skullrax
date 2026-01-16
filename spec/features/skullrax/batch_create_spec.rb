@@ -406,6 +406,113 @@ RSpec.feature 'Batch Create Interface', js: true do
         expect(page).to have_content(first_field_text)
       end
     end
+
+    scenario 'removing secondary field clears its data' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        click_button 'Additional fields'
+        click_button 'Description'
+
+        # Fill in the description field
+        within '.added-field[data-field-name="description"]' do
+          fill_in 'resources[resource-0][description][]', with: 'Test description content'
+        end
+
+        # Remove the field
+        within '.added-field[data-field-name="description"]' do
+          find('button', text: 'Remove').click
+        end
+
+        # Field should be gone
+        expect(page).not_to have_css('.added-field[data-field-name="description"]')
+
+        # Add it back
+        click_button 'Additional fields'
+        click_button 'Description'
+
+        # Field should be blank
+        within '.added-field[data-field-name="description"]' do
+          description_field = find(
+            'input[name="resources[resource-0][description][]"], textarea[name="resources[resource-0][description][]"]'
+          )
+          expect(description_field.value).to be_empty
+        end
+      end
+    end
+
+    scenario 'removed secondary field can be added again and works normally' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        # Add, remove, then add again
+        click_button 'Additional fields'
+        click_button 'Keyword'
+
+        within '.added-field[data-field-name="keyword"]' do
+          find('button', text: 'Remove').click
+        end
+
+        click_button 'Additional fields'
+        click_button 'Keyword'
+
+        # Should work normally - fill in and add another
+        within '.added-field[data-field-name="keyword"]' do
+          fill_in 'resources[resource-0][keyword][]', with: 'First keyword'
+          click_button 'Add another Keyword'
+
+          inputs = all('input[name="resources[resource-0][keyword][]"]')
+          expect(inputs.count).to eq(2)
+
+          inputs.last.fill_in with: 'Second keyword'
+        end
+      end
+    end
+
+    scenario 'multiple secondary fields can be added, removed, and re-added independently' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        # Add two fields
+        click_button 'Additional fields'
+        click_button 'Keyword'
+
+        click_button 'Additional fields'
+        click_button 'Subject'
+
+        expect(page).to have_css('.added-field[data-field-name="keyword"]')
+        expect(page).to have_css('.added-field[data-field-name="subject"]')
+
+        # Fill them in
+        within '.added-field[data-field-name="keyword"]' do
+          fill_in 'resources[resource-0][keyword][]', with: 'Test keyword'
+        end
+
+        within '.added-field[data-field-name="subject"]' do
+          fill_in 'resources[resource-0][subject][]', with: 'Test subject'
+        end
+
+        # Remove keyword
+        within '.added-field[data-field-name="keyword"]' do
+          find('button', text: 'Remove').click
+        end
+
+        # Subject should still have its data
+        within '.added-field[data-field-name="subject"]' do
+          subject_input = find('input[name="resources[resource-0][subject][]"]')
+          expect(subject_input.value).to eq('Test subject')
+        end
+
+        # Add keyword back - should be blank
+        click_button 'Additional fields'
+        click_button 'Keyword'
+
+        within '.added-field[data-field-name="keyword"]' do
+          keyword_input = find('input[name="resources[resource-0][keyword][]"]')
+          expect(keyword_input.value).to be_empty
+        end
+      end
+    end
   end
 
   describe 'visibility controls' do
@@ -937,6 +1044,43 @@ RSpec.feature 'Batch Create Interface', js: true do
 
       # Button enabled with autofill, even with empty filesets
       expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'autofill checkbox removes HTML5 validation from required fields' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        title_input = find('input[name="resources[resource-0][title][]"]')
+        creator_input = find('input[name="resources[resource-0][creator][]"]')
+
+        # Fields should start with required attribute
+        expect(title_input['required']).to eq('true')
+        expect(creator_input['required']).to eq('true')
+      end
+
+      # Check autofill
+      check 'autofill-checkbox'
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        title_input = find('input[name="resources[resource-0][title][]"]')
+        creator_input = find('input[name="resources[resource-0][creator][]"]')
+
+        # Required attribute should be removed
+        expect(title_input['required']).to eq 'false'
+        expect(creator_input['required']).to eq 'false'
+      end
+
+      # Uncheck autofill
+      uncheck 'autofill-checkbox'
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        title_input = find('input[name="resources[resource-0][title][]"]')
+        creator_input = find('input[name="resources[resource-0][creator][]"]')
+
+        # Required attribute should be restored
+        expect(title_input['required']).to eq('true')
+        expect(creator_input['required']).to eq('true')
+      end
     end
   end
 

@@ -34,8 +34,20 @@ document.addEventListener('DOMContentLoaded', () => {
           '[id^="resource-form-wrapper-"], [id^="work-form-wrapper-"], [id^="fileset-form-wrapper-"]'
         ));
         this.submitButton.disabled = forms.length === 0;
+
+        // Remove required attributes to bypass HTML5 validation
+        this.formsContainer.querySelectorAll('[required]').forEach(field => {
+          field.removeAttribute('required');
+          field.dataset.wasRequired = 'true'; // Mark it so we can restore later
+        });
         return;
       }
+
+      // Restore required attributes when autofill is unchecked
+      this.formsContainer.querySelectorAll('[data-was-required]').forEach(field => {
+        field.setAttribute('required', 'required');
+        delete field.dataset.wasRequired;
+      });
 
       // Otherwise, validate normally
       const allValid = this.areAllFormsValid();
@@ -271,21 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return item;
       };
 
-      const fieldWrappers = secondaryTermsContainer.querySelectorAll('.secondary-field-wrapper');
-
-      fieldWrappers.forEach(wrapper => {
-        const fieldName = wrapper.dataset.fieldName;
-        const label = wrapper.querySelector('label');
-        let displayLabel = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-        if (label) {
-          const labelClone = label.cloneNode(true);
-          labelClone.querySelectorAll('.badge, .required-tag, span').forEach(el => el.remove());
-          displayLabel = labelClone.textContent.trim();
-        }
-
-        const item = addItemSorted(dropdownMenu, fieldName, displayLabel);
-
+      const attachFieldClickHandler = (item, fieldName, displayLabel) => {
         item.addEventListener('click', function(e) {
           e.preventDefault();
 
@@ -309,18 +307,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
             additionalFieldsSection.parentNode.insertBefore(container, additionalFieldsSection);
 
-            const currentLabel = this.textContent;
             this.remove();
 
             removeBtn.addEventListener('click', () => {
+              // Clear all inputs in this field before removing
+              currentWrapper.querySelectorAll('input, textarea, select').forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                  input.checked = false;
+                } else {
+                  input.value = '';
+                }
+              });
+
               secondaryTermsContainer.appendChild(currentWrapper);
               container.remove();
-              addItemSorted(dropdownMenu, currentFieldName, currentLabel);
+              const newItem = addItemSorted(dropdownMenu, currentFieldName, displayLabel);
+              attachFieldClickHandler(newItem, currentFieldName, displayLabel);
             });
 
             if (window.jQuery) $(container).find('.multi_value').manage_fields();
           }
         });
+      };
+
+      const fieldWrappers = secondaryTermsContainer.querySelectorAll('.secondary-field-wrapper');
+
+      fieldWrappers.forEach(wrapper => {
+        const fieldName = wrapper.dataset.fieldName;
+        const label = wrapper.querySelector('label');
+        let displayLabel = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        if (label) {
+          const labelClone = label.cloneNode(true);
+          labelClone.querySelectorAll('.badge, .required-tag, span').forEach(el => el.remove());
+          displayLabel = labelClone.textContent.trim();
+        }
+
+        const item = addItemSorted(dropdownMenu, fieldName, displayLabel);
+        attachFieldClickHandler(item, fieldName, displayLabel);
       });
     }
 
