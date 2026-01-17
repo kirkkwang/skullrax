@@ -1,25 +1,62 @@
 services:
-  web:
-    platform: linux/amd64 # Comment out if not using Apple Silicon otherwise build may fail
+  initialize_app:
+    platform: linux/amd64
     build: .
-    ports:
-      - "3000:3000"
+    entrypoint: ["/bin/sh", "-c"]
     volumes:
       - .:/skullrax
-    command: >
-      sh -c "echo \"gem 'skullrax', path: '/skullrax'\" >> Gemfile &&
-             bundle exec rails generate skullrax:install &&
-             bundle exec rails db:create RAILS_ENV=test &&
-             bundle exec rails db:migrate RAILS_ENV=test &&
-             bundle exec rails assets:precompile &&
-             bundle exec rails db:seed &&
-             sleep infinity"
+    environment:
+      - DATABASE_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_development
+      - DATABASE_TEST_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_test
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=hyrax_user
+      - DB_PASSWORD=hyrax_password
+      - DB_NAME=hyrax_development
+      - FCREPO_HOST=fcrepo
+      - FCREPO_PORT=8080
+      - FCREPO_REST_PATH=rest
+      - RAILS_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
+      - SEED_DASSIE=true
+      - SOLR_HOST=solr
+      - SOLR_PORT=8983
+      - SOLR_URL=http://solr:8983/solr/hydra-development
+      - VALKYRIE_TRANSITION=true
     depends_on:
       - postgres
       - solr
       - redis
       - fcrepo
-      - chrome
+    command: /skullrax/bin/initialize-app.sh
+
+  web:
+    platform: linux/amd64
+    build: .
+    entrypoint: ["/bin/sh", "-c"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/skullrax
+    command: >
+      "mkdir -p /app/samvera/hyrax-webapp/tmp/pids &&
+       rm -f /app/samvera/hyrax-webapp/tmp/pids/* &&
+       sleep infinity"
+    depends_on:
+      initialize_app:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      solr:
+        condition: service_started
+      redis:
+        condition: service_started
+      fcrepo:
+        condition: service_started
+      chrome:
+        condition: service_started
     environment:
       - DATABASE_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_development
       - DATABASE_TEST_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_test
@@ -36,7 +73,6 @@ services:
       - REDIS_PORT=6379
       - REDIS_URL=redis://redis:6379/0
       - SE_DRIVER_URL=http://chrome:4444/wd/hub
-      - SEED_DASSIE=true
       - SOLR_HOST=solr
       - SOLR_PORT=8983
       - SOLR_URL=http://solr:8983/solr/hydra-development
