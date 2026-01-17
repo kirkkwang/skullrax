@@ -1,5 +1,10 @@
 zh:
   skullrax:
+    batch_create:
+      create:
+        success:
+          one: "成功导入 %{count} 个资源"
+          other: "成功导入 %{count} 个资源"
     errors:
       object_not_found:
         one: "无法执行操作:未找到 1 个 ID:%{ids}"
@@ -34,11 +39,32 @@ zh:
       import_completed: 导入成功完成。
     import_failed: "导入失败:"
     dashboard:
+      batch_create:
+        title: 批量创建
+        instruction: 创建集合、作品或 FileSets
+        resources: 资源
+        add_resource: "添加资源:"
+        select_resource_type: 选择资源类型...
+        select_work_type: 选择作品类型...
+        add_fileset: 添加 FileSet
+        remote_file_help: 添加远程文件的链接，例如 https://example.com/image.jpg
+        previous: 上一步
+        add_another: 添加另一个 %{label}
+        autofill: 自动填充
+        choose_file: 选择文件
+        choose_files: 选择文件
+        file_required_help: 必填 - 每个 FileSet 一个文件
+        files_optional_help: 可选 - 每个文件将成为一个 FileSet
+        select_to_begin: 从下拉菜单中选择一种资源类型以开始
+        remove: 移除
+        submit: 提交批次
+        hints:
+          based_near: "添加与作品相关地名（如出版地点或内容涉及的城市、州或国家/地区）的简单方法。直接输入位置名称或 URI（例如 'Shanghai' 或 'https://sws.geonames.org/1796236/'）。"
       header: Skullrax 导入/导出仪表板
       import:
         title: 导入资源
-        instruction: 支持集合、作品和文件集
-        action_hint: 创建接受 CSV 或 ZIP 文件。更新和删除仅接受 CSV。
+        instruction: 支持集合、作品和 FileSets
+        action_hint: 仅接受 CSV 或 ZIP 文件
         action_create: 创建新资源
         action_update: 更新现有资源
         action_destroy: 删除现有资源

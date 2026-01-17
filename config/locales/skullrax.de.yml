@@ -1,5 +1,10 @@
 de:
   skullrax:
+    batch_create:
+      create:
+        success:
+          one: "%{count} Ressource erfolgreich importiert"
+          other: "%{count} Ressourcen erfolgreich importiert"
     errors:
       object_not_found:
         one: "Aktion nicht möglich: 1 ID nicht gefunden: %{ids}"
@@ -34,11 +39,32 @@ de:
       import_completed: Import erfolgreich abgeschlossen.
     import_failed: "Import fehlgeschlagen:"
     dashboard:
+      batch_create:
+        title: Stapelerstellung
+        instruction: Sammlungen, Werke oder FileSets erstellen
+        resources: Ressourcen
+        add_resource: "Ressource hinzufügen:"
+        select_resource_type: Ressourcentyp wählen...
+        select_work_type: Werktyp wählen...
+        add_fileset: FileSet hinzufügen
+        remote_file_help: Link zu einer Remote-Datei hinzufügen, z. B. https://example.com/image.jpg
+        previous: zurück
+        add_another: Ein weiteres %{label} hinzufügen
+        autofill: Automatisch ausfüllen
+        choose_file: Datei wählen
+        choose_files: Dateien wählen
+        file_required_help: Erforderlich - eine Datei pro FileSet
+        files_optional_help: Optional - jede Datei wird ein FileSet
+        select_to_begin: Wählen Sie einen Ressourcentyp aus dem Dropdown-Menü, um zu beginnen
+        remove: Entfernen
+        submit: Stapel absenden
+        hints:
+          based_near: "Einfache Möglichkeit, einen Ortsnamen hinzuzufügen, der sich auf das Werk bezieht, z. B. den Veröffentlichungsort oder die Stadt, das Bundesland oder das Land, von dem der Inhalt handelt. Geben Sie Ortsnamen direkt oder die URI ein (z. B. 'Berlin' oder 'https://sws.geonames.org/2950159/')."
       header: Skullrax Import/Export Dashboard
       import:
         title: Ressourcen importieren
-        instruction: Unterstützt Sammlungen, Werke und Dateisets
-        action_hint: Erstellen akzeptiert CSV- oder ZIP-Dateien. Aktualisieren und Löschen akzeptieren nur CSV.
+        instruction: Unterstützt Sammlungen, Werke und FileSets
+        action_hint: Akzeptiert nur CSV- oder ZIP-Dateien
         action_create: Neue Ressourcen erstellen
         action_update: Vorhandene Ressourcen aktualisieren
         action_destroy: Vorhandene Ressourcen löschen

@@ -2,7 +2,7 @@
   <div class="resource-item border rounded p-2 mb-2" style="cursor: pointer;">
     <div class="d-flex justify-content-between align-items-center">
       <span class="resource-label"></span>
-      <button type="button" class="btn btn-sm btn-link text-danger remove-resource"><%= t('skullrax.dashboard.batch_create.remove') %></button>
+      <button type="button" class="btn btn-sm btn-link text-danger remove-resource">Remove</button>
     </div>
     <div class="nested-works ml-3"></div>
     <div class="add-work-section mt-2" style="display: none;">
@@ -13,7 +13,7 @@
     </div>
     <div class="nested-filesets ml-3"></div>
     <button type="button" class="btn btn-sm btn-secondary add-fileset-btn mt-2" style="display: none;">
-      <span class="fa fa-plus mr-1"></span>Add FileSet
+      <span class="fa fa-plus mr-1"></span><%= t('skullrax.dashboard.batch_create.add_fileset') %>
     </button>
     <input type="hidden" name="" value="">
   </div>

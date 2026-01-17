@@ -1,5 +1,10 @@
 es:
   skullrax:
+    batch_create:
+      create:
+        success:
+          one: "Se importó correctamente %{count} recurso"
+          other: "Se importaron correctamente %{count} recursos"
     errors:
       object_not_found:
         one: "No se puede realizar la acción: 1 ID no encontrado: %{ids}"
@@ -34,11 +39,32 @@ es:
       import_completed: Importación completada exitosamente.
     import_failed: "Importación fallida:"
     dashboard:
+      batch_create:
+        title: Creación por Lotes
+        instruction: Crear colecciones, obras o FileSets
+        resources: Recursos
+        add_resource: "Agregar Recurso:"
+        select_resource_type: Seleccionar tipo de recurso...
+        select_work_type: Seleccionar tipo de obra...
+        add_fileset: Agregar FileSet
+        remote_file_help: Agregar un enlace a un archivo remoto, ej. https://ejemplo.com/imagen.jpg
+        previous: anterior
+        add_another: Agregar otro %{label}
+        autofill: Autocompletar
+        choose_file: Elegir Archivo
+        choose_files: Elegir Archivos
+        file_required_help: Requerido - un archivo por FileSet
+        files_optional_help: Opcional - cada archivo se convertirá en un FileSet
+        select_to_begin: Seleccione un tipo de recurso del menú desplegable para comenzar
+        remove: Eliminar
+        submit: Enviar Lote
+        hints:
+          based_near: "Forma sencilla de agregar un nombre de lugar relacionado con la obra, como su sitio de publicación, o la ciudad, estado o país sobre el que trata el contenido. Ingrese los nombres de ubicación directamente o el URI (ej., 'San Diego' o 'https://sws.geonames.org/5391811/')."
       header: Panel de Importación/Exportación de Skullrax
       import:
         title: Importar recursos
-        instruction: Admite colecciones, obras y conjuntos de archivos
-        action_hint: Crear acepta archivos CSV o ZIP. Actualizar y Eliminar solo aceptan CSV.
+        instruction: Admite colecciones, obras y FileSets
+        action_hint: Acepta archivos CSV o ZIP solamente
         action_create: Crear nuevos recursos
         action_update: Actualizar recursos existentes
         action_destroy: Eliminar recursos existentes

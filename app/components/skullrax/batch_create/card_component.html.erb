@@ -18,7 +18,7 @@
               <label for="resource-type"><%= t('skullrax.dashboard.batch_create.add_resource') %></label>
               <select id="resource-type" name="resource_type" class="form-control">
                 <option value=""><%= t('skullrax.dashboard.batch_create.select_resource_type') %></option>
-                <option value="<%= collection_value %>"><%= t('hyrax.models.hyrax/pcdm_collection') %></option>
+                <option value="<%= collection_value %>">Collection</option>
                 <%= work_options %>
               </select>
             </div>
@@ -32,7 +32,7 @@
             <div class="form-check ml-3 mb-0">
               <input class="form-check-input" type="checkbox" name="autofill" value="true" id="autofill-checkbox">
               <label class="form-check-label" for="autofill-checkbox">
-                Autofill
+                <%= t('skullrax.dashboard.batch_create.autofill') %>
               </label>
             </div>
           </div>

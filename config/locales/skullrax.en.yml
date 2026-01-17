@@ -40,13 +40,17 @@ en:
     import_failed: "Import failed:"
     dashboard:
       batch_create:
-        title: Batch Create (🚧 Under construction! 🚧)
+        title: Batch Create
         instruction: Create collections, works, or file sets
         resources: Resources
         add_resource: "Add Resource:"
         select_resource_type: Select resource type...
         select_work_type: Select work type...
         add_fileset: Add FileSet
+        remote_file_help: Add a link to a remote file, e.g. https://example.com/image.jpg
+        previous: previous
+        add_another: Add another %{label}
+        autofill: Autofill
         choose_file: Choose File
         choose_files: Choose Files
         file_required_help: Required - one file per FileSet
@@ -56,7 +60,7 @@ en:
         submit: Submit Batch
         hints:
           based_near: "Simple way to add a place name related to the work, such as its site of publication, or the city, state, or country the work contents are about. Enter location names directly or the URI (e.g., 'San Diego' or 'https://sws.geonames.org/5391811/')."
-      header: Skullrax Import/Export Dashboard
+      header: Skullrax Dashboard
       import:
         title: Import Resources
         instruction: Supports collections, works, and file sets

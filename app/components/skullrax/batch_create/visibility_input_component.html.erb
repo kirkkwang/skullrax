@@ -5,7 +5,7 @@
     <input class="form-check-input visibility-radio" type="radio" name="resources[RESOURCE_ID][visibility]" value="open" id="visibility-open-RESOURCE_ID" data-target="none">
     <label class="form-check-label" for="visibility-open-RESOURCE_ID">
       <%= visibility_badge(Hydra::AccessControls::AccessRight::VISIBILITY_TEXT_VALUE_PUBLIC) %>
-      <small class="form-text text-muted"><%= t('hyrax.visibility.open.note_html', type: resource_type.split('::').last) %></small>
+      <small class="form-text text-muted"><%= t('hyrax.visibility.open.note_html') %></small>
     </label>
   </div>
 
@@ -28,18 +28,18 @@
   <div id="embargo-fields-RESOURCE_ID" class="embargo-fields ml-4 mt-2" style="display: none;">
     <div class="form-row">
       <div class="form-group col-md-4">
-        <label for="visibility-during-embargo-RESOURCE_ID">Visibility during embargo</label>
+        <label for="visibility-during-embargo-RESOURCE_ID"><%= t('simple_form.labels.defaults.visibility_during_embargo') %></label>
         <select class="form-control" name="resources[RESOURCE_ID][visibility_during_embargo]" id="visibility-during-embargo-RESOURCE_ID" disabled>
           <option value="authenticated">Institution</option>
           <option value="restricted" selected>Private</option>
         </select>
       </div>
       <div class="form-group col-md-4">
-        <label for="embargo-release-date-RESOURCE_ID">Release date</label>
+        <label for="embargo-release-date-RESOURCE_ID"><%= t('simple_form.labels.defaults.embargo_release_date') %></label>
         <input type="date" class="form-control" name="resources[RESOURCE_ID][embargo_release_date]" id="embargo-release-date-RESOURCE_ID" min="<%= Date.tomorrow %>" value="<%= Date.tomorrow %>" disabled>
       </div>
       <div class="form-group col-md-4">
-        <label for="visibility-after-embargo-RESOURCE_ID">Visibility after embargo</label>
+        <label for="visibility-after-embargo-RESOURCE_ID"><%= t('simple_form.labels.defaults.visibility_after_embargo') %></label>
         <select class="form-control" name="resources[RESOURCE_ID][visibility_after_embargo]" id="visibility-after-embargo-RESOURCE_ID" disabled>
           <option value="open" selected>Public</option>
           <option value="authenticated">Institution</option>
@@ -59,18 +59,18 @@
   <div id="lease-fields-RESOURCE_ID" class="lease-fields ml-4 mt-2" style="display: none;">
     <div class="form-row">
       <div class="form-group col-md-4">
-        <label for="visibility-during-lease-RESOURCE_ID">Visibility during lease</label>
+        <label for="visibility-during-lease-RESOURCE_ID"><%= t('simple_form.labels.defaults.visibility_during_lease') %></label>
         <select class="form-control" name="resources[RESOURCE_ID][visibility_during_lease]" id="visibility-during-lease-RESOURCE_ID" disabled>
           <option value="open" selected>Public</option>
           <option value="authenticated">Institution</option>
         </select>
       </div>
       <div class="form-group col-md-4">
-        <label for="lease-expiration-date-RESOURCE_ID">Expiration date</label>
+        <label for="lease-expiration-date-RESOURCE_ID"><%= t('simple_form.labels.defaults.lease_expiration_date') %></label>
         <input type="date" class="form-control" name="resources[RESOURCE_ID][lease_expiration_date]" id="lease-expiration-date-RESOURCE_ID" min="<%= Date.tomorrow %>" value="<%= Date.tomorrow %>" disabled>
       </div>
       <div class="form-group col-md-4">
-        <label for="visibility-after-lease-RESOURCE_ID">Visibility after lease</label>
+        <label for="visibility-after-lease-RESOURCE_ID"><%= t('simple_form.labels.defaults.visibility_after_lease') %></label>
         <select class="form-control" name="resources[RESOURCE_ID][visibility_after_lease]" id="visibility-after-lease-RESOURCE_ID" disabled>
           <option value="authenticated" selected>Institution</option>
           <option value="restricted">Private</option>

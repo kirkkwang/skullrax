@@ -22,7 +22,7 @@
     <label class="<%= remote_file_config[:label_classes] %>" for="<%= remote_file_config[:input_id] %>" <%= 'id="' + remote_file_config[:input_id] + '_label"' if remote_file_config[:multi_value] %>>
       <%= remote_file_config[:label] %>
     </label>
-    <p class="help-block">Add a link to a remote file, e.g. https://example.com/image.jpg</p>
+    <p class="help-block"><%= t('skullrax.dashboard.batch_create.remote_file_help') %></p>
 
     <% if remote_file_config[:multi_value] %>
       <ul class="listing">
@@ -44,7 +44,7 @@
             <button type="button" class="btn btn-link remove">
               <span class="glyphicon glyphicon-remove"></span>
               <span class="controls-remove-text">Remove</span>
-              <span class="sr-only"> previous <span class="controls-field-name-text"><%= remote_file_config[:label] %></span></span>
+              <span class="sr-only"><%= t('skullrax.dashboard.batch_create.previous') %> <span class="controls-field-name-text"><%= remote_file_config[:label] %></span></span>
             </button>
           </span>
         </li>

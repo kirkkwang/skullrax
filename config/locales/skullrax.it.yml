@@ -1,5 +1,10 @@
 it:
   skullrax:
+    batch_create:
+      create:
+        success:
+          one: "Importata con successo %{count} risorsa"
+          other: "Importate con successo %{count} risorse"
     errors:
       object_not_found:
         one: "Impossibile eseguire l'azione: 1 ID non trovato: %{ids}"
@@ -34,11 +39,32 @@ it:
       import_completed: Importazione completata con successo.
     import_failed: "Importazione fallita:"
     dashboard:
+      batch_create:
+        title: Creazione Batch
+        instruction: Crea collezioni, opere o FileSets
+        resources: Risorse
+        add_resource: "Aggiungi Risorsa:"
+        select_resource_type: Seleziona tipo di risorsa...
+        select_work_type: Seleziona tipo di opera...
+        add_fileset: Aggiungi FileSet
+        remote_file_help: Aggiungi un link a un file remoto, es. https://esempio.com/immagine.jpg
+        previous: precedente
+        add_another: Aggiungi un altro %{label}
+        autofill: Compilazione automatica
+        choose_file: Scegli File
+        choose_files: Scegli File
+        file_required_help: Richiesto - un file per FileSet
+        files_optional_help: Opzionale - ogni file diventerà un FileSet
+        select_to_begin: Seleziona un tipo di risorsa dal menu a discesa per iniziare
+        remove: Rimuovi
+        submit: Invia Batch
+        hints:
+          based_near: "Modo semplice per aggiungere un nome di luogo correlato all'opera, come il luogo di pubblicazione o la città, lo stato o il paese di cui tratta il contenuto. Inserisci i nomi dei luoghi direttamente o l'URI (es. 'Roma' o 'https://sws.geonames.org/3169070/')."
       header: Dashboard di importazione/esportazione Skullrax
       import:
         title: Importa risorse
-        instruction: Supporta collezioni, opere e set di file
-        action_hint: Crea accetta file CSV o ZIP. Aggiorna ed Elimina accettano solo CSV.
+        instruction: Supporta collezioni, opere e FileSets
+        action_hint: Accetta solo file CSV o ZIP
         action_create: Crea nuove risorse
         action_update: Aggiorna risorse esistenti
         action_destroy: Elimina risorse esistenti
