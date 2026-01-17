@@ -2,7 +2,7 @@
 
 module Skullrax
   class ParamsToCsvConverterService
-    def initialize(params)
+    def initialize(params:)
       @params = params
       @rows = []
     end

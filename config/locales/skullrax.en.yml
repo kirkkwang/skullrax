@@ -1,5 +1,10 @@
 en:
   skullrax:
+    batch_create:
+      create:
+        success:
+          one: "Successfully imported %{count} resource"
+          other: "Successfully imported %{count} resources"
     errors:
       object_not_found:
         one: "Cannot action: 1 ID not found: %{ids}"

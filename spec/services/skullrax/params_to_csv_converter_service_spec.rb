@@ -21,7 +21,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,No Collection Work 1 Title,No Collection Work 1 Creator;Second Creator,open
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -50,7 +50,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           CollectionResource,Collection 1 Title,Collection 1 Creator,open
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -89,7 +89,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,Collection 1 Work 1 Title,Collection 1 Work 1 Creator,open,admin_set_default
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -137,7 +137,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,Work 2 Title,Work 2 Creator,restricted,admin_set_default
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -175,7 +175,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work with Files,Work Creator,open,#{file1};#{file2}
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -206,7 +206,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work with Remote Files,Work Creator,open,https://example.com/file1.jpg;https://example.com/file2.pdf
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -241,7 +241,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work with Mixed Files,Work Creator,open,#{file1};https://example.com/image.jpg
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -293,7 +293,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,FileSet Title,FileSet Creator,open,,#{file1}
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -357,7 +357,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,FileSet 2 Title,FileSet 2 Creator,restricted,,#{file2}
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -420,7 +420,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,Remote FileSet Title,FileSet Creator,open,,https://example.com/image.jpg
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -480,7 +480,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,Remote FileSet 2 Title,FileSet Creator,restricted,,https://example.com/image2.pdf
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -530,7 +530,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work in Collection,Work Creator,open
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -604,7 +604,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,,Collection Work FileSet,FileSet Creator,open,#{file1}
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -725,7 +725,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,,Collection 2 FileSet,FileSet Creator,open,https://example.com/file.jpg
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -876,7 +876,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,,Collection 2 Work 2 FileSet Form 2 Title,Collection 2 Work 2 FileSet Form 2 Creator,authenticated,,,,,,,,,,https://example.com/image4.jpg
         CSV
 
-        service = described_class.new(params)
+        service = described_class.new(params:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)

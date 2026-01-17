@@ -8,7 +8,7 @@ module Skullrax
     delegate :collection?, :work?, :file_set?, to: :model
 
     def initialize(hash:, index: nil)
-      super(hash)
+      super(hash.compact_blank)
       define_dynamic_methods
       @index = index
       @number = index + 2 if index.present?
