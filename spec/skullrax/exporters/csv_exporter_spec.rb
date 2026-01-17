@@ -21,28 +21,28 @@ RSpec.describe Skullrax::CsvExporter do
       importer.import(autofill: true)
 
       collection = importer.collections.first
-      work1 = importer.works.first
+      generic_work = importer.works.find { |work| work.is_a?(GenericWorkResource) }
       file_set = importer.file_sets.first
-      work2 = importer.works.last
+      monograph = importer.works.find { |work| work.is_a?(Monograph) }
 
       expect(collection.creator).to eq(['Collection Creator', 'Another Collection Creator'])
       expect(collection.visibility).to eq('restricted')
-      expect(work1.description).to eq(['Work description'])
-      expect(work1.visibility).to eq('open')
-      expect(work1.lease.visibility_during_lease).to eq('open')
-      expect(work1.lease.lease_expiration_date.to_date).to eq(future_date)
-      expect(work1.lease.visibility_after_lease).to eq('authenticated')
+      expect(generic_work.description).to eq(['Work description'])
+      expect(generic_work.visibility).to eq('open')
+      expect(generic_work.lease.visibility_during_lease).to eq('open')
+      expect(generic_work.lease.lease_expiration_date.to_date).to eq(future_date)
+      expect(generic_work.lease.visibility_after_lease).to eq('authenticated')
       expect(file_set.visibility).to eq('open')
       expect(file_set.lease.visibility_during_lease).to eq('open')
       expect(file_set.lease.lease_expiration_date.to_date).to eq(future_date)
       expect(file_set.lease.visibility_after_lease).to eq('authenticated')
-      expect(work2.visibility).to eq('restricted')
-      expect(work2.embargo.visibility_during_embargo).to eq('restricted')
-      expect(work2.embargo.embargo_release_date.to_date).to eq(future_date)
-      expect(work2.embargo.visibility_after_embargo).to eq('open')
-      expect(work2.title).to eq(['Monograph Title'])
+      expect(monograph.visibility).to eq('restricted')
+      expect(monograph.embargo.visibility_during_embargo).to eq('restricted')
+      expect(monograph.embargo.embargo_release_date.to_date).to eq(future_date)
+      expect(monograph.embargo.visibility_after_embargo).to eq('open')
+      expect(monograph.title).to eq(['Monograph Title'])
 
-      exporter = Skullrax::CsvExporter.new(ids: [collection.id, work1.id, work2.id])
+      exporter = Skullrax::CsvExporter.new(ids: [collection.id, generic_work.id, monograph.id])
       exporter.export
 
       parsed = CSV.parse(exporter.csv, headers: true)
@@ -87,20 +87,20 @@ RSpec.describe Skullrax::CsvExporter do
       update_importer.update
 
       updated_collection = update_importer.collections.first
-      updated_work1 = update_importer.works.first
+      updated_generic_work = update_importer.works.find { |work| work.is_a?(GenericWorkResource) }
       updated_file_set = update_importer.file_sets.first
-      updated_work2 = update_importer.works.last
+      updated_monograph = update_importer.works.find { |work| work.is_a?(Monograph) }
 
       expect(updated_collection.creator).to eq(['Collection Creator'])
       expect(updated_collection.visibility).to eq('open')
-      expect(updated_work1.description).to eq(['Updated work description'])
-      expect(updated_work1.visibility).to eq('open')
-      expect(updated_work1.lease).not_to be_active
+      expect(updated_generic_work.description).to eq(['Updated work description'])
+      expect(updated_generic_work.visibility).to eq('open')
+      expect(updated_generic_work.lease).not_to be_active
       expect(updated_file_set.visibility).to eq('restricted')
       expect(updated_file_set.lease).not_to be_active
-      expect(updated_work2.title).to eq(['An Updated Monograph Title'])
-      expect(updated_work2.visibility).to eq('open')
-      expect(updated_work2.embargo).not_to be_active
+      expect(updated_monograph.title).to eq(['An Updated Monograph Title'])
+      expect(updated_monograph.visibility).to eq('open')
+      expect(updated_monograph.embargo).not_to be_active
     end
 
     context 'with include_files option' do
