@@ -9,7 +9,10 @@ services:
     command: >
       sh -c "echo \"gem 'skullrax', path: '/skullrax'\" >> Gemfile &&
              bundle exec rails generate skullrax:install &&
+             bundle exec rails db:create RAILS_ENV=test &&
+             bundle exec rails db:migrate RAILS_ENV=test &&
              bundle exec rails assets:precompile &&
+             bundle exec rails db:seed &&
              sleep infinity"
     depends_on:
       - postgres
@@ -18,12 +21,13 @@ services:
       - fcrepo
       - chrome
     environment:
-      - DATABASE_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_test
+      - DATABASE_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_development
+      - DATABASE_TEST_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_test
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=hyrax_user
       - DB_PASSWORD=hyrax_password
-      - DB_NAME=hyrax
+      - DB_NAME=hyrax_development
       - FCREPO_HOST=fcrepo
       - FCREPO_PORT=8080
       - FCREPO_REST_PATH=rest
@@ -32,6 +36,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_URL=redis://redis:6379/0
       - SE_DRIVER_URL=http://chrome:4444/wd/hub
+      - SEED_DASSIE=true
       - SOLR_HOST=solr
       - SOLR_PORT=8983
       - SOLR_URL=http://solr:8983/solr/hydra-development
@@ -42,7 +47,9 @@ services:
     environment:
       POSTGRES_USER: hyrax_user
       POSTGRES_PASSWORD: hyrax_password
-      POSTGRES_DB: hyrax
+      POSTGRES_DB: hyrax_development
+    volumes:
+      - db:/var/lib/postgresql/data
 
   solr:
     image: solr:8.11
@@ -50,7 +57,10 @@ services:
       - "8983:8983"
     volumes:
       - ./solr/conf:/opt/solr/server/configsets/hyraxconf
-    command: solr-precreate hydra-development /opt/solr/server/configsets/hyraxconf
+      - solr_home:/var/solr
+    command: >
+      sh -c "precreate-core hydra-test /opt/solr/server/configsets/hyraxconf;
+             solr-precreate hydra-development /opt/solr/server/configsets/hyraxconf"
 
   redis:
     image: redis:alpine
@@ -69,3 +79,7 @@ services:
     image: ghcr.io/samvera/fcrepo4:4.7.5
     ports:
       - 8080:8080
+
+volumes:
+  db:
+  solr_home:
