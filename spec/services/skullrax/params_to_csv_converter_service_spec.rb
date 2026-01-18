@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 
 RSpec.describe Skullrax::ParamsToCsvConverterService do
+  let(:batch_uploads_dir) { Rails.root.join('tmp', 'test_batch_uploads') }
+  let(:file1) { batch_uploads_dir.join('test_file.png') }
+  let(:file2) { batch_uploads_dir.join('test_file.txt') }
+  let(:file3) { batch_uploads_dir.join('test_file.csv') }
+  let(:file4) { batch_uploads_dir.join('test_file2.csv') }
+
+  before do
+    allow(FileUtils).to receive(:mkdir_p)
+    allow(FileUtils).to receive(:mv)
+  end
+
   describe '#to_csv' do
     context 'with a simple GenericWork' do
       let(:params) do
@@ -21,7 +32,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,No Collection Work 1 Title,No Collection Work 1 Creator;Second Creator,open
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -50,7 +61,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           CollectionResource,Collection 1 Title,Collection 1 Creator,open
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -89,7 +100,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,Collection 1 Work 1 Title,Collection 1 Work 1 Creator,open,admin_set_default
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -137,7 +148,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,Work 2 Title,Work 2 Creator,restricted,admin_set_default
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -151,10 +162,12 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
     end
 
     context 'with a work containing files array' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:file2) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt') }
-      let(:uploaded_file1) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
-      let(:uploaded_file2) { double('UploadedFile', tempfile: double(path: file2.to_s)) }
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
+      let(:uploaded_file2) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp2'), original_filename: 'test_file.txt')
+      end
 
       let(:params) do
         {
@@ -175,7 +188,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work with Files,Work Creator,open,#{file1};#{file2}
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -206,7 +219,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work with Remote Files,Work Creator,open,https://example.com/file1.jpg;https://example.com/file2.pdf
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -218,8 +231,9 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
     end
 
     context 'with a work containing both local files and remote files' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:uploaded_file1) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
 
       let(:params) do
         {
@@ -241,7 +255,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work with Mixed Files,Work Creator,open,#{file1};https://example.com/image.jpg
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -252,9 +266,48 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
       end
     end
 
+    context 'with a work containing files and blank remote_files' do
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
+
+      let(:params) do
+        {
+          'resource-0' => {
+            'type' => 'GenericWork',
+            'admin_set_id' => 'admin_set_default',
+            'title' => ['Work Title'],
+            'creator' => ['Creator'],
+            'visibility' => 'open',
+            'files' => [uploaded_file1],
+            'remote_files' => ['']
+          }
+        }
+      end
+
+      it 'ignores blank remote_files and does not add extra delimiter' do
+        expected_csv = <<~CSV
+          model,admin_set_id,title,creator,visibility,file
+          GenericWorkResource,admin_set_default,Work Title,Creator,open,#{file1}
+        CSV
+
+        service = described_class.new(params:, batch_uploads_dir:)
+        actual_csv = service.to_csv
+
+        actual_rows = CSV.parse(actual_csv, headers: true)
+        expected_rows = CSV.parse(expected_csv, headers: true)
+
+        expect(actual_rows.length).to eq(1)
+        expect(actual_rows[0].to_h).to eq(expected_rows[0].to_h)
+        expect(actual_rows[0]['file']).to eq(file1.to_s)
+        expect(actual_rows[0]['file']).not_to end_with(';')
+      end
+    end
+
     context 'with a collection containing a work with a fileset' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:uploaded_file) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
+      let(:uploaded_file) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
 
       let(:params) do
         {
@@ -293,7 +346,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,FileSet Title,FileSet Creator,open,,#{file1}
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -307,10 +360,12 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
     end
 
     context 'with a collection containing a work with multiple local filesets' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:file2) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt') }
-      let(:uploaded_file1) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
-      let(:uploaded_file2) { double('UploadedFile', tempfile: double(path: file2.to_s)) }
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
+      let(:uploaded_file2) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp2'), original_filename: 'test_file.txt')
+      end
 
       let(:params) do
         {
@@ -357,7 +412,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,FileSet 2 Title,FileSet 2 Creator,restricted,,#{file2}
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -372,8 +427,9 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
     end
 
     context 'with a collection containing a work with mixed local and remote filesets' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:uploaded_file1) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
 
       let(:params) do
         {
@@ -420,7 +476,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,Remote FileSet Title,FileSet Creator,open,,https://example.com/image.jpg
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -480,7 +536,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,Remote FileSet 2 Title,FileSet Creator,restricted,,https://example.com/image2.pdf
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -530,7 +586,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           GenericWorkResource,admin_set_default,Work in Collection,Work Creator,open
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -544,10 +600,12 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
     end
 
     context 'with standalone work with fileset and collection with work with fileset (wrong order)' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:file2) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt') }
-      let(:uploaded_file1) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
-      let(:uploaded_file2) { double('UploadedFile', tempfile: double(path: file2.to_s)) }
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
+      let(:uploaded_file2) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp2'), original_filename: 'test_file.txt')
+      end
 
       let(:params) do
         {
@@ -604,7 +662,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,,Collection Work FileSet,FileSet Creator,open,#{file1}
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -620,10 +678,12 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
     end
 
     context 'with multiple standalone works and multiple collections all with filesets (wrong order)' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:file2) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt') }
-      let(:uploaded_file1) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
-      let(:uploaded_file2) { double('UploadedFile', tempfile: double(path: file2.to_s)) }
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
+      let(:uploaded_file2) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp2'), original_filename: 'test_file.txt')
+      end
 
       let(:params) do
         {
@@ -725,7 +785,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,,Collection 2 FileSet,FileSet Creator,open,https://example.com/file.jpg
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -739,14 +799,18 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
     end
 
     context 'with full complex real-world params structure' do
-      let(:file1) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.png') }
-      let(:file2) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.txt') }
-      let(:file3) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file.csv') }
-      let(:file4) { Skullrax.root.join('spec', 'fixtures', 'files', 'test_file2.csv') }
-      let(:uploaded_file1) { double('UploadedFile', tempfile: double(path: file1.to_s)) }
-      let(:uploaded_file2) { double('UploadedFile', tempfile: double(path: file2.to_s)) }
-      let(:uploaded_file3) { double('UploadedFile', tempfile: double(path: file3.to_s)) }
-      let(:uploaded_file4) { double('UploadedFile', tempfile: double(path: file4.to_s)) }
+      let(:uploaded_file1) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp1'), original_filename: 'test_file.png')
+      end
+      let(:uploaded_file2) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp2'), original_filename: 'test_file.txt')
+      end
+      let(:uploaded_file3) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp3'), original_filename: 'test_file.csv')
+      end
+      let(:uploaded_file4) do
+        double('UploadedFile', tempfile: double(path: '/tmp/temp4'), original_filename: 'test_file2.csv')
+      end
 
       let(:params) do
         {
@@ -876,7 +940,7 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
           Hyrax::FileSet,,Collection 2 Work 2 FileSet Form 2 Title,Collection 2 Work 2 FileSet Form 2 Creator,authenticated,,,,,,,,,,https://example.com/image4.jpg
         CSV
 
-        service = described_class.new(params:)
+        service = described_class.new(params:, batch_uploads_dir:)
         actual_csv = service.to_csv
 
         actual_rows = CSV.parse(actual_csv, headers: true)
@@ -886,6 +950,42 @@ RSpec.describe Skullrax::ParamsToCsvConverterService do
         (0..11).each do |i|
           expect(actual_rows[i].to_h).to eq(expected_rows[i].to_h)
         end
+      end
+    end
+
+    context 'with work containing uploaded files that need to be moved' do
+      let(:tempfile_path) { '/tmp/RackMultipart12345.png' }
+      let(:original_filename) { 'my-document.png' }
+      let(:batch_uploads_dir) { Rails.root.join('tmp', 'skullrax_batch_uploads', 'test123') }
+      let(:expected_dest) { batch_uploads_dir.join(original_filename) }
+
+      let(:uploaded_file) do
+        double('UploadedFile',
+               tempfile: double(path: tempfile_path),
+               original_filename:)
+      end
+
+      let(:params) do
+        {
+          'resource-0' => {
+            'type' => 'GenericWork',
+            'admin_set_id' => 'admin_set_default',
+            'title' => ['Work Title'],
+            'creator' => ['Creator'],
+            'visibility' => 'open',
+            'files' => [uploaded_file]
+          }
+        }
+      end
+
+      it 'moves uploaded files to batch uploads directory with original filename' do
+        service = described_class.new(params:, batch_uploads_dir:)
+        actual_csv = service.to_csv
+
+        expect(FileUtils).to have_received(:mv).with(tempfile_path, expected_dest)
+
+        actual_rows = CSV.parse(actual_csv, headers: true)
+        expect(actual_rows[0]['file']).to eq(expected_dest.to_s)
       end
     end
   end

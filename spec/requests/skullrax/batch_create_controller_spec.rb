@@ -70,5 +70,39 @@ RSpec.describe Skullrax::BatchCreateController do
         expect(importer).to have_received(:import).with(autofill: false, fill_required: false)
       end
     end
+
+    context 'when batch uploads directory cleanup' do
+      let(:batch_uploads_dir) { Rails.root.join('tmp', 'skullrax_batch_uploads', 'test123') }
+
+      before do
+        allow(importer).to receive(:errors).and_return([])
+        allow(FileUtils).to receive(:rm_rf)
+        # Mock the batch_uploads_dir to return a known value
+        allow_any_instance_of(described_class).to receive(:batch_uploads_dir).and_return(batch_uploads_dir)
+        allow(File).to receive(:exist?).with(batch_uploads_dir).and_return(true)
+      end
+
+      it 'cleans up batch uploads directory after import succeeds' do
+        post_create
+
+        expect(FileUtils).to have_received(:rm_rf).with(batch_uploads_dir)
+      end
+
+      it 'cleans up batch uploads directory even when import fails' do
+        allow(importer).to receive(:errors).and_return(['Some error'])
+
+        post_create
+
+        expect(FileUtils).to have_received(:rm_rf).with(batch_uploads_dir)
+      end
+
+      it 'does not attempt cleanup if directory does not exist' do
+        allow(File).to receive(:exist?).with(batch_uploads_dir).and_return(false)
+
+        post_create
+
+        expect(FileUtils).not_to have_received(:rm_rf)
+      end
+    end
   end
 end

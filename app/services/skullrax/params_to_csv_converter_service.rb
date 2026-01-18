@@ -2,9 +2,10 @@
 
 module Skullrax
   class ParamsToCsvConverterService
-    def initialize(params:)
+    def initialize(params:, batch_uploads_dir: nil)
       @params = params
       @rows = []
+      @batch_uploads_dir = batch_uploads_dir || Rails.root.join('tmp', 'skullrax_batch_uploads', SecureRandom.hex(8))
     end
 
     def to_csv
@@ -15,19 +16,18 @@ module Skullrax
 
     private
 
-    attr_reader :params, :rows
+    attr_reader :params, :rows, :batch_uploads_dir
 
     def sort_hash
       sorted_params = params.sort_by do |_key, value|
         value['type'] == 'CollectionResource' ? 1 : 0
       end.to_h
+
       @params = sorted_params
     end
 
     def collect_rows
-      params.each_value do |resource|
-        process_resource(resource)
-      end
+      params.each_value { |resource| process_resource(resource) }
     end
 
     def process_resource(resource)
@@ -47,7 +47,7 @@ module Skullrax
       file_values = []
 
       resource.each do |key, value|
-        next if nested_keys.include?(key)
+        next if nested_keys.include?(key) || Array.wrap(value).compact_blank.empty?
 
         value = conform_model!(value) if key == 'type'
         process_attribute(key, value, row, file_values)
@@ -99,7 +99,14 @@ module Skullrax
 
     def conform_file_paths!(file_paths)
       Array.wrap(file_paths).map do |path|
-        path.respond_to?(:tempfile) ? path.tempfile.path : path
+        if path.respond_to?(:tempfile) && path.respond_to?(:original_filename)
+          dest = @batch_uploads_dir.join(path.original_filename)
+          FileUtils.mkdir_p(dest.dirname)
+          FileUtils.mv(path.tempfile.path, dest)
+          dest.to_s
+        else
+          path
+        end
       end
     end
 
@@ -118,12 +125,8 @@ module Skullrax
       }
     end
 
-    def nested_keys
-      %w[works filesets]
-    end
+    def nested_keys = %w[works filesets]
 
-    def delimiter
-      ';'
-    end
+    def delimiter = ';'
   end
 end

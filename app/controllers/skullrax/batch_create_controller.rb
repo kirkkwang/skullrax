@@ -5,6 +5,8 @@ module Skullrax
     def create
       perform_import
       resolve_request
+    ensure
+      cleanup_uploaded_files
     end
 
     private
@@ -31,7 +33,19 @@ module Skullrax
     end
 
     def csv_string
-      Skullrax::ParamsToCsvConverterService.new(params: params[:resources].permit!.to_h).to_csv
+      Skullrax::ParamsToCsvConverterService.new(params: params[:resources].permit!.to_h, batch_uploads_dir:).to_csv
+    end
+
+    def batch_uploads_dir
+      @batch_uploads_dir ||= Rails.root.join('tmp', 'skullrax_batch_uploads', batch_id)
+    end
+
+    def batch_id
+      @batch_id ||= SecureRandom.hex(8)
+    end
+
+    def cleanup_uploaded_files
+      FileUtils.rm_rf(batch_uploads_dir) if batch_uploads_dir && File.exist?(batch_uploads_dir)
     end
 
     def autofill

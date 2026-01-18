@@ -5,7 +5,7 @@ module Skullrax
     attr_reader :file_paths, :user
 
     def initialize(file_paths:, user:)
-      @file_paths = Array.wrap(file_paths)
+      @file_paths = Array.wrap(file_paths).flat_map { |path| path.to_s.split(';') }
       @user = user
     end
 
