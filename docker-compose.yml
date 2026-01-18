@@ -16,6 +16,7 @@ services:
       - FCREPO_HOST=fcrepo
       - FCREPO_PORT=8080
       - FCREPO_REST_PATH=rest
+      - HYRAX_VALKYRIE=true
       - RAILS_ENV=development
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -24,6 +25,7 @@ services:
       - SOLR_HOST=solr
       - SOLR_PORT=8983
       - SOLR_URL=http://solr:8983/solr/hydra-development
+      - VALKYRIE_STORAGE_ADAPTER=versioned_disk_storage
       - VALKYRIE_TRANSITION=true
     depends_on:
       - postgres
@@ -36,10 +38,15 @@ services:
     platform: linux/amd64
     build: .
     entrypoint: ["/bin/sh", "-c"]
+    user: root
     ports:
       - "3000:3000"
     volumes:
       - .:/skullrax
+      - uploads:/app/samvera/hyrax-webapp/public/uploads
+      - derivatives:/app/samvera/hyrax-webapp/tmp/derivatives
+      - tmp:/app/samvera/hyrax-webapp/tmp
+      - storage:/app/samvera/hyrax-webapp/storage
     command: >
       "mkdir -p /app/samvera/hyrax-webapp/tmp/pids &&
        rm -f /app/samvera/hyrax-webapp/tmp/pids/* &&
@@ -68,6 +75,7 @@ services:
       - FCREPO_HOST=fcrepo
       - FCREPO_PORT=8080
       - FCREPO_REST_PATH=rest
+      - HYRAX_VALKYRIE=true
       - RAILS_ENV=development
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -76,7 +84,60 @@ services:
       - SOLR_HOST=solr
       - SOLR_PORT=8983
       - SOLR_URL=http://solr:8983/solr/hydra-development
+      - VALKYRIE_STORAGE_ADAPTER=versioned_disk_storage
       - VALKYRIE_TRANSITION=true
+
+  worker:
+    platform: linux/amd64
+    build: .
+    entrypoint: []
+    user: root
+    volumes:
+      - .:/skullrax
+      - uploads:/app/samvera/hyrax-webapp/public/uploads
+      - derivatives:/app/samvera/hyrax-webapp/tmp/derivatives
+      - tmp:/app/samvera/hyrax-webapp/tmp
+      - storage:/app/samvera/hyrax-webapp/storage
+    command: sleep infinity
+    depends_on:
+      initialize_app:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      solr:
+        condition: service_started
+      redis:
+        condition: service_started
+      fcrepo:
+        condition: service_started
+    environment:
+      - CH12N_TOOL=fits_servlet
+      - DATABASE_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_development
+      - DATABASE_TEST_URL=postgresql://hyrax_user:hyrax_password@postgres/hyrax_test
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=hyrax_user
+      - DB_PASSWORD=hyrax_password
+      - DB_NAME=hyrax_development
+      - FCREPO_HOST=fcrepo
+      - FCREPO_PORT=8080
+      - FCREPO_REST_PATH=rest
+      - FITS_SERVLET_URL=http://fits:8080/fits
+      - HYRAX_VALKYRIE=true
+      - RAILS_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
+      - SOLR_HOST=solr
+      - SOLR_PORT=8983
+      - SOLR_URL=http://solr:8983/solr/hydra-development
+      - VALKYRIE_STORAGE_ADAPTER=versioned_disk_storage
+      - VALKYRIE_TRANSITION=true
+
+  fits:
+    image: ghcr.io/samvera/fitsservlet:1.6.0
+    ports:
+      - "8081:8080"
 
   postgres:
     image: postgres:15-alpine
@@ -119,3 +180,7 @@ services:
 volumes:
   db:
   solr_home:
+  uploads:
+  derivatives:
+  tmp:
+  storage:
