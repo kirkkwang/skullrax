@@ -1159,4 +1159,87 @@ RSpec.feature 'Batch Create Interface', js: true do
       end
     end
   end
+
+  describe 'custom ID field validation' do
+    scenario 'ID field appears in collection forms' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(page).to have_field('resources[resource-0][id]')
+        expect(page).to have_css('.help-block', text: /custom unique ID/)
+      end
+    end
+
+    scenario 'ID field has correct pattern validation' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        id_input = find('input[name="resources[resource-0][id]"]')
+        expect(id_input['pattern']).to eq('^[a-zA-Z0-9_\-.]+$')
+      end
+    end
+
+    scenario 'ID field prevents submission with invalid characters' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Test Creator'
+        fill_in 'resources[resource-0][id]', with: 'invalid id with spaces'
+      end
+
+      # Try to submit - HTML5 validation should prevent it
+      submit_button = find('#submit-batch')
+      submit_button.click
+
+      # Should still be on the same page due to validation error
+      expect(page).to have_current_path(skullrax.root_path)
+    end
+
+    scenario 'ID field allows valid characters' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Test Creator'
+        fill_in 'resources[resource-0][id]', with: 'valid-id_123.test'
+      end
+
+      submit_button = find('#submit-batch')
+      submit_button.click
+
+      # Should see success message if validation passed and form submitted
+      expect(page).to have_css('.alert-success', text: /Successfully imported 1 resource/)
+    end
+
+    scenario 'ID field is optional' do
+      add_collection
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        fill_in 'resources[resource-0][title][]', with: 'My Collection'
+        fill_in 'resources[resource-0][creator][]', with: 'Test Creator'
+        # Leave ID blank
+      end
+
+      submit_button = find('#submit-batch')
+      expect(submit_button).not_to be_disabled
+    end
+
+    scenario 'ID field appears in work forms' do
+      add_work('Generic Work')
+
+      within '#forms-container #resource-form-wrapper-resource-0' do
+        expect(page).to have_field('resources[resource-0][id]')
+      end
+    end
+
+    scenario 'ID field appears in the file set forms' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        expect(page).to have_field('resources[resource-0][filesets][fileset-1][id]')
+      end
+    end
+  end
 end

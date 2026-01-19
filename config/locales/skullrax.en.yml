@@ -60,6 +60,7 @@ en:
         submit: Submit Batch
         hints:
           based_near: "Simple way to add a place name related to the work, such as its site of publication, or the city, state, or country the work contents are about. Enter location names directly or the URI (e.g., 'San Diego' or 'https://sws.geonames.org/5391811/')."
+          id: "Set a custom unique ID for this resource's URL. Use only letters, numbers, hyphens (-), underscores (_), and dots (.). Note: dots require route constraints to work properly. Avoid special characters like /, ?, #, %, and spaces."
       header: Skullrax Dashboard
       import:
         title: Import Resources
