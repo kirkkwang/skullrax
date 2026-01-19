@@ -1144,4 +1144,19 @@ RSpec.feature 'Batch Create Interface', js: true do
       end
     end
   end
+
+  describe 'file set required fields' do
+    scenario 'file sets do not render any required fields' do
+      add_work('Generic Work')
+      add_fileset_to_work('#resources-list [data-resource-id="resource-0"]')
+
+      within '#forms-container #fileset-form-wrapper-fileset-1' do
+        title_input = find('input[name="resources[resource-0][filesets][fileset-1][title][]"]')
+        creator_input = find('input[name="resources[resource-0][filesets][fileset-1][creator][]"]')
+
+        expect(title_input['required']).to eq 'false'
+        expect(creator_input['required']).to eq 'false'
+      end
+    end
+  end
 end
