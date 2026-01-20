@@ -41,7 +41,7 @@ RSpec.describe Skullrax::BatchCreateController do
 
       it 'calls import with correct arguments' do
         post_create
-        expect(importer).to have_received(:import).with(autofill: true, fill_required: true)
+        expect(importer).to have_received(:import).with(autofill: true, fill_required: true, dry_run: false)
       end
     end
 
@@ -67,7 +67,50 @@ RSpec.describe Skullrax::BatchCreateController do
 
       it 'passes false to the importer' do
         post_create
-        expect(importer).to have_received(:import).with(autofill: false, fill_required: false)
+        expect(importer).to have_received(:import).with(autofill: false, fill_required: false, dry_run: false)
+      end
+    end
+
+    context 'with autofill true' do
+      context 'when downloading form as CSV' do
+        let(:params) do
+          {
+            resources: {
+              'resource-0' => {
+                'type' => 'CollectionResource',
+                'title' => ['Test Title'],
+                'creator' => ['Test Creator'],
+                'visibility' => 'restricted'
+              }
+            },
+            autofill: 'true',
+            'download-form-as-csv' => 'true'
+          }
+        end
+
+        before do
+          # Remove the importer stubs from the outer before block for this context
+          allow(Skullrax::CsvImporter).to receive(:new).and_call_original
+          allow(Skullrax::ParamsToCsvConverterService).to receive(:new).and_call_original
+        end
+
+        it 'sends the generated CSV data with expected content' do
+          expected_csv = <<~CSV
+            model,id,title,abstract,access_right,alternative_title,arkivo_checksum,based_near,bibliographic_citation,contributor,creator,date_created,description,identifier,keyword,publisher,label,language,license,related_url,resource_type,rights_notes,rights_statement,source,subject,target_audience,department,course,visibility,file
+            CollectionResource,,Test Title,Test abstract,Test access_right,Test alternative_title,Test arkivo_checksum,https://sws.geonames.org/5391811/,Test bibliographic_citation,Test contributor,Test Creator,Test date_created,Test description,Test identifier,Test keyword,Test publisher,Test label,Test language,https://creativecommons.org/licenses/by/4.0/,Test related_url,Article,Test rights_notes,http://rightsstatements.org/vocab/InC/1.0/,Test source,Test subject,Test target_audience,Test department,Test course,restricted,
+          CSV
+
+          post skullrax.batch_create_path, params: params
+
+          expect(response.headers['Content-Disposition']).to include('attachment; filename="batch_create_form_')
+
+          actual_rows = CSV.parse(response.body, headers: true)
+          expected_rows = CSV.parse(expected_csv, headers: true)
+
+          expect(actual_rows.length).to eq(1)
+          expect(actual_rows[0].to_h).to eq(expected_rows[0].to_h)
+          expect(actual_rows[1].to_h).to eq(expected_rows[1].to_h)
+        end
       end
     end
 

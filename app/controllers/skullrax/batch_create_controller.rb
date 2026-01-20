@@ -12,7 +12,7 @@ module Skullrax
     private
 
     def perform_import
-      importer.import(autofill:, fill_required:)
+      importer.import(autofill:, fill_required:, dry_run: download_form_as_csv)
     end
 
     def resolve_request
@@ -20,6 +20,8 @@ module Skullrax
     end
 
     def handle_success
+      return send_csv if download_form_as_csv
+
       redirect_to skullrax.root_path, notice: t('.success', count: importer.resources.count)
     end
 
@@ -48,6 +50,10 @@ module Skullrax
       FileUtils.rm_rf(batch_uploads_dir) if batch_uploads_dir && File.exist?(batch_uploads_dir)
     end
 
+    def send_csv
+      send_data importer.csv, filename: "batch_create_form_#{Time.current.strftime('%Y%m%d%H%M%S')}.csv"
+    end
+
     def autofill
       params[:autofill] == 'true'
     end
@@ -56,6 +62,10 @@ module Skullrax
     # required fields as well when importing through batch create
     def fill_required
       autofill
+    end
+
+    def download_form_as_csv
+      params['download-form-as-csv'] == 'true'
     end
   end
 end

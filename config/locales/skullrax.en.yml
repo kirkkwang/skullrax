@@ -51,6 +51,7 @@ en:
         previous: previous
         add_another: Add another %{label}
         autofill: Autofill
+        download_form_as_csv: Download form as CSV
         choose_file: Choose File
         choose_files: Choose Files
         file_required_help: Required - one file per FileSet

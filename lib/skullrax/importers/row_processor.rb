@@ -2,7 +2,7 @@
 
 module Skullrax
   class RowProcessor # rubocop:disable Metrics/ClassLength
-    attr_reader :resources
+    attr_reader :resources, :rows
     attr_accessor :errors
 
     def initialize(files_path: nil, user: nil)
@@ -38,7 +38,7 @@ module Skullrax
 
     attr_reader :current_collection, :indices_to_skip, :merge, :autofill, :except, :action,
                 :dry_run, :fill_required, :files_path, :user
-    attr_accessor :rows
+    attr_writer :rows
 
     def process_each_row
       queue = destroy? ? rows_ordered_for_destruction : rows
@@ -63,6 +63,8 @@ module Skullrax
 
     def import_collection(row)
       generator = resource_processor.process(row)
+      row.merge!(generator.resource.attributes.compact_blank.except(*internal_attributes))
+
       @current_collection = generator.resource
       resources << generator.resource
     end
@@ -183,5 +185,9 @@ module Skullrax
     def create? = action == :create
 
     def destroy? = action == :destroy
+
+    def internal_attributes
+      %i[new_record collection_type_gid]
+    end
   end
 end

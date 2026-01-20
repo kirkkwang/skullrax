@@ -24,15 +24,21 @@
             </div>
           </div>
 
-          <div class="mt-3 d-flex align-items-center">
-            <button type="submit" class="btn btn-primary" id="submit-batch" disabled>
+          <div class="my-3">
+            <button type="submit" class="btn btn-primary mb-1" id="submit-batch" disabled>
               <%= t('skullrax.dashboard.batch_create.submit') %>
             </button>
 
-            <div class="form-check ml-3 mb-0">
+            <div class="form-check ml-1 mb-0">
               <input class="form-check-input" type="checkbox" name="autofill" value="true" id="autofill-checkbox">
               <label class="form-check-label" for="autofill-checkbox">
                 <%= t('skullrax.dashboard.batch_create.autofill') %>
+              </label>
+            </div>
+            <div class="form-check ml-1 mb-0">
+              <input class="form-check-input" type="checkbox" name="download-form-as-csv" value="true" id="download-form-as-csv-checkbox">
+              <label class="form-check-label" for="download-form-as-csv-checkbox">
+                <%= t('skullrax.dashboard.batch_create.download_form_as_csv') %>
               </label>
             </div>
           </div>

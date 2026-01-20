@@ -20,6 +20,7 @@ module Skullrax
       @action = :create
 
       processor.process(parser.parse, dry_run:, autofill:, fill_required:, except:)
+      update_csv!
     rescue Skullrax::CsvParsingError => e
       errors << e.message
     end
@@ -52,6 +53,11 @@ module Skullrax
 
     def validate_csv_input!
       raise Skullrax::ArgumentError, I18n.t('skullrax.errors.csv_must_be_string') unless csv.is_a?(String)
+    end
+
+    def update_csv!
+      presenter = Skullrax::CsvPresenter.new(resources:, delimiter:, export_path: '', include_files: true)
+      @csv = Skullrax::CsvGenerator.new(presenter:).generate
     end
 
     def parser
