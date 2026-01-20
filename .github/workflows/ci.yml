@@ -24,9 +24,8 @@ jobs:
     - name: Start Docker containers
       run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
 
+    - name: Run Rubocop
+      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T web bash -c "cd /skullrax && rubocop"
+
     - name: Run RSpec tests
       run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T web bash -c "cd /skullrax && rspec"
-
-    - name: Stop Docker containers
-      if: always()
-      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
