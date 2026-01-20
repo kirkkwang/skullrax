@@ -1242,4 +1242,18 @@ RSpec.feature 'Batch Create Interface', js: true do
       end
     end
   end
+
+  describe 'locale switching' do
+    scenario 'JavaScript still works after switching to another language' do
+      click_link 'English'
+      click_link 'Español'
+
+      expect(page).to have_content('Español')
+
+      add_collection
+
+      expect(page).to have_css('#resources-list .resource-item', count: 1)
+      expect(page).to have_css('#forms-container [id^="resource-form-wrapper-"]')
+    end
+  end
 end

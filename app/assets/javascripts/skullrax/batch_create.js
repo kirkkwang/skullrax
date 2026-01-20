@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initializeBatchCreate() {
   const CONFIG = {
     resourceTypeSelect: document.getElementById('resource-type'),
     resourcesList: document.getElementById('resources-list'),
@@ -654,4 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.value = '';
     });
   }
-});
+};
+
+document.addEventListener('DOMContentLoaded', initializeBatchCreate);
+document.addEventListener('turbolinks:load', initializeBatchCreate);
