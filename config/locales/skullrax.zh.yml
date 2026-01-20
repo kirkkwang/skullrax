@@ -51,6 +51,7 @@ zh:
         previous: 上一步
         add_another: 添加另一个 %{label}
         autofill: 自动填充
+        download_form_as_csv: 下载表单为CSV
         choose_file: 选择文件
         choose_files: 选择文件
         file_required_help: 必填 - 每个 FileSet 一个文件
@@ -60,6 +61,7 @@ zh:
         submit: 提交批次
         hints:
           based_near: "添加与作品相关地名（如出版地点或内容涉及的城市、州或国家/地区）的简单方法。直接输入位置名称或 URI（例如 'Shanghai' 或 'https://sws.geonames.org/1796236/'）。"
+          id: "为此资源的URL设置自定义唯一ID。仅使用字母、数字、连字符(-)、下划线(_)和点(.)。注意:点需要路由约束才能正常工作。避免使用特殊字符,如/、?、#、%和空格。"
       header: Skullrax 导入/导出仪表板
       import:
         title: 导入资源

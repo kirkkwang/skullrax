@@ -51,6 +51,7 @@ it:
         previous: precedente
         add_another: Aggiungi un altro %{label}
         autofill: Compilazione automatica
+        download_form_as_csv: Scarica modulo come CSV
         choose_file: Scegli File
         choose_files: Scegli File
         file_required_help: Richiesto - un file per FileSet
@@ -60,6 +61,7 @@ it:
         submit: Invia Batch
         hints:
           based_near: "Modo semplice per aggiungere un nome di luogo correlato all'opera, come il luogo di pubblicazione o la città, lo stato o il paese di cui tratta il contenuto. Inserisci i nomi dei luoghi direttamente o l'URI (es. 'Roma' o 'https://sws.geonames.org/3169070/')."
+          id: "Imposta un ID univoco personalizzato per l'URL di questa risorsa. Usa solo lettere, numeri, trattini (-), trattini bassi (_) e punti (.). Nota: i punti richiedono vincoli di percorso per funzionare correttamente. Evita caratteri speciali come /, ?, #, %, e spazi."
       header: Dashboard di importazione/esportazione Skullrax
       import:
         title: Importa risorse

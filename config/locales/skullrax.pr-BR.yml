@@ -51,6 +51,7 @@ pt-BR:
         previous: anterior
         add_another: Adicionar outro %{label}
         autofill: Preenchimento automático
+        download_form_as_csv: Baixar formulário como CSV
         choose_file: Escolher Arquivo
         choose_files: Escolher Arquivos
         file_required_help: Obrigatório - um arquivo por FileSet
@@ -60,6 +61,7 @@ pt-BR:
         submit: Enviar Lote
         hints:
           based_near: "Maneira simples de adicionar um nome de lugar relacionado à obra, como seu local de publicação, ou a cidade, estado ou país sobre o qual o conteúdo trata. Insira os nomes dos locais diretamente ou o URI (ex., 'São Paulo' ou 'https://sws.geonames.org/3448439/')."
+          id: "Defina um ID único personalizado para a URL deste recurso. Use apenas letras, números, hífens (-), sublinhados (_) e pontos (.). Nota: pontos requerem restrições de rota para funcionar corretamente. Evite caracteres especiais como /, ?, #, %, e espaços."
       header: Painel de Importação/Exportação do Skullrax
       import:
         title: Importar recursos

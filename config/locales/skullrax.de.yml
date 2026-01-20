@@ -51,6 +51,7 @@ de:
         previous: zurück
         add_another: Ein weiteres %{label} hinzufügen
         autofill: Automatisch ausfüllen
+        download_form_as_csv: Formular als CSV herunterladen
         choose_file: Datei wählen
         choose_files: Dateien wählen
         file_required_help: Erforderlich - eine Datei pro FileSet
@@ -60,6 +61,7 @@ de:
         submit: Stapel absenden
         hints:
           based_near: "Einfache Möglichkeit, einen Ortsnamen hinzuzufügen, der sich auf das Werk bezieht, z. B. den Veröffentlichungsort oder die Stadt, das Bundesland oder das Land, von dem der Inhalt handelt. Geben Sie Ortsnamen direkt oder die URI ein (z. B. 'Berlin' oder 'https://sws.geonames.org/2950159/')."
+          id: "Legen Sie eine eindeutige ID für die URL dieser Ressource fest. Verwenden Sie nur Buchstaben, Zahlen, Bindestriche (-), Unterstriche (_) und Punkte (.). Hinweis: Punkte erfordern Routenbeschränkungen, um ordnungsgemäß zu funktionieren. Vermeiden Sie Sonderzeichen wie /, ?, #, %, und Leerzeichen."
       header: Skullrax Import/Export Dashboard
       import:
         title: Ressourcen importieren
