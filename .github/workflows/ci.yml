@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Clean up Docker environment
+      run: |
+        docker compose down -v || true
+        docker system prune -af --volumes || true
+
+    - name: Build Docker containers
+      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml build
+
+    - name: Start Docker containers
+      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+
+    - name: Run Rubocop
+      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T web bash -c "cd /skullrax && rubocop"
+
+    - name: Run RSpec tests
+      run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T web bash -c "cd /skullrax && rspec"

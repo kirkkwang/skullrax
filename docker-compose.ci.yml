@@ -1,0 +1,18 @@
+services:
+  web:
+    volumes:
+      - .:/skullrax
+      - uploads:/app/samvera/hyrax-webapp/public/uploads
+      - derivatives:/app/samvera/hyrax-webapp/tmp/derivatives
+      # Use anonymous volume for tmp in CI
+      - /app/samvera/hyrax-webapp/tmp
+      - storage:/app/samvera/hyrax-webapp/storage
+
+  worker:
+    volumes:
+      - .:/skullrax
+      - uploads:/app/samvera/hyrax-webapp/public/uploads
+      - derivatives:/app/samvera/hyrax-webapp/tmp/derivatives
+      # Use anonymous volume for tmp in CI
+      - /app/samvera/hyrax-webapp/tmp
+      - storage:/app/samvera/hyrax-webapp/storage
