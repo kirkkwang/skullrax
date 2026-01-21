@@ -64,14 +64,14 @@ pt-BR:
           id: "Defina um ID único personalizado para a URL deste recurso. Use apenas letras, números, hífens (-), sublinhados (_) e pontos (.). Nota: pontos requerem restrições de rota para funcionar corretamente. Evite caracteres especiais como /, ?, #, %, e espaços."
       header: Painel de Importação/Exportação do Skullrax
       import:
-        title: Importar recursos
+        title: Processar recursos
         instruction: Suporta coleções, obras e FileSets
         action_hint: Aceita apenas arquivos CSV ou ZIP
         action_create: Criar novos recursos
         action_update: Atualizar recursos existentes
         action_destroy: Excluir recursos existentes
         label: Escolher arquivo
-        submit: Processar importação
+        submit: Processar
       export:
         title: Exportar recursos
         instruction: Digite os IDs dos recursos que você deseja exportar (um por linha).

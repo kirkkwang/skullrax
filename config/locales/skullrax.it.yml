@@ -64,14 +64,14 @@ it:
           id: "Imposta un ID univoco personalizzato per l'URL di questa risorsa. Usa solo lettere, numeri, trattini (-), trattini bassi (_) e punti (.). Nota: i punti richiedono vincoli di percorso per funzionare correttamente. Evita caratteri speciali come /, ?, #, %, e spazi."
       header: Dashboard di importazione/esportazione Skullrax
       import:
-        title: Importa risorse
+        title: Elabora risorse
         instruction: Supporta collezioni, opere e FileSets
         action_hint: Accetta solo file CSV o ZIP
         action_create: Crea nuove risorse
         action_update: Aggiorna risorse esistenti
         action_destroy: Elimina risorse esistenti
         label: Scegli file
-        submit: Elabora importazione
+        submit: Elabora
       export:
         title: Esporta risorse
         instruction: Inserisci gli ID delle risorse che desideri esportare (uno per riga).

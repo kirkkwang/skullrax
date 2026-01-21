@@ -64,14 +64,14 @@ de:
           id: "Legen Sie eine eindeutige ID für die URL dieser Ressource fest. Verwenden Sie nur Buchstaben, Zahlen, Bindestriche (-), Unterstriche (_) und Punkte (.). Hinweis: Punkte erfordern Routenbeschränkungen, um ordnungsgemäß zu funktionieren. Vermeiden Sie Sonderzeichen wie /, ?, #, %, und Leerzeichen."
       header: Skullrax Import/Export Dashboard
       import:
-        title: Ressourcen importieren
+        title: Ressourcen verarbeiten
         instruction: Unterstützt Sammlungen, Werke und FileSets
         action_hint: Akzeptiert nur CSV- oder ZIP-Dateien
         action_create: Neue Ressourcen erstellen
         action_update: Vorhandene Ressourcen aktualisieren
         action_destroy: Vorhandene Ressourcen löschen
         label: Datei auswählen
-        submit: Import verarbeiten
+        submit: Verarbeiten
       export:
         title: Ressourcen exportieren
         instruction: Geben Sie die Ressourcen-IDs ein, die Sie exportieren möchten (eine pro Zeile).

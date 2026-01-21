@@ -64,14 +64,14 @@ en:
           id: "Set a custom unique ID for this resource's URL. Use only letters, numbers, hyphens (-), underscores (_), and dots (.). Note: dots require route constraints to work properly. Avoid special characters like /, ?, #, %, and spaces."
       header: Skullrax Dashboard
       import:
-        title: Import Resources
+        title: Process Resources
         instruction: Supports collections, works, and file sets
         action_hint: Accepts CSV or ZIP files only
         action_create: Create new resources
         action_update: Update existing resources
         action_destroy: Delete existing resources
         label: Choose file
-        submit: Process Import
+        submit: Process
       export:
         title: Export Resources
         instruction: Enter the Resource IDs you wish to export (one per line).

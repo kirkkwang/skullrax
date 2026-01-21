@@ -64,14 +64,14 @@ fr:
           id: "Définissez un identifiant unique personnalisé pour l'URL de cette ressource. Utilisez uniquement des lettres, des chiffres, des traits d'union (-), des traits de soulignement (_) et des points (.). Remarque : les points nécessitent des contraintes de route pour fonctionner correctement. Évitez les caractères spéciaux tels que /, ?, #, %, et les espaces."
       header: Tableau de bord d'importation/exportation Skullrax
       import:
-        title: Importer des ressources
+        title: Traiter les ressources
         instruction: Prend en charge les collections, les œuvres et les FileSets
         action_hint: Accepte uniquement les fichiers CSV ou ZIP
         action_create: Créer de nouvelles ressources
         action_update: Mettre à jour les ressources existantes
         action_destroy: Supprimer les ressources existantes
         label: Choisir un fichier
-        submit: Traiter l'importation
+        submit: Traiter
       export:
         title: Exporter des ressources
         instruction: Entrez les IDs de ressources que vous souhaitez exporter (un par ligne).
