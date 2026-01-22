@@ -76,5 +76,5 @@ pt-BR:
         title: Exportar recursos
         instruction: Digite os IDs dos recursos que você deseja exportar (um por linha).
         placeholder: "ab2213e1-1b13-41f1-b568-b4273ba79546\n006319cb-6a19-4075-a212-bdff388743b1"
-        submit: Gerar exportação
+        submit: Exportar
         include_files: Incluir arquivos (Baixar como ZIP)

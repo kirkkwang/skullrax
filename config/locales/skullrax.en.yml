@@ -76,5 +76,5 @@ en:
         title: Export Resources
         instruction: Enter the Resource IDs you wish to export (one per line).
         placeholder: "ab2213e1-1b13-41f1-b568-b4273ba79546\n006319cb-6a19-4075-a212-bdff388743b1"
-        submit: Generate Export
+        submit: Export
         include_files: Include Files (Download as ZIP)

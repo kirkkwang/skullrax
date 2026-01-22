@@ -76,5 +76,5 @@ zh:
         title: 导出资源
         instruction: 输入您想要导出的资源 ID（每行一个）。
         placeholder: "ab2213e1-1b13-41f1-b568-b4273ba79546\n006319cb-6a19-4075-a212-bdff388743b1"
-        submit: 生成导出
+        submit: 导出
         include_files: 包含文件（下载为 ZIP）

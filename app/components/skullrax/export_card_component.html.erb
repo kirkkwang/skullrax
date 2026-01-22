@@ -21,11 +21,13 @@
     </div>
 
     <div class="mt-3">
-      <a href="#" id="export-link" class="btn btn-primary">
-        <%= t('skullrax.dashboard.export.submit') %>
+      <a href="#"
+         id="export-link"
+         class="btn btn-primary disabled"
+         style="pointer-events: none;"
+         data-export-path="<%= export_path %>">
+         <%= t('skullrax.dashboard.export.submit') %>
       </a>
     </div>
   </div>
 </div>
-
-<%= export_script %>

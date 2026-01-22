@@ -76,5 +76,5 @@ it:
         title: Esporta risorse
         instruction: Inserisci gli ID delle risorse che desideri esportare (uno per riga).
         placeholder: "ab2213e1-1b13-41f1-b568-b4273ba79546\n006319cb-6a19-4075-a212-bdff388743b1"
-        submit: Genera esportazione
+        submit: Esporta
         include_files: Includi file (Scarica come ZIP)
