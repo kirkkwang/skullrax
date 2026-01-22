@@ -7,8 +7,8 @@ it:
           other: "Importate con successo %{count} risorse"
     errors:
       object_not_found:
-        one: "Impossibile eseguire l'azione: 1 ID non trovato: %{ids}"
-        other: "Impossibile eseguire l'azione: %{count} ID non trovati: %{ids}"
+        one: "Impossibile eseguire l'azione - 1 ID non trovato: %{ids}"
+        other: "Impossibile eseguire l'azione - %{count} ID non trovati: %{ids}"
       object_not_found_single: "%{id} non trovato. Crealo prima o usa un ID valido."
       no_resource_found: "Nessuna risorsa trovata con ID '%{id}'."
       id_already_exists: "L'ID '%{id}' è già in uso."

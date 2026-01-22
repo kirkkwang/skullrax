@@ -7,8 +7,8 @@ es:
           other: "Se importaron correctamente %{count} recursos"
     errors:
       object_not_found:
-        one: "No se puede realizar la acción: 1 ID no encontrado: %{ids}"
-        other: "No se puede realizar la acción: %{count} IDs no encontrados: %{ids}"
+        one: "No se puede realizar la acción - 1 ID no encontrado: %{ids}"
+        other: "No se puede realizar la acción - %{count} IDs no encontrados: %{ids}"
       object_not_found_single: "%{id} no encontrado. Créelo primero o use un ID válido."
       no_resource_found: "No se encontró ningún recurso con ID '%{id}'."
       id_already_exists: "El ID '%{id}' ya está en uso."

@@ -7,8 +7,8 @@ zh:
           other: "成功导入 %{count} 个资源"
     errors:
       object_not_found:
-        one: "无法执行操作:未找到 1 个 ID:%{ids}"
-        other: "无法执行操作:未找到 %{count} 个 ID:%{ids}"
+        one: "无法执行操作 - 未找到 1 个 ID: %{ids}"
+        other: "无法执行操作 - 未找到 %{count} 个 ID: %{ids}"
       object_not_found_single: "未找到 %{id}。请先创建或使用有效的 ID。"
       no_resource_found: "未找到 ID 为 '%{id}' 的资源。"
       id_already_exists: "ID '%{id}' 已被使用。"

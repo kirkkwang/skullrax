@@ -258,7 +258,7 @@ RSpec.describe Skullrax::ImportsController do
 
           expect(response).to redirect_to(/skullrax/)
           expect(flash[:alert]).to include('Import failed')
-          expect(flash[:alert]).to match(/Cannot action: 1 ID not found: non-existent-work/)
+          expect(flash[:alert]).to match(/Cannot action - 1 ID not found: non-existent-work/)
         end
       end
     end
@@ -329,7 +329,9 @@ RSpec.describe Skullrax::ImportsController do
 
           expect(response).to redirect_to(/skullrax/)
           expect(flash[:alert]).to include('Import failed')
-          expect(flash[:alert]).to match(/Cannot action: 2 IDs not found: non-existent-work, another-non-existent-work/)
+          expect(flash[:alert]).to match(
+            /Cannot action - 2 IDs not found: non-existent-work, another-non-existent-work/
+          )
         end
       end
     end

@@ -7,8 +7,8 @@ de:
           other: "%{count} Ressourcen erfolgreich importiert"
     errors:
       object_not_found:
-        one: "Aktion nicht möglich: 1 ID nicht gefunden: %{ids}"
-        other: "Aktion nicht möglich: %{count} IDs nicht gefunden: %{ids}"
+        one: "Aktion nicht möglich - 1 ID nicht gefunden: %{ids}"
+        other: "Aktion nicht möglich - %{count} IDs nicht gefunden: %{ids}"
       object_not_found_single: "%{id} nicht gefunden. Erstellen Sie es zuerst oder verwenden Sie eine gültige ID."
       no_resource_found: "Keine Ressource mit ID '%{id}' gefunden."
       id_already_exists: "ID '%{id}' wird bereits verwendet."

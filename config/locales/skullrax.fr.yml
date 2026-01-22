@@ -7,8 +7,8 @@ fr:
           other: "%{count} ressources importées avec succès"
     errors:
       object_not_found:
-        one: "Action impossible : 1 ID introuvable : %{ids}"
-        other: "Action impossible : %{count} IDs introuvables : %{ids}"
+        one: "Action impossible - 1 ID introuvable: %{ids}"
+        other: "Action impossible - %{count} IDs introuvables: %{ids}"
       object_not_found_single: "%{id} introuvable. Créez-le d'abord ou utilisez un ID valide."
       no_resource_found: "Aucune ressource trouvée avec l'ID '%{id}'."
       id_already_exists: "L'ID '%{id}' est déjà utilisé."
