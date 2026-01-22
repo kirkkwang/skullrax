@@ -2,18 +2,20 @@
 
 module Skullrax
   class CsvExporter
-    attr_reader :ids, :export_path, :csv
+    attr_reader :ids, :export_path, :csv, :errors
 
     def initialize(ids:, export_path: nil)
-      @ids = ids
+      @ids = Array.wrap(ids)
       @export_path = export_path || default_export_path
       @csv = nil
+      @errors = []
     end
 
     def export(include_files: false, delimiter: ';')
       prepare_export_directory if include_files
 
       @csv = generate_csv(include_files:, delimiter:)
+      return if errors.any?
 
       include_files ? package_with_files(csv) : csv
     end
@@ -34,7 +36,7 @@ module Skullrax
 
     def generate_csv(include_files:, delimiter:)
       presenter = build_presenter(include_files:, delimiter:)
-      Skullrax::CsvGenerator.new(presenter:).generate
+      Skullrax::CsvGenerator.new(presenter:).generate if errors.blank?
     end
 
     def build_presenter(include_files:, delimiter:)
@@ -44,6 +46,8 @@ module Skullrax
 
     def fetch_resources
       Skullrax::ResourceFetcher.fetch(ids:)
+    rescue Skullrax::ObjectNotFoundError => e
+      errors << e.message
     end
 
     def package_with_files(csv_content)

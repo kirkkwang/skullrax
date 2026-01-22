@@ -94,7 +94,37 @@ RSpec.feature 'Export Resources Interface', js: true do
     scenario 'submitting with only whitespace shows error message' do
       visit "#{skullrax.exports_path}?ids=#{CGI.escape("  \n  \n  ")}&include_files=0"
 
-      expect(page).to have_css('.alert', text: /enter at least one ID/i)
+      expect(page).to have_css('.alert', text: /enter at least one ID/)
+    end
+
+    scenario 'submitting with non-existent ID shows error message' do
+      textarea = find('#export_ids')
+      export_button = find('#export-link')
+
+      textarea.fill_in with: 'non-existent-id'
+      export_button.click
+
+      expect(page).to have_css('.alert', text: /ID not found: non-existent-id/)
+    end
+
+    scenario 'submitting with multiple non-existent IDs shows all missing IDs' do
+      textarea = find('#export_ids')
+      export_button = find('#export-link')
+
+      textarea.fill_in with: "fake-id-1\nfake-id-2"
+      export_button.click
+
+      expect(page).to have_css('.alert', text: /2 IDs not found: fake-id-1, fake-id-2/)
+    end
+
+    scenario 'submitting with mix of valid and invalid IDs shows only invalid ones' do
+      textarea = find('#export_ids')
+      export_button = find('#export-link')
+
+      textarea.fill_in with: "#{work_id1}\nfake-id"
+      export_button.click
+
+      expect(page).to have_css('.alert', text: /ID not found: fake-id/)
     end
   end
 

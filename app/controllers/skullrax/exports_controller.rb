@@ -16,8 +16,10 @@ module Skullrax
     end
 
     def generate_and_send(ids, include_files)
-      exporter = Skullrax::CsvExporter.new(ids:)
-      data = exporter.export(include_files:)
+      @exporter = Skullrax::CsvExporter.new(ids:)
+      data = @exporter.export(include_files:)
+
+      return handle_failure if data.nil?
 
       send_data(
         data,
@@ -37,6 +39,11 @@ module Skullrax
 
     def extension(zip_mode)
       zip_mode ? 'zip' : 'csv'
+    end
+
+    def handle_failure
+      flash[:error] = Skullrax::ErrorFormatterService.format(errors: @exporter.errors)
+      redirect_to skullrax.root_path
     end
 
     def export_params

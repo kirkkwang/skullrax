@@ -103,6 +103,17 @@ RSpec.describe Skullrax::CsvExporter do
       expect(updated_monograph.embargo).not_to be_active
     end
 
+    context 'when the object does not exist' do
+      it 'captures errors' do
+        exporter = Skullrax::CsvExporter.new(ids: %w[non-existent-id another-non-existent-id])
+
+        exporter.export
+
+        expect(exporter.errors).to be_present
+        expect(exporter.errors.first).to include(/2 IDs not found: non-existent-id, another-non-existent-id/)
+      end
+    end
+
     context 'with include_files option' do
       after do
         FileUtils.rm_rf(Dir.glob(Rails.root.join('tmp', 'exports', '*')))
