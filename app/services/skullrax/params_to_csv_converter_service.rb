@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Skullrax
+  # rubocop:disable Metrics/ClassLength
   class ParamsToCsvConverterService
     def initialize(params:, batch_uploads_dir: nil)
       @params = params
@@ -20,7 +21,8 @@ module Skullrax
 
     def sort_hash
       sorted_params = params.sort_by do |_key, value|
-        value['type'] == 'CollectionResource' ? 1 : 0
+        model = value['model'] || value['type']
+        model == 'CollectionResource' ? 1 : 0
       end.to_h
 
       @params = sorted_params
@@ -49,7 +51,7 @@ module Skullrax
       resource.each do |key, value|
         next if nested_keys.include?(key) || Array.wrap(value).compact_blank.empty?
 
-        value = conform_model!(value) if key == 'type'
+        value = conform_model!(value) if %w[type model].include?(key)
         process_attribute(key, value, row, file_values)
       end
 
@@ -112,7 +114,8 @@ module Skullrax
 
     def key_mappings
       {
-        'type' => 'model'
+        'type' => 'model',
+        'model' => 'model'
       }.merge(files_key_mappings)
     end
 
@@ -129,4 +132,5 @@ module Skullrax
 
     def delimiter = ';'
   end
+  # rubocop:enable Metrics/ClassLength
 end
