@@ -18,7 +18,7 @@ module Skullrax
         elsif required_file_set_term?(term)
           render_field_input(term:, required: false)
         else
-          render_edit_field_partial(term, f: form_builder)
+          render_edit_field_partial(term, f: form_builder, curation_concern: form.model_class)
         end
       end
 
