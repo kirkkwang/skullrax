@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Skullrax
+  # rubocop:disable Metrics/ClassLength
   class VisibilityHandler
     class << self
       def add_visibility(hash, kwargs)
@@ -31,6 +32,29 @@ module Skullrax
         return lease_destroyed?(resource) if new_vis != 'lease' && resource.lease&.active?
 
         false
+      end
+
+      def normalize_for_file_set(params)
+        visibility = params[:visibility]
+
+        case visibility
+        when 'embargo'
+          params[:visibility_during_embargo] || visibility
+        when 'lease'
+          params[:visibility_during_lease] || visibility
+        else
+          visibility
+        end
+      end
+
+      def apply_to_file_set(file_set, params)
+        return unless params.present?
+
+        if params[:embargo_release_date].present?
+          apply_embargo_to_file_set(file_set, params)
+        elsif params[:lease_expiration_date].present?
+          apply_lease_to_file_set(file_set, params)
+        end
       end
 
       private
@@ -68,6 +92,43 @@ module Skullrax
         Hyrax::Actors::LeaseActor.new(resource).destroy
         true
       end
+
+      def apply_embargo_to_file_set(file_set, params)
+        embargo = build_embargo(params)
+        file_set.embargo = Hyrax.persister.save(resource: embargo)
+        Hyrax::EmbargoManager.apply_embargo_for(resource: file_set)
+        save_file_set_with_permissions(file_set)
+      end
+
+      def apply_lease_to_file_set(file_set, params)
+        lease = build_lease(params)
+        file_set.lease = Hyrax.persister.save(resource: lease)
+        Hyrax::LeaseManager.apply_lease_for(resource: file_set)
+        save_file_set_with_permissions(file_set)
+      end
+
+      def build_embargo(params)
+        Hyrax::Embargo.new(
+          embargo_release_date: Date.parse(params[:embargo_release_date].to_s),
+          visibility_during_embargo: params[:visibility_during_embargo],
+          visibility_after_embargo: params[:visibility_after_embargo]
+        )
+      end
+
+      def build_lease(params)
+        Hyrax::Lease.new(
+          lease_expiration_date: Date.parse(params[:lease_expiration_date].to_s),
+          visibility_during_lease: params[:visibility_during_lease],
+          visibility_after_lease: params[:visibility_after_lease]
+        )
+      end
+
+      def save_file_set_with_permissions(file_set)
+        permission_manager = file_set.permission_manager.acl
+        permission_manager.save if permission_manager.pending_changes?
+        Hyrax.persister.save(resource: file_set)
+      end
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

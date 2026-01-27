@@ -49,7 +49,13 @@ module Skullrax
     def perform_create_action
       action.validate
       result = transaction_executor.create
-      result.success? ? handle_success(result) : handle_failure(result)
+
+      if result.success?
+        apply_file_set_embargoes_and_leases(result.value!)
+        handle_success(result)
+      else
+        handle_failure(result)
+      end
     end
 
     def perform_update_action
@@ -110,6 +116,19 @@ module Skullrax
 
       @resource = Hyrax.query_service.find_by(id: resource.id)
       @form = nil
+    end
+
+    def apply_file_set_embargoes_and_leases(work)
+      return if file_set_params.empty?
+
+      file_sets = Hyrax.custom_queries.find_child_file_sets(resource: work)
+
+      file_sets.each_with_index do |file_set, index|
+        params = file_set_params[index]
+        next unless params
+
+        Skullrax::VisibilityHandler.apply_to_file_set(file_set, params)
+      end
     end
   end
 end

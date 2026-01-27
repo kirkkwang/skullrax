@@ -343,6 +343,62 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
           expect(file_set.title).to eq ['Some Image']
           expect(file_set.respond_to?(:unknown_property)).to be false
         end
+
+        it 'creates and applies embargo to file sets' do
+          future_date = Date.today + 30
+          generator = described_class.new(
+            file_paths: [file1],
+            file_set_params: [{
+              title: ['Embargoed File'],
+              embargo_release_date: future_date,
+              visibility_during_embargo: 'authenticated',
+              visibility_after_embargo: 'open'
+            }]
+          )
+          result = generator.generate
+
+          expect(result).to be_success
+
+          file_set = Hyrax.query_service.find_by(id: generator.resource.member_ids.first)
+
+          expect(file_set.embargo).to be_present
+          expect(file_set.embargo.embargo_release_date).to eq(future_date.to_s)
+          expect(file_set.embargo.visibility_during_embargo).to eq('authenticated')
+          expect(file_set.embargo.visibility_after_embargo).to eq('open')
+          expect(file_set.visibility).to eq('authenticated')
+
+          manager = Hyrax::EmbargoManager.new(resource: file_set)
+          expect(manager.under_embargo?).to be true
+          expect(manager.enforced?).to be true
+        end
+
+        it 'creates and applies lease to file sets' do
+          future_date = Date.today + 30
+          generator = described_class.new(
+            file_paths: [file1],
+            file_set_params: [{
+              title: ['Leased File'],
+              lease_expiration_date: future_date,
+              visibility_during_lease: 'authenticated',
+              visibility_after_lease: 'restricted'
+            }]
+          )
+          result = generator.generate
+
+          expect(result).to be_success
+
+          file_set = Hyrax.query_service.find_by(id: generator.resource.member_ids.first)
+
+          expect(file_set.lease).to be_present
+          expect(file_set.lease.lease_expiration_date).to eq(future_date.to_s)
+          expect(file_set.lease.visibility_during_lease).to eq('authenticated')
+          expect(file_set.lease.visibility_after_lease).to eq('restricted')
+          expect(file_set.visibility).to eq('authenticated')
+
+          manager = Hyrax::LeaseManager.new(resource: file_set)
+          expect(manager.under_lease?).to be true
+          expect(manager.enforced?).to be true
+        end
       end
 
       context 'when a file is missing' do
