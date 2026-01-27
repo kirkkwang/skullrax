@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class DashboardController < ApplicationController
+  class DashboardController < Skullrax::ApplicationController
     def index
       render Skullrax::PageComponent.new
     end

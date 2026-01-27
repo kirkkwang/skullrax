@@ -3,6 +3,10 @@
 RSpec.describe Skullrax::DashboardController, type: :request do
   include Devise::Test::IntegrationHelpers
 
+  it 'inherits from Skullrax::ApplicationController' do
+    expect(Skullrax::DashboardController < Skullrax::ApplicationController).to be true
+  end
+
   describe 'GET /skullrax' do
     context 'when user is an admin' do
       before do
