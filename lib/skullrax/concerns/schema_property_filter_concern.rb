@@ -3,7 +3,7 @@
 module Skullrax
   module SchemaPropertyFilterConcern
     def splittable_properties(model)
-      filter_schema_properties(model) { |schema_key| schema_key.meta['form'].present? }
+      filter_schema_properties(model) { |schema_key| form_present?(schema_key) && display_form?(schema_key) }
     end
 
     def required_properties(model)
@@ -18,6 +18,14 @@ module Skullrax
 
     def schema_for(model)
       model.new.singleton_class&.schema || model.schema
+    end
+
+    def form_present?(schema_key)
+      schema_key.meta['form'].present?
+    end
+
+    def display_form?(schema_key)
+      schema_key.meta.dig('form', 'display') != false
     end
   end
 end
