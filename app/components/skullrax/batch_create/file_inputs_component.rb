@@ -26,6 +26,7 @@ module Skullrax
           {
             title: t('hyrax.works.form.tab.files').singularize,
             name: 'resources[RESOURCE_ID][file]',
+            id: 'RESOURCE_ID_file',
             label: t('skullrax.dashboard.batch_create.choose_file'),
             help: t('skullrax.dashboard.batch_create.file_required_help'),
             required: true,
@@ -35,6 +36,7 @@ module Skullrax
           {
             title: t('hyrax.works.form.tab.files'),
             name: 'resources[RESOURCE_ID][files][]',
+            id: 'RESOURCE_ID_files',
             label: t('skullrax.dashboard.batch_create.choose_files'),
             help: t('skullrax.dashboard.batch_create.files_optional_help'),
             required: false,

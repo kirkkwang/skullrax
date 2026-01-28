@@ -6,7 +6,8 @@
     </div>
     <div class="nested-works ml-3"></div>
     <div class="add-work-section mt-2" style="display: none;">
-      <select class="form-control form-control-sm work-type-select">
+      <label for="work-type-select-RESOURCE_ID" class="sr-only"><%= t('skullrax.dashboard.batch_create.select_work_type') %></label>
+      <select class="form-control form-control-sm work-type-select" id="work-type-select-RESOURCE_ID">
         <option value=""><%= t('skullrax.dashboard.batch_create.select_work_type') %></option>
         <%= work_options %>
       </select>

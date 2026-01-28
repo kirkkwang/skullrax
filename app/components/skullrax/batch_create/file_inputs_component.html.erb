@@ -2,7 +2,7 @@
 <div class="files-section">
   <!-- File upload input -->
   <div class="form-group">
-    <label>
+    <label for="<%= file_input_config[:id] %>">
       <%= file_input_config[:label] %>
       <% if file_input_config[:required] %>
         <span class="text-danger">*</span>
@@ -11,6 +11,7 @@
     <input
       type="file"
       name="<%= file_input_config[:name] %>"
+      id="<%= file_input_config[:id] %>"
       class="form-control-file file-upload-input"
       <%= 'required' if file_input_config[:required] %>
       <%= 'multiple' if file_input_config[:multiple] %>>
