@@ -62,17 +62,50 @@ module Skullrax
     end
 
     def download_file(url)
-      tempfile = Tempfile.new(['skullrax', File.extname(url)])
+      uri = URI.parse(url)
+      tempfile = Tempfile.new('skullrax')
       tempfile.binmode
 
-      uri = URI.parse(url)
+      response = fetch_remote_file(uri, tempfile)
+      tempfile.rewind
+
+      wrap_with_filename(tempfile, uri, response)
+    end
+
+    def fetch_remote_file(uri, tempfile)
       Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
         response = http.request_get(uri.path)
         tempfile.write(response.body)
+        response
       end
+    end
 
-      tempfile.rewind
-      tempfile
+    def wrap_with_filename(tempfile, uri, response)
+      filename = extract_filename(uri, response)
+      content_type = response['content-type'] || 'application/octet-stream'
+
+      ActionDispatch::Http::UploadedFile.new(
+        tempfile:,
+        filename:,
+        type: content_type
+      )
+    end
+
+    def extract_filename(uri, response)
+      filename = filename_from_header(response) || File.basename(uri.path)
+      add_extension_if_missing(filename, response['content-type'])
+    end
+
+    def filename_from_header(response)
+      response['content-disposition']&.match(/filename="?([^"]+)"?/)&.captures&.first
+    end
+
+    def add_extension_if_missing(filename, content_type)
+      return filename if File.extname(filename).present?
+      return filename unless content_type
+
+      extension = Mime::Type.lookup(content_type)&.symbol
+      extension ? "#{filename}.#{extension}" : filename
     end
   end
 end
