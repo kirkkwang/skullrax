@@ -44,7 +44,7 @@ module Skullrax
     end
 
     def skullrax_route
-      "  mount Skullrax::Engine => '/skullrax'\n"
+      "  mount Skullrax::Engine => '/skullrax' unless Rails.env.production?\n"
     end
 
     def route_file
@@ -68,7 +68,7 @@ module Skullrax
     end
 
     def skullrax_precompile_line
-      "Rails.application.config.assets.precompile += %w(skullrax/*)\n"
+      "Rails.application.config.assets.precompile += %w[skullrax/*] unless Rails.env.production?\n"
     end
   end
 end

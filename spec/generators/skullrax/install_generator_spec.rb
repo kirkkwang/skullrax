@@ -31,7 +31,7 @@ RSpec.describe Skullrax::InstallGenerator do
       generator.invoke_all
 
       routes_content = File.read(File.join(destination, 'config/routes.rb'))
-      expect(routes_content).to include("mount Skullrax::Engine => '/skullrax'")
+      expect(routes_content).to include("mount Skullrax::Engine => '/skullrax' unless Rails.env.production?")
     end
 
     it 'skips mounting if already mounted' do
@@ -56,7 +56,9 @@ RSpec.describe Skullrax::InstallGenerator do
       generator.invoke_all
 
       assets_content = File.read(File.join(destination, 'config/initializers/assets.rb'))
-      expect(assets_content).to include('Rails.application.config.assets.precompile += %w(skullrax/*)')
+      expect(assets_content).to include(
+        'Rails.application.config.assets.precompile += %w[skullrax/*] unless Rails.env.production?'
+      )
     end
 
     it 'skips adding assets if already added' do
