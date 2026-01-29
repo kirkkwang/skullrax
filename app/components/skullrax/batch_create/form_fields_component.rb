@@ -23,7 +23,7 @@ module Skullrax
       end
 
       def primary_terms
-        form.primary_terms + [:id]
+        form.primary_terms + [:id] - flexible_metadata_properties
       end
 
       private
@@ -57,6 +57,10 @@ module Skullrax
       def id_hint = I18n.t('skullrax.dashboard.batch_create.hints.id')
 
       def id_pattern = '^[a-zA-Z0-9_\-.]+$'
+
+      def flexible_metadata_properties
+        %i[schema_version contexts]
+      end
     end
   end
 end
