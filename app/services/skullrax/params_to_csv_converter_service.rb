@@ -96,6 +96,8 @@ module Skullrax
     end
 
     def conform_model!(model)
+      return model unless defined?(Wings)
+
       Wings::ModelRegistry.reverse_lookup(model.constantize).to_s.presence || model
     end
 

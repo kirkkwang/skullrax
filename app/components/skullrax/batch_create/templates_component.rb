@@ -8,13 +8,22 @@ module Skullrax
       end
 
       def form_for_resource_type(resource_type)
-        klass = Wings::ModelRegistry.reverse_lookup(resource_type.constantize) || resource_type.constantize
+        klass = resolve_resource_class(resource_type)
         resource = klass.new
         Hyrax::Forms::ResourceForm.for(resource:)
       end
 
       def form_builder(form)
         SimpleForm::FormBuilder.new(form.model_name.param_key, form, self, {})
+      end
+
+      private
+
+      def resolve_resource_class(resource_type)
+        return resource_type.constantize unless defined?(Wings)
+
+        Wings::ModelRegistry.reverse_lookup(resource_type.constantize) ||
+          resource_type.constantize
       end
     end
   end

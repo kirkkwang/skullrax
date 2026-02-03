@@ -99,8 +99,14 @@ module Skullrax
 
     def normalize_and_constantize(model_string)
       normalized = model_mappings.fetch(model_string, model_string).constantize
-      model = Wings::ModelRegistry.reverse_lookup(normalized) || normalized
+      model = resolve_wings_model(normalized)
       model.tap { |m| validate_model!(m) }
+    end
+
+    def resolve_wings_model(normalized)
+      return normalized unless defined?(Wings)
+
+      Wings::ModelRegistry.reverse_lookup(normalized) || normalized
     end
 
     def model_mappings
