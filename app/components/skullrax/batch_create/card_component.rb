@@ -18,7 +18,11 @@ module Skullrax
       private
 
       def work_types
-        Hyrax.config.registered_curation_concern_types
+        if defined?(::Hyku)
+          ::Site.instance.available_works
+        else
+          Hyrax.config.registered_curation_concern_types
+        end
       end
 
       def collection_value
