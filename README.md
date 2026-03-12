@@ -31,6 +31,49 @@ bundle install
 rails generate skullrax:install
 ```
 
+## Configuration
+
+Skullrax can be configured in an initializer (e.g. `config/initializers/skullrax.rb`):
+
+```ruby
+Skullrax.configure do |config|
+  # Override the global default used for any property not covered by a more specific rule.
+  # Receives the model name and property name as positional arguments (both strings).
+  config.default_test_value = ->(model, property) { "#{model} #{property}" }
+
+  # Register a callable for a specific model + property combination.
+  # Use the model name as a string to avoid load order issues.
+  config.test_default_for('GenericWorkResource', :video_embed) do |_model, _property|
+    'https://www.youtube.com/embed/Znf73dsFdC8'
+  end
+
+  # Register a model-level default (no property) — applies to any property on that model
+  # not covered by a more specific registration.
+  config.test_default_for('GenericWorkResource') do |model, property|
+    "Test #{property} for #{model}"
+  end
+end
+```
+
+### Callable interface
+
+All callables (the global `default_test_value` and any `test_default_for` blocks) receive two positional arguments:
+
+| Argument | Type | Value |
+|---|---|---|
+| `model` | String | The model class name, e.g. `"GenericWorkResource"` |
+| `property` | String | The property name, e.g. `"title"` |
+
+### Lookup priority
+
+When Skullrax needs a test value for a given model and property, it checks in this order:
+
+1. A per-model+property registration: `config.test_default_for(MyModel, :my_property)`
+2. A model-level default: `config.test_default_for(MyModel)`
+3. The global `default_test_value` (built-in default: `"Test #{property}"`)
+
+---
+
 ## Usage
 
 ### Two Creation Modes

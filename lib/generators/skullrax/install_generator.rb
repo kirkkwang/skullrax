@@ -14,6 +14,17 @@ module Skullrax
       success_message('Skullrax route mounted at /skullrax')
     end
 
+    def create_initializer
+      initializer_path = File.join(destination_root, 'config/initializers/skullrax.rb')
+
+      if File.exist?(initializer_path)
+        skip_message('Skullrax initializer already exists')
+      else
+        template 'skullrax.rb', initializer_path
+        success_message('Created Skullrax initializer at config/initializers/skullrax.rb')
+      end
+    end
+
     def add_asset_precompile
       return skip_message('Skullrax assets already added to precompile list') if assets_already_added?
       return skip_message('assets.rb not found, skipping asset precompile config') unless File.exist?(assets_file_path)

@@ -25,6 +25,29 @@ RSpec.describe Skullrax::InstallGenerator do
     FileUtils.rm_rf(destination)
   end
 
+  describe 'creating initializer' do
+    it 'creates config/initializers/skullrax.rb' do
+      generator = described_class.new([], {}, { destination_root: destination })
+      generator.invoke_all
+
+      initializer_path = File.join(destination, 'config/initializers/skullrax.rb')
+      expect(File.exist?(initializer_path)).to be true
+      expect(File.read(initializer_path)).to include('Skullrax.configure')
+    end
+
+    it 'skips creating initializer if it already exists' do
+      initializer_path = File.join(destination, 'config/initializers/skullrax.rb')
+      File.write(initializer_path, '# custom config')
+
+      generator = described_class.new([], {}, { destination_root: destination })
+      output = capture(:stdout) { generator.invoke_all }
+
+      expect(output).to match(/skipped/)
+      expect(output).to match(/Skullrax initializer already exists/)
+      expect(File.read(initializer_path)).to eq('# custom config')
+    end
+  end
+
   describe 'mounting routes' do
     it 'mounts the Skullrax engine' do
       generator = described_class.new([], {}, { destination_root: destination })

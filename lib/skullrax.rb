@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'skullrax/version'
+require_relative 'skullrax/configuration'
 require_relative 'skullrax/engine'
 
 require_relative 'skullrax/concerns/object_not_found'
@@ -48,6 +49,14 @@ module Skullrax
   class IdAlreadyExistsError < Error; end
   class ArgumentError < Error; end
   class CsvParsingError < StandardError; end
+
+  def self.config
+    @config ||= Configuration.new
+  end
+
+  def self.configure
+    yield config
+  end
 
   def self.root
     @root ||= Pathname.new(File.expand_path('..', __dir__))

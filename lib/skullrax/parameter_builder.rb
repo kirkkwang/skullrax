@@ -54,7 +54,7 @@ module Skullrax
       return controlled_vocabulary_for(property) if controlled_property?(property)
       return based_near_handler.default_value if based_near_handler.handles?(property) && kwargs[property].blank?
 
-      ["Test #{property}"]
+      [resolve_test_value(property)]
     end
 
     def add_custom_attributes(hash)
@@ -88,6 +88,12 @@ module Skullrax
       rescue *object_not_found_errors
         raise Skullrax::ObjectNotFoundError, I18n.t('skullrax.errors.object_not_found_single', id:)
       end
+    end
+
+    def resolve_test_value(property)
+      callable = Skullrax.config.test_default_for(model, property) ||
+                 Skullrax.config.default_test_value
+      callable.call(model.to_s, property)
     end
 
     def based_near_handler
