@@ -85,6 +85,8 @@ begin
 rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
+ActiveJob::Base.queue_adapter = :test
+
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_path = Rails.root.join('spec/fixtures')
@@ -150,14 +152,16 @@ RSpec.configure do |config|
   end
 
   config.before(:each) do
+    allow(Hyrax::VirusScanner).to receive(:infected?).and_return(false)
+  end
+
+  config.before(:each) do
     # Kept getting test failures because of external HTTP calls made during tests so sticking this here.
     # This handles the 'autofill: true' behavior in generators
     stub_request(:get, 'http://www.geonames.org/getJSON?geonameId=5391811&username=')
       .with(
         headers: {
-          'Accept' => 'application/json',
-          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-          'User-Agent' => 'Faraday v2.14.0'
+          'Accept' => 'application/json'
         }
       )
       .to_return(

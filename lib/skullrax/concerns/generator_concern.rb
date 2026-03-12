@@ -99,7 +99,7 @@ module Skullrax
     def merge_attributes
       existing_attrs = resource.attributes
 
-      @merged_kwargs = existing_attrs.merge(params_hash) do |_, old_val, new_val|
+      @merged_kwargs = existing_attrs.merge(params_hash.transform_keys(&:to_sym)) do |_, old_val, new_val|
         should_append?(old_val) ? old_val + new_val : new_val
       end
     end
