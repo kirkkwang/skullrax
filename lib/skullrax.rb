@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'doorkeeper'
 require_relative 'skullrax/version'
 require_relative 'skullrax/configuration'
 require_relative 'skullrax/engine'
@@ -41,6 +42,14 @@ require_relative 'skullrax/exporters/zip_packager'
 require_relative 'skullrax/exporters/csv_generator'
 require_relative 'skullrax/exporters/header_builder'
 require_relative 'skullrax/exporters/row_builder'
+
+require_relative 'skullrax/mcp/tool'
+require_relative 'skullrax/mcp/tools/get_schema_tool'
+require_relative 'skullrax/mcp/tools/validate_resources_tool'
+require_relative 'skullrax/mcp/tools/create_resources_tool'
+require_relative 'skullrax/mcp/tools/find_resources_tool'
+require_relative 'skullrax/mcp/tools/update_resources_tool'
+require_relative 'skullrax/mcp/tools/delete_resources_tool'
 
 module Skullrax
   class Error < StandardError; end

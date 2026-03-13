@@ -17,6 +17,7 @@ An easy programmatic way to create Valkyrie works in Hyrax 5 based applications 
 - **CSV Batch Operations**: Import, update, or delete multiple resources at once via CSV
 - **Hyku Compatible**: Handles Hyku's authority naming quirks (e.g., `audience.yml` vs `audiences.yml`)
 - **Error Handling**: Comprehensive error tracking for debugging
+- **MCP Server**: Optional AI-driven CRUD via Model Context Protocol (Claude Desktop, Claude.ai)
 
 ## Installation
 
@@ -1044,6 +1045,70 @@ When `autofill: true` is enabled in generate mode, Skullrax will populate all pr
 - Creating fully populated test works
 - Exploring all available fields on a work type
 - Generating sample data for development
+
+## MCP Server
+
+Skullrax includes an optional MCP (Model Context Protocol) server that lets AI clients like Claude Desktop or Claude.ai drive Hyrax work and collection CRUD conversationally.
+
+### Installation
+
+After installing Skullrax, run the MCP installer:
+
+```bash
+rails generate skullrax:mcp_install
+rails db:migrate
+```
+
+This:
+- Enables the MCP feature in `config/initializers/skullrax.rb`
+- Installs and configures Doorkeeper for OAuth 2.1 PKCE authentication
+- Injects the MCP route and OAuth discovery routes into `config/routes.rb`
+
+### Connecting Claude Desktop
+
+Add the MCP server to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "skullrax": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://www.example.com/skullrax/mcp"
+      ]
+    }
+  }
+}
+```
+
+On first connection, Claude Desktop will open a browser tab for OAuth login. After you authenticate with your Hyrax credentials and approve access, Claude Desktop stores the token and connects automatically on subsequent launches.
+
+**Note:** The MCP endpoint respects all existing Hyrax CanCan permissions. If a user does not have permission to delete works in the Hyrax UI, they cannot delete works through MCP either.
+
+### Available Tools
+
+| Tool | Description |
+|---|---|
+| `get_schema` | Returns field names, types, required status, and splittable status for a work type |
+| `validate_resources` | Validates records against a work type schema without persisting anything |
+| `create_resources` | Creates works or collections via `ValkyrieWorkGenerator` / `ValkyrieCollectionGenerator` |
+| `find_resources` | Finds resources by ID (Valkyrie query service) or Solr query string |
+| `update_resources` | Updates existing works or collections by ID |
+| `delete_resources` | Deletes works or collections by ID |
+
+### Example Workflow
+
+The tools are designed for a multi-step agentic loop where the user stays in control at the decision point:
+
+1. User pastes a CSV or describes works they want to create
+2. Claude calls `get_schema` to learn what fields are valid and required for the work type
+3. Claude calls `validate_resources` to check the records — returns valid records and invalid records with reasons
+4. Claude surfaces any invalid records to the user and asks how to proceed
+5. User decides: create all / create only valid / abort
+6. Claude calls `create_resources` to persist the approved records and reports back IDs
+
+---
 
 ## Development
 

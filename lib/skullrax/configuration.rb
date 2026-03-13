@@ -15,7 +15,11 @@ module Skullrax
   #     end
   #   end
   class Configuration
-    attr_writer :default_test_value
+    attr_writer :default_test_value, :mcp_enabled
+
+    def mcp_enabled?
+      @mcp_enabled ||= false
+    end
 
     # Lambda called to generate a fallback test value for any model/property pair
     # not covered by a more specific +test_default_for+ registration.

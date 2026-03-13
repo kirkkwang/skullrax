@@ -1,4 +1,10 @@
 en:
+  doorkeeper:
+    scopes:
+      mcp: "Hyrax MCP access"
+      openid: "OpenID Connect identity"
+      email: "Email address"
+      profile: "Profile information"
   skullrax:
     batch_create:
       create:

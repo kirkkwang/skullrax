@@ -3,6 +3,18 @@
 RSpec.describe Skullrax::Configuration do
   subject(:config) { described_class.new }
 
+  describe '#mcp_enabled?' do
+    it 'defaults to false' do
+      expect(config.mcp_enabled?).to be false
+    end
+
+    it 'returns true when set to true' do
+      config.mcp_enabled = true
+
+      expect(config.mcp_enabled?).to be true
+    end
+  end
+
   describe '#default_test_value' do
     it 'defaults to a lambda returning "Test {property}"' do
       result = config.default_test_value.call('Monograph', 'title')
