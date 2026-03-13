@@ -453,7 +453,7 @@ function initializeBatchCreate() {
 
       const hiddenInput = content.querySelector('input[type="hidden"]');
       if (hiddenInput) {
-        hiddenInput.name = `${this.inputPrefix}[type]`;
+        hiddenInput.name = `${this.inputPrefix}[model]`;
         hiddenInput.value = this.type;
       }
 

@@ -25,6 +25,13 @@ RSpec.feature 'Batch Create Interface', js: true do
       expect(page).to have_css('#forms-container [id^="resource-form-wrapper-"]')
     end
 
+    scenario 'hidden resource type input uses [model] not [type] to avoid param collision' do
+      add_work('Generic Work')
+
+      expect(page).to have_css('input[type="hidden"][name*="[model]"]', visible: :all)
+      expect(page).not_to have_css('input[type="hidden"][name*="[type]"]', visible: :all)
+    end
+
     scenario 'adding multiple top-level resources creates multiple items' do
       add_collection
       add_work('Generic Work')
