@@ -74,6 +74,44 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
       end
     end
 
+    context 'when deleting file sets' do
+      let(:fs_generator) do
+        instance_double(Skullrax::ValkyrieFileSetGenerator, destroy: success_result, errors: [])
+      end
+
+      before do
+        allow(Skullrax::ValkyrieFileSetGenerator).to receive(:new).and_return(fs_generator)
+      end
+
+      it 'dispatches to ValkyrieFileSetGenerator' do
+        result = tool.call(
+          params: { 'resource_type' => 'file_set', 'ids' => ['fs789'] },
+          current_user: user
+        )
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(Skullrax::ValkyrieFileSetGenerator).to have_received(:new)
+        expect(data.first['status']).to eq('deleted')
+      end
+    end
+
+    context 'when an exception is raised during delete' do
+      before do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_raise(StandardError, 'Something went wrong')
+      end
+
+      it 'returns failed status with error message' do
+        result = tool.call(
+          params: { 'resource_type' => 'work', 'ids' => ['abc123'] },
+          current_user: user
+        )
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(data.first['status']).to eq('failed')
+        expect(data.first['errors']).to include('Something went wrong')
+      end
+    end
+
     context 'when delete fails' do
       before do
         allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(failing_generator)

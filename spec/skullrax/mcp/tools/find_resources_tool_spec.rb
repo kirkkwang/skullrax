@@ -6,11 +6,13 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
 
   let(:resource) do
     double('resource',
-           id: double('id', to_s: 'abc123'),
            class: double('model_class', name: 'Monograph'),
-           title: ['My Work'],
-           creator: ['Author'],
-           visibility: 'open')
+           attributes: {
+             id: 'abc123',
+             title: ['My Work'],
+             creator: ['Author'],
+             visibility: 'open'
+           })
   end
 
   let(:solr_doc) do
@@ -51,7 +53,7 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
         data = JSON.parse(result[:content].first[:text])
 
         expect(data.first['id']).to eq('abc123')
-        expect(data.first['title']).to eq('My Work')
+        expect(data.first['title']).to eq(['My Work'])
       end
 
       it 'ids take precedence when both ids and query are provided' do
@@ -61,6 +63,31 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
 
         expect(Hyrax.query_service).to have_received(:find_many_by_ids)
         expect(Hyrax::SolrService).not_to have_received(:query)
+      end
+    end
+
+    context 'when resource has Valkyrie::ID and DateTime attributes' do
+      let(:resource_with_special_types) do
+        double('resource',
+               class: double('model_class', name: 'Monograph'),
+               attributes: {
+                 id: Valkyrie::ID.new('abc123'),
+                 created_at: DateTime.new(2024, 1, 1, 12, 0, 0)
+               })
+      end
+
+      before do
+        allow(Hyrax.query_service).to receive(:find_many_by_ids)
+          .with(ids: ['abc123'])
+          .and_return([resource_with_special_types])
+      end
+
+      it 'coerces Valkyrie::ID to string and DateTime to ISO8601' do
+        result = tool.call(params: { 'ids' => ['abc123'] }, current_user: user)
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(data.first['id']).to eq('abc123')
+        expect(data.first['created_at']).to match(/\d{4}-\d{2}-\d{2}/)
       end
     end
 
@@ -76,7 +103,7 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
         data = JSON.parse(result[:content].first[:text])
 
         expect(data.first['id']).to eq('abc123')
-        expect(data.first['title']).to eq('My Work')
+        expect(data.first['title_tesim']).to eq(['My Work'])
       end
     end
 

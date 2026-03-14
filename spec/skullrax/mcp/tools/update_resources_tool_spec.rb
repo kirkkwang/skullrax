@@ -78,6 +78,45 @@ RSpec.describe Skullrax::Mcp::Tools::UpdateResourcesTool do
       end
     end
 
+    context 'when updating file sets' do
+      let(:fs_resource) { double('file_set', id: double('id', to_s: 'fs789')) }
+      let(:fs_success) { double('result', success?: true, value!: fs_resource) }
+      let(:fs_generator) { instance_double(Skullrax::ValkyrieFileSetGenerator, update: fs_success, errors: []) }
+      let(:fs_record) { { 'id' => 'fs789', 'title' => ['Updated File'] } }
+
+      before do
+        allow(Skullrax::ValkyrieFileSetGenerator).to receive(:new).and_return(fs_generator)
+      end
+
+      it 'dispatches to ValkyrieFileSetGenerator' do
+        result = tool.call(
+          params: { 'resource_type' => 'file_set', 'records' => [fs_record] },
+          current_user: user
+        )
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(Skullrax::ValkyrieFileSetGenerator).to have_received(:new)
+        expect(data.first['status']).to eq('updated')
+      end
+    end
+
+    context 'when an exception is raised during update' do
+      before do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_raise(StandardError, 'Something went wrong')
+      end
+
+      it 'returns failed status with error message' do
+        result = tool.call(
+          params: { 'resource_type' => 'work', 'records' => [record] },
+          current_user: user
+        )
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(data.first['status']).to eq('failed')
+        expect(data.first['errors']).to include('Something went wrong')
+      end
+    end
+
     context 'when update fails' do
       before do
         allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(failing_generator)

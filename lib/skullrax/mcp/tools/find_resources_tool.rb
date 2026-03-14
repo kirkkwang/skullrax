@@ -59,23 +59,27 @@ module Skullrax
         end
 
         def serialize_resource(resource)
-          {
-            id: resource.id.to_s,
-            type: resource.class.name,
-            title: Array(resource.try(:title)).first,
-            creator: Array(resource.try(:creator)),
-            visibility: resource.try(:visibility)
-          }.compact
+          resource.attributes
+                  .transform_values { |v| coerce_value(v) }
+                  .merge(type: resource.class.name)
+                  .compact
         end
 
         def serialize_solr_doc(doc)
-          {
-            id: doc['id'],
-            type: Array(doc['has_model_ssim']).first,
-            title: Array(doc['title_tesim']).first,
-            creator: Array(doc['creator_tesim']),
-            visibility: doc['visibility_ssi']
-          }.compact
+          doc.to_h.compact
+        end
+
+        def coerce_value(value)
+          case value
+          when Array
+            value.map { |v| coerce_value(v) }
+          when Valkyrie::ID, RDF::URI, RDF::Literal
+            value.to_s
+          when DateTime, Date, Time
+            value.iso8601
+          else
+            value
+          end
         end
       end
     end

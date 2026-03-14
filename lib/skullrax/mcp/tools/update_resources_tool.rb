@@ -9,9 +9,9 @@ module Skullrax
         end
 
         def self.description
-          'Updates one or more existing Hyrax works or collections. Each record must include an id ' \
-            'field identifying the resource to update, plus any attributes to change. Returns ' \
-            'per-record status.'
+          'Updates one or more existing Hyrax works, collections, or file sets. Each record must ' \
+            'include an id field identifying the resource to update, plus any attributes to change. ' \
+            'Returns per-record status.'
         end
 
         def self.input_schema # rubocop:disable Metrics/MethodLength
@@ -20,8 +20,8 @@ module Skullrax
             properties: {
               resource_type: {
                 type: 'string',
-                enum: %w[work collection],
-                description: "Type of resource to update: 'work' or 'collection'"
+                enum: %w[work collection file_set],
+                description: "Type of resource to update: 'work', 'collection', or 'file_set'"
               },
               records: {
                 type: 'array',
@@ -68,8 +68,11 @@ module Skullrax
         end
 
         def build_generator(resource_type, id, model_name, attrs, user)
-          if resource_type == 'collection'
+          case resource_type
+          when 'collection'
             Skullrax::ValkyrieCollectionGenerator.new(user:, id:, **attrs)
+          when 'file_set'
+            Skullrax::ValkyrieFileSetGenerator.new(user:, id:, **attrs)
           else
             Skullrax::ValkyrieWorkGenerator.new(model: model_name, user:, id:, **attrs)
           end

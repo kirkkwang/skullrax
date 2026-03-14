@@ -59,6 +59,35 @@ RSpec.describe Skullrax::Mcp::Tools::GetSchemaTool do
   end
 
   describe '#call' do
+    context 'when model cannot be resolved' do
+      it 'raises Skullrax::ArgumentError' do
+        allow(Valkyrie.config.resource_class_resolver).to receive(:call).with('Unknown').and_raise(NameError)
+
+        expect { tool.call(params: { 'model' => 'Unknown' }, current_user: user) }
+          .to raise_error(Skullrax::ArgumentError, /Unknown model/)
+      end
+    end
+
+    context 'when a schema key type does not respond to name' do
+      let(:nameless_type) { double('type') }
+      let(:nameless_key) do
+        double('schema_key', name: :odd_field, meta: {}, type: nameless_type)
+      end
+
+      before do
+        allow(nameless_type).to receive(:name).and_raise(NoMethodError)
+        allow(nameless_type).to receive(:to_s).and_return('SomeType')
+        allow(model_class).to receive(:schema).and_return([nameless_key])
+      end
+
+      it 'falls back to type.to_s' do
+        result = tool.call(params: { 'model' => 'Monograph' }, current_user: user)
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(data.first['type']).to be_a(String)
+      end
+    end
+
     subject(:result) { tool.call(params: { 'model' => 'Monograph' }, current_user: user) }
 
     let(:parsed_fields) { JSON.parse(result[:content].first[:text]) }

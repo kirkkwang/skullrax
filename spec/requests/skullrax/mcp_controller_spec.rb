@@ -9,6 +9,14 @@ RSpec.describe 'MCP endpoints' do
            to: 'well_known#oauth_protected_resource',
            as: :oauth_protected_resource,
            format: false
+      get  '.well-known/oauth-authorization-server',
+           to: 'well_known#oauth_authorization_server',
+           as: :oauth_authorization_server,
+           format: false
+      post 'register',
+           to: 'well_known#register',
+           as: :register_client,
+           format: false
     end
   end
 
@@ -32,12 +40,50 @@ RSpec.describe 'MCP endpoints' do
       end
     end
 
-    describe 'with valid token (stubbed)' do
+    describe 'current_resource_owner' do
       let(:user) { create(:user) }
+      let(:token) { instance_double(Doorkeeper::AccessToken, resource_owner_id: user.id) }
 
       before do
         allow_any_instance_of(Skullrax::McpController).to receive(:doorkeeper_authorize!)
-        allow_any_instance_of(Skullrax::McpController).to receive(:current_resource_owner).and_return(user)
+      end
+
+      it 'returns nil when doorkeeper_token is nil' do
+        allow_any_instance_of(Skullrax::McpController).to receive(:doorkeeper_token).and_return(nil)
+
+        post skullrax.mcp_path, as: :json, params: { jsonrpc: '2.0', method: 'tools/list', id: 1 }
+
+        body = JSON.parse(response.body)
+        # tools/list does not use current_resource_owner, but the method must execute without raising
+        expect(response).to have_http_status(:ok)
+        expect(body.dig('result', 'tools')).to be_an(Array)
+      end
+
+      it 'resolves the user from the token resource_owner_id' do
+        allow_any_instance_of(Skullrax::McpController).to receive(:doorkeeper_token).and_return(token)
+        allow(::User).to receive(:find_by).with(id: user.id).and_return(user)
+        tool = instance_double(Skullrax::Mcp::Tools::GetSchemaTool, call: { content: [] })
+        allow(Skullrax::Mcp::Tools::GetSchemaTool).to receive(:new).and_return(tool)
+
+        post skullrax.mcp_path, as: :json, params: {
+          jsonrpc: '2.0',
+          method: 'tools/call',
+          params: { name: 'get_schema', arguments: {} },
+          id: 1
+        }
+
+        expect(::User).to have_received(:find_by).with(id: user.id)
+      end
+    end
+
+    describe 'with valid token (stubbed)' do
+      let(:user) { create(:user) }
+      let(:token) { instance_double(Doorkeeper::AccessToken, resource_owner_id: user.id) }
+
+      before do
+        allow_any_instance_of(Skullrax::McpController).to receive(:doorkeeper_authorize!)
+        allow_any_instance_of(Skullrax::McpController).to receive(:doorkeeper_token).and_return(token)
+        allow(::User).to receive(:find_by).with(id: user.id).and_return(user)
       end
 
       describe 'initialize method' do
@@ -126,6 +172,21 @@ RSpec.describe 'MCP endpoints' do
           expect(body['result']).to be_a(Hash)
         end
 
+        it 'rescues StandardError and returns JSON-RPC error' do
+          allow(Skullrax::Mcp::Tools::GetSchemaTool).to receive(:new).and_raise(StandardError, 'Something broke')
+
+          post skullrax.mcp_path, as: :json, params: {
+            jsonrpc: '2.0',
+            method: 'tools/call',
+            params: { name: 'get_schema', arguments: { model: 'Monograph' } },
+            id: 1
+          }
+
+          body = JSON.parse(response.body)
+          expect(body['error']['code']).to eq(-32_000)
+          expect(body['error']['message']).to eq('Something broke')
+        end
+
         it 'returns error for unknown tool name' do
           post skullrax.mcp_path, as: :json, params: {
             jsonrpc: '2.0',
@@ -161,6 +222,53 @@ RSpec.describe 'MCP endpoints' do
         expect(body['resource']).to include('/skullrax/mcp')
         expect(body['authorization_servers']).to be_an(Array)
         expect(body['authorization_servers'].first).not_to include('/skullrax')
+      end
+    end
+
+    describe 'GET /.well-known/oauth-authorization-server' do
+      it 'returns OAuth authorization server metadata' do
+        get skullrax.oauth_authorization_server_path
+
+        body = JSON.parse(response.body)
+        expect(response).to have_http_status(:ok)
+        expect(body['issuer']).to be_present
+        expect(body['authorization_endpoint']).to include('/oauth/authorize')
+        expect(body['token_endpoint']).to include('/oauth/token')
+        expect(body['code_challenge_methods_supported']).to include('S256')
+      end
+    end
+
+    describe 'POST /register' do
+      let(:doorkeeper_app) do
+        instance_double(Doorkeeper::Application,
+                        uid: 'test-client-id',
+                        name: 'Test Client',
+                        redirect_uri: 'http://localhost/callback')
+      end
+
+      it 'creates a Doorkeeper application and returns client info' do
+        allow(Doorkeeper::Application).to receive(:create!).and_return(doorkeeper_app)
+
+        post skullrax.register_client_path, params: {
+          redirect_uris: ['http://localhost/callback'],
+          client_name: 'Test Client'
+        }, as: :json
+
+        body = JSON.parse(response.body)
+        expect(response).to have_http_status(:created)
+        expect(body['client_id']).to be_present
+        expect(body['grant_types']).to eq(['authorization_code'])
+        expect(body['token_endpoint_auth_method']).to eq('none')
+      end
+
+      it 'returns error for invalid client metadata' do
+        allow(Doorkeeper::Application).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
+
+        post skullrax.register_client_path, params: { redirect_uris: [] }, as: :json
+
+        body = JSON.parse(response.body)
+        expect(response).to have_http_status(:bad_request)
+        expect(body['error']).to eq('invalid_client_metadata')
       end
     end
   end

@@ -9,8 +9,8 @@ module Skullrax
         end
 
         def self.description
-          'Deletes one or more Hyrax works or collections by ID. Respects Hyrax CanCan permissions — ' \
-            'the authenticated user must have delete access. Returns per-resource status.'
+          'Deletes one or more Hyrax works, collections, or file sets by ID. Respects Hyrax CanCan ' \
+            'permissions — the authenticated user must have delete access. Returns per-resource status.'
         end
 
         def self.input_schema # rubocop:disable Metrics/MethodLength
@@ -19,8 +19,8 @@ module Skullrax
             properties: {
               resource_type: {
                 type: 'string',
-                enum: %w[work collection],
-                description: "Type of resource to delete: 'work' or 'collection'"
+                enum: %w[work collection file_set],
+                description: "Type of resource to delete: 'work', 'collection', or 'file_set'"
               },
               ids: {
                 type: 'array',
@@ -56,8 +56,11 @@ module Skullrax
         end
 
         def build_generator(resource_type, id, user)
-          if resource_type == 'collection'
+          case resource_type
+          when 'collection'
             Skullrax::ValkyrieCollectionGenerator.new(user:, id:)
+          when 'file_set'
+            Skullrax::ValkyrieFileSetGenerator.new(user:, id:)
           else
             Skullrax::ValkyrieWorkGenerator.new(user:, id:)
           end

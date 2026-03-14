@@ -1074,6 +1074,7 @@ Add the MCP server to your Claude Desktop config (`~/Library/Application Support
     "skullrax": {
       "command": "npx",
       "args": [
+        "-y",
         "mcp-remote",
         "https://www.example.com/skullrax/mcp"
       ]
@@ -1082,7 +1083,27 @@ Add the MCP server to your Claude Desktop config (`~/Library/Application Support
 }
 ```
 
-On first connection, Claude Desktop will open a browser tab for OAuth login. After you authenticate with your Hyrax credentials and approve access, Claude Desktop stores the token and connects automatically on subsequent launches.
+If your app uses a self-signed certificate (e.g. in development), add `NODE_OPTIONS` so Node.js trusts your system CA:
+
+```json
+{
+  "mcpServers": {
+    "skullrax": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://your-hyku-tenant.example.com/skullrax/mcp"
+      ],
+      "env": {
+        "NODE_OPTIONS": "--use-system-ca"
+      }
+    }
+  }
+}
+```
+
+On first connection, mcp-remote auto-registers an OAuth client via the `/register` endpoint, then opens a browser tab for OAuth login. After you authenticate with your Hyrax credentials and approve access, Claude Desktop stores the token and connects automatically on subsequent launches.
 
 **Note:** The MCP endpoint respects all existing Hyrax CanCan permissions. If a user does not have permission to delete works in the Hyrax UI, they cannot delete works through MCP either.
 

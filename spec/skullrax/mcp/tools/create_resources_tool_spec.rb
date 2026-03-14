@@ -94,6 +94,23 @@ RSpec.describe Skullrax::Mcp::Tools::CreateResourcesTool do
       end
     end
 
+    context 'when an exception is raised during creation' do
+      before do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_raise(StandardError, 'Something went wrong')
+      end
+
+      it 'returns failed status with error message' do
+        result = tool.call(
+          params: { 'resource_type' => 'work', 'model' => 'Monograph', 'records' => [record] },
+          current_user: user
+        )
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(data.first['status']).to eq('failed')
+        expect(data.first['errors']).to include('Something went wrong')
+      end
+    end
+
     context 'when multiple records are provided' do
       before do
         allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(generator)
