@@ -37,7 +37,7 @@ module Skullrax
       routes_path = File.join(destination_root, 'config/routes.rb')
       return skip_message('use_doorkeeper already in routes') if File.read(routes_path).include?('use_doorkeeper')
 
-      inject_into_file routes_path, "  use_doorkeeper\n", after: "Rails.application.routes.draw do\n"
+      inject_into_file routes_path, "  use_doorkeeper\n", after: /Rails\.application\.routes\.draw do[^\n]*\n/
       success_message('Injected use_doorkeeper into config/routes.rb')
     end
 
