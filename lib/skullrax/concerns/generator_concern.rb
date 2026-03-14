@@ -97,10 +97,19 @@ module Skullrax
     def dry_run? = !!@dry_run
 
     def merge_attributes
-      existing_attrs = resource.attributes
+      existing_attrs = deserialized_resource_attributes
 
       @merged_kwargs = existing_attrs.merge(params_hash.transform_keys(&:to_sym)) do |_, old_val, new_val|
         should_append?(old_val) ? old_val + new_val : new_val
+      end
+    end
+
+    def deserialized_resource_attributes
+      attrs = resource.attributes.dup
+      return attrs unless resource.respond_to?(:already_ordered_attributes)
+
+      resource.already_ordered_attributes.each_with_object(attrs) do |attr, hash|
+        hash[attr] = resource.public_send(attr) if resource.respond_to?(attr)
       end
     end
 

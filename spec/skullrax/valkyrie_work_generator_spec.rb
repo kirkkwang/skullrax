@@ -631,6 +631,20 @@ RSpec.describe Skullrax::ValkyrieWorkGenerator do
         expect(update_generator.resource.id).to eq work_id
         expect(update_generator.resource.subject).to contain_exactly('History', 'Science', 'Art')
       end
+
+      it 'deserializes OrderAlready attributes before merging to avoid index token corruption' do
+        generator = described_class.new
+        resource_double = double(
+          attributes: { creator: ['0~Smith, John', '1~Doe, Jane'] }.freeze,
+          already_ordered_attributes: [:creator],
+          creator: ['Smith, John', 'Doe, Jane']
+        )
+        allow(generator).to receive(:resource).and_return(resource_double)
+
+        attrs = generator.send(:deserialized_resource_attributes)
+
+        expect(attrs[:creator]).to eq(['Smith, John', 'Doe, Jane'])
+      end
     end
 
     context 'when using autofill' do
