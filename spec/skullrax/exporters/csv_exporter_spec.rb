@@ -67,7 +67,7 @@ RSpec.describe Skullrax::CsvExporter do
           row['visibility_after_lease'] = nil
         end
 
-        if row['id'] == generic_work.member_ids.first.id.to_s
+        if row['id'] == file_set1.id.to_s
           row['title'] = 'Updated FileSet Title'
           row['visibility'] = 'restricted'
           row['visibility_during_lease'] = nil
@@ -83,7 +83,7 @@ RSpec.describe Skullrax::CsvExporter do
           row['visibility_after_embargo'] = nil
         end
 
-        next unless row['id'] == monograph.member_ids.first.id.to_s
+        next unless row['id'] == file_set2.id.to_s
 
         row['title'] = 'Updated Monograph FileSet Title'
         row['visibility'] = 'open'
