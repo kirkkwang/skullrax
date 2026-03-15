@@ -14,7 +14,8 @@ module Skullrax
       Skullrax::Mcp::Tools::FindResourcesTool,
       Skullrax::Mcp::Tools::UpdateResourcesTool,
       Skullrax::Mcp::Tools::DeleteResourcesTool,
-      Skullrax::Mcp::Tools::ReindexResourcesTool
+      Skullrax::Mcp::Tools::ReindexResourcesTool,
+      Skullrax::Mcp::Tools::DeleteSolrDocumentsTool
     ].freeze
 
     def handle

@@ -104,7 +104,7 @@ RSpec.describe 'MCP endpoints' do
           body = JSON.parse(response.body)
           expect(response).to have_http_status(:ok)
           expect(body['result']['tools']).to be_an(Array)
-          expect(body['result']['tools'].length).to eq(7)
+          expect(body['result']['tools'].length).to eq(8)
         end
 
         it 'includes expected tool names' do
@@ -120,7 +120,8 @@ RSpec.describe 'MCP endpoints' do
             'find_resources',
             'update_resources',
             'delete_resources',
-            'reindex_resources'
+            'reindex_resources',
+            'delete_solr_documents'
           )
         end
 

@@ -1121,6 +1121,7 @@ On first connection, mcp-remote auto-registers an OAuth client via the `/registe
 | `update_resources` | Updates existing works or collections by ID |
 | `delete_resources` | Deletes works or collections by ID |
 | `reindex_resources` | Reindexes Solr documents for resources that exist in the persistence layer but are missing or stale in Solr |
+| `delete_solr_documents` | Removes Solr documents by ID without touching persisted records — use for orphaned Solr docs after a resource has been deleted |
 
 ### Example Workflow
 

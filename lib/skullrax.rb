@@ -51,6 +51,7 @@ require_relative 'skullrax/mcp/tools/find_resources_tool'
 require_relative 'skullrax/mcp/tools/update_resources_tool'
 require_relative 'skullrax/mcp/tools/delete_resources_tool'
 require_relative 'skullrax/mcp/tools/reindex_resources_tool'
+require_relative 'skullrax/mcp/tools/delete_solr_documents_tool'
 
 module Skullrax
   class Error < StandardError; end
