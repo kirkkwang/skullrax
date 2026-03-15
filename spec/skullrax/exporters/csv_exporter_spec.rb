@@ -102,9 +102,9 @@ RSpec.describe Skullrax::CsvExporter do
 
       updated_collection = update_importer.collections.first
       updated_generic_work = update_importer.works.find { |work| work.is_a?(GenericWorkResource) }
-      updated_file_set1 = update_importer.file_sets.first
+      updated_file_set1 = update_importer.file_sets.find { |fs| fs.id == file_set1.id }
       updated_monograph = update_importer.works.find { |work| work.is_a?(Monograph) }
-      updated_file_set2 = update_importer.file_sets.last
+      updated_file_set2 = update_importer.file_sets.find { |fs| fs.id == file_set2.id }
 
       expect(updated_collection.creator).to eq(['Collection Creator'])
       expect(updated_collection.visibility).to eq('open')

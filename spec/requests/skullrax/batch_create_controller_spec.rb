@@ -122,6 +122,7 @@ RSpec.describe Skullrax::BatchCreateController do
         allow(FileUtils).to receive(:rm_rf)
         # Mock the batch_uploads_dir to return a known value
         allow_any_instance_of(described_class).to receive(:batch_uploads_dir).and_return(batch_uploads_dir)
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(batch_uploads_dir).and_return(true)
       end
 

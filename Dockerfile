@@ -26,4 +26,5 @@ RUN echo "gem 'skullrax', path: '/skullrax'" >> Gemfile && \
 ENV DATABASE_URL=postgresql://dummy:dummy@localhost/dummy
 
 RUN bundle exec rails generate skullrax:install
+RUN bundle exec rails generate skullrax:mcp_install
 RUN bundle exec rails assets:precompile

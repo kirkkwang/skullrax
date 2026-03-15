@@ -42,7 +42,7 @@ RSpec.describe 'MCP endpoints' do
 
     describe 'current_resource_owner' do
       let(:user) { create(:user) }
-      let(:token) { instance_double(Doorkeeper::AccessToken, resource_owner_id: user.id) }
+      let(:token) { double('Doorkeeper::AccessToken', resource_owner_id: user.id) }
 
       before do
         allow_any_instance_of(Skullrax::McpController).to receive(:doorkeeper_authorize!)
@@ -78,7 +78,7 @@ RSpec.describe 'MCP endpoints' do
 
     describe 'with valid token (stubbed)' do
       let(:user) { create(:user) }
-      let(:token) { instance_double(Doorkeeper::AccessToken, resource_owner_id: user.id) }
+      let(:token) { double('Doorkeeper::AccessToken', resource_owner_id: user.id) }
 
       before do
         allow_any_instance_of(Skullrax::McpController).to receive(:doorkeeper_authorize!)
@@ -240,14 +240,16 @@ RSpec.describe 'MCP endpoints' do
 
     describe 'POST /register' do
       let(:doorkeeper_app) do
-        instance_double(Doorkeeper::Application,
-                        uid: 'test-client-id',
-                        name: 'Test Client',
-                        redirect_uri: 'http://localhost/callback')
+        double('Doorkeeper::Application',
+               uid: 'test-client-id',
+               name: 'Test Client',
+               redirect_uri: 'http://localhost/callback')
       end
 
       it 'creates a Doorkeeper application and returns client info' do
-        allow(Doorkeeper::Application).to receive(:create!).and_return(doorkeeper_app)
+        app_class = double('Doorkeeper::Application')
+        allow(app_class).to receive(:create!).and_return(doorkeeper_app)
+        stub_const('Doorkeeper::Application', app_class)
 
         post skullrax.register_client_path, params: {
           redirect_uris: ['http://localhost/callback'],
@@ -262,7 +264,9 @@ RSpec.describe 'MCP endpoints' do
       end
 
       it 'returns error for invalid client metadata' do
-        allow(Doorkeeper::Application).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
+        app_class = double('Doorkeeper::Application')
+        allow(app_class).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
+        stub_const('Doorkeeper::Application', app_class)
 
         post skullrax.register_client_path, params: { redirect_uris: [] }, as: :json
 
