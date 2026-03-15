@@ -26,13 +26,20 @@ module Skullrax
                 type: 'array',
                 items: { type: 'string' },
                 description: 'Array of resource IDs to delete'
+              },
+              confirm: {
+                type: 'boolean',
+                description: 'Must be true to confirm deletion. If false or omitted, deletion will not proceed.'
               }
             },
-            required: %w[resource_type ids]
+            required: %w[resource_type ids confirm]
           }
         end
 
         def call(params:, current_user:)
+          return text_response({ error: 'Deletion not confirmed. Set confirm: true to proceed.' }.to_json) \
+            unless params['confirm'] == true
+
           resource_type = params['resource_type'] || 'work'
           ids = params['ids'] || []
 

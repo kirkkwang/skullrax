@@ -18,14 +18,41 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
   end
 
   describe '.input_schema' do
-    it 'requires resource_type and ids' do
+    it 'requires resource_type, ids, and confirm' do
       schema = described_class.input_schema
 
-      expect(schema[:required]).to include('resource_type', 'ids')
+      expect(schema[:required]).to include('resource_type', 'ids', 'confirm')
     end
   end
 
   describe '#call' do
+    context 'when confirm is false' do
+      it 'returns an error without deleting' do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new)
+
+        result = tool.call(
+          params: { 'resource_type' => 'work', 'ids' => ['abc123'], 'confirm' => false },
+          current_user: user
+        )
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(data['error']).to match(/not confirmed/i)
+        expect(Skullrax::ValkyrieWorkGenerator).not_to have_received(:new)
+      end
+    end
+
+    context 'when confirm is omitted' do
+      it 'returns an error without deleting' do
+        result = tool.call(
+          params: { 'resource_type' => 'work', 'ids' => ['abc123'] },
+          current_user: user
+        )
+        data = JSON.parse(result[:content].first[:text])
+
+        expect(data['error']).to match(/not confirmed/i)
+      end
+    end
+
     context 'when deleting works' do
       before do
         allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(generator)
@@ -33,7 +60,7 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
 
       it 'deletes the work and returns deleted status' do
         result = tool.call(
-          params: { 'resource_type' => 'work', 'ids' => ['abc123'] },
+          params: { 'resource_type' => 'work', 'ids' => ['abc123'], 'confirm' => true },
           current_user: user
         )
         data = JSON.parse(result[:content].first[:text])
@@ -44,7 +71,7 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
 
       it 'passes id and user to the generator' do
         tool.call(
-          params: { 'resource_type' => 'work', 'ids' => ['abc123'] },
+          params: { 'resource_type' => 'work', 'ids' => ['abc123'], 'confirm' => true },
           current_user: user
         )
 
@@ -64,7 +91,7 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
 
       it 'dispatches to ValkyrieCollectionGenerator' do
         result = tool.call(
-          params: { 'resource_type' => 'collection', 'ids' => ['col456'] },
+          params: { 'resource_type' => 'collection', 'ids' => ['col456'], 'confirm' => true },
           current_user: user
         )
         data = JSON.parse(result[:content].first[:text])
@@ -85,7 +112,7 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
 
       it 'dispatches to ValkyrieFileSetGenerator' do
         result = tool.call(
-          params: { 'resource_type' => 'file_set', 'ids' => ['fs789'] },
+          params: { 'resource_type' => 'file_set', 'ids' => ['fs789'], 'confirm' => true },
           current_user: user
         )
         data = JSON.parse(result[:content].first[:text])
@@ -102,7 +129,7 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
 
       it 'returns failed status with error message' do
         result = tool.call(
-          params: { 'resource_type' => 'work', 'ids' => ['abc123'] },
+          params: { 'resource_type' => 'work', 'ids' => ['abc123'], 'confirm' => true },
           current_user: user
         )
         data = JSON.parse(result[:content].first[:text])
@@ -119,7 +146,7 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
 
       it 'returns failed status with errors' do
         result = tool.call(
-          params: { 'resource_type' => 'work', 'ids' => ['abc123'] },
+          params: { 'resource_type' => 'work', 'ids' => ['abc123'], 'confirm' => true },
           current_user: user
         )
         data = JSON.parse(result[:content].first[:text])
@@ -136,7 +163,7 @@ RSpec.describe Skullrax::Mcp::Tools::DeleteResourcesTool do
 
       it 'deletes each resource and returns results for all' do
         result = tool.call(
-          params: { 'resource_type' => 'work', 'ids' => %w[abc123 def456] },
+          params: { 'resource_type' => 'work', 'ids' => %w[abc123 def456], 'confirm' => true },
           current_user: user
         )
         data = JSON.parse(result[:content].first[:text])
