@@ -13,7 +13,8 @@ module Skullrax
       Skullrax::Mcp::Tools::CreateResourcesTool,
       Skullrax::Mcp::Tools::FindResourcesTool,
       Skullrax::Mcp::Tools::UpdateResourcesTool,
-      Skullrax::Mcp::Tools::DeleteResourcesTool
+      Skullrax::Mcp::Tools::DeleteResourcesTool,
+      Skullrax::Mcp::Tools::ReindexResourcesTool
     ].freeze
 
     def handle

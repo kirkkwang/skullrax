@@ -38,6 +38,9 @@ Skullrax can be configured in an initializer (e.g. `config/initializers/skullrax
 
 ```ruby
 Skullrax.configure do |config|
+  # Use MCP server so CRUD actions can be done on resources through software like Claude Desktop
+  config.mcp_enabled = true
+
   # Override the global default used for any property not covered by a more specific rule.
   # Receives the model name and property name as positional arguments (both strings).
   config.default_test_value = ->(model, property) { "#{model} #{property}" }
@@ -1117,6 +1120,7 @@ On first connection, mcp-remote auto-registers an OAuth client via the `/registe
 | `find_resources` | Finds resources by ID (Valkyrie query service) or Solr query string |
 | `update_resources` | Updates existing works or collections by ID |
 | `delete_resources` | Deletes works or collections by ID |
+| `reindex_resources` | Reindexes Solr documents for resources that exist in the persistence layer but are missing or stale in Solr |
 
 ### Example Workflow
 
