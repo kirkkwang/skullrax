@@ -11,6 +11,8 @@ module Skullrax
         def self.description
           'Updates one or more existing Hyrax works, collections, or file sets. Each record must ' \
             'include an id field identifying the resource to update, plus any attributes to change. ' \
+            'To add a work or sub-collection to a collection, update the child with member_of_collection_ids. ' \
+            'To add a child work or file set to a parent work, update the PARENT work with member_ids. ' \
             'Returns per-record status.'
         end
 
@@ -32,7 +34,9 @@ module Skullrax
                   },
                   required: ['id']
                 },
-                description: 'Array of records with id and updated attributes'
+                description: 'Array of records with id and updated attributes. ' \
+                             'Use member_of_collection_ids on the child to nest inside a collection. ' \
+                             'Use member_ids on the parent work to nest child works or file sets.'
               }
             },
             required: %w[resource_type records]
