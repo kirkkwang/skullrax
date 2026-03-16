@@ -1118,6 +1118,7 @@ On first connection, mcp-remote auto-registers an OAuth client via the `/registe
 | `validate_resources` | Validates records against a work type schema without persisting anything |
 | `create_resources` | Creates works or collections via `ValkyrieWorkGenerator` / `ValkyrieCollectionGenerator` |
 | `find_resources` | Finds resources by ID (Valkyrie query service) or Solr query string |
+| `find_members` | Finds members of a collection or work. For a collection, queries `member_of_collection_ids_ssim`. For a work, reads `member_ids_ssim` from its Solr document. Optionally filter by `member_type` (`work`, `collection`, `file_set`, or `any`). Returns up to 1000 members. |
 | `update_resources` | Updates existing works or collections by ID |
 | `delete_resources` | Deletes works or collections by ID |
 | `reindex_resources` | Reindexes Solr documents for resources that exist in the persistence layer but are missing or stale in Solr |
