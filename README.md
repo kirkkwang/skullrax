@@ -1069,42 +1069,30 @@ This:
 
 ### Connecting Claude Desktop
 
-Add the MCP server to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "skullrax": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://www.example.com/skullrax/mcp"
-      ]
-    }
-  }
-}
-```
-
-If your app uses a self-signed certificate (e.g. in development), add `NODE_OPTIONS` so Node.js trusts your system CA:
-
-```json
-{
-  "mcpServers": {
-    "skullrax": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://your-hyku-tenant.example.com/skullrax/mcp"
-      ],
-      "env": {
-        "NODE_OPTIONS": "--use-system-ca"
+1. Make sure Node 18+ is installed `source ~/.nvm/nvm.sh && nvm install 20`
+2. Note what version was installed, such as `Now using node v20.20.1 (npm v10.8.2)`
+3. Set the alias `nvm alias default v20.20.1`
+4. Clear the npx cache `rm -rf ~/.npm/_npx`
+5. `code ~/Library/Application\ Support/Claude/claude_desktop_config.json`
+6. add:
+  ```json
+    "mcpServers": {
+      "skullrax": {
+        "command": "/Users/kirkkwang/.nvm/versions/node/v20.20.1/bin/npx",
+        "args": [
+          "-y",
+          "mcp-remote",
+          "https://www.example.com/skullrax/mcp"
+        ],
+        "env": {
+          "NODE_TLS_REJECT_UNAUTHORIZED": "0"
+        }
       }
     }
-  }
-}
-```
+  ```
+7. NOTE: `"command": "/Users/kirkkwang/.nvm/versions/node/v20.20.1/bin/npx"` but substitute your version from step 2
+8. NOTE: the "NODE_TLS_REJECT_UNAUTHORIZED": "0" is needed in local dev
+9. restart Claude Desktop
 
 On first connection, mcp-remote auto-registers an OAuth client via the `/register` endpoint, then opens a browser tab for OAuth login. After you authenticate with your Hyrax credentials and approve access, Claude Desktop stores the token and connects automatically on subsequent launches.
 
