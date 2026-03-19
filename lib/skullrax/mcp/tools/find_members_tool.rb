@@ -4,47 +4,44 @@ module Skullrax
   module Mcp
     module Tools
       class FindMembersTool < Skullrax::Mcp::Tool
-        COLLECTION_MODELS = %w[Collection Hyrax::PcdmCollection].freeze
-        FILE_SET_MODELS = %w[FileSet Hyrax::FileSet].freeze
-        WORK_MODELS = -> { Hyrax.config.curation_concerns.map(&:to_s) }
-        SOLR_ROWS = 1_000
+        class << self
+          def tool_name
+            'find_members'
+          end
 
-        def self.tool_name
-          'find_members'
-        end
+          def description
+            'Finds the members of a Hyrax collection or work. For a collection, queries Solr for ' \
+              'resources whose member_of_collection_ids_ssim matches the given ID. For a work, ' \
+              "reads member_ids_ssim from the parent work's Solr document and fetches those members. " \
+              'Optionally filter by member_type (collection, work, file_set, or any). ' \
+              'Returns up to 1000 members. For larger collections, use find_resources with a Solr query directly.'
+          end
 
-        def self.description
-          'Finds the members of a Hyrax collection or work. For a collection, queries Solr for ' \
-            'resources whose member_of_collection_ids_ssim matches the given ID. For a work, ' \
-            "reads member_ids_ssim from the parent work's Solr document and fetches those members. " \
-            'Optionally filter by member_type (collection, work, file_set, or any). ' \
-            'Returns up to 1000 members. For larger collections, use find_resources with a Solr query directly.'
-        end
-
-        def self.input_schema # rubocop:disable Metrics/MethodLength
-          {
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string',
-                description: 'ID of the parent collection or work'
+          def input_schema # rubocop:disable Metrics/MethodLength
+            {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'string',
+                  description: 'ID of the parent collection or work'
+                },
+                resource_type: {
+                  type: 'string',
+                  enum: %w[collection work],
+                  description: "Type of the parent resource. Use 'collection' to find resources " \
+                               "whose member_of_collection_ids_ssim matches id. Use 'work' to read " \
+                               "member_ids_ssim from the parent work's Solr document."
+                },
+                member_type: {
+                  type: 'string',
+                  enum: %w[work collection file_set any],
+                  description: "Filter the type of members to return. Defaults to 'any'.",
+                  default: 'any'
+                }
               },
-              resource_type: {
-                type: 'string',
-                enum: %w[collection work],
-                description: "Type of the parent resource. Use 'collection' to find resources " \
-                             "whose member_of_collection_ids_ssim matches id. Use 'work' to read " \
-                             "member_ids_ssim from the parent work's Solr document."
-              },
-              member_type: {
-                type: 'string',
-                enum: %w[work collection file_set any],
-                description: "Filter the type of members to return. Defaults to 'any'.",
-                default: 'any'
-              }
-            },
-            required: %w[id resource_type]
-          }
+              required: %w[id resource_type]
+            }
+          end
         end
 
         def call(params:, current_user:) # rubocop:disable Lint/UnusedMethodArgument
@@ -62,7 +59,7 @@ module Skullrax
         private
 
         def find_collection_members(id)
-          Hyrax::SolrService.query("member_of_collection_ids_ssim:\"#{id}\"", rows: SOLR_ROWS)
+          Hyrax::SolrService.query("member_of_collection_ids_ssim:\"#{id}\"", rows: solr_rows)
                             .map { |doc| doc.to_h.compact }
         end
 
@@ -88,19 +85,28 @@ module Skullrax
           docs.select { |doc| matches_member_type?(doc, member_type) }
         end
 
-        def matches_member_type?(doc, member_type) # rubocop:disable Metrics/MethodLength
-          models = Array(doc['has_model_ssim'])
+        def matches_member_type?(doc, member_type)
+          model = doc['has_model_ssim']&.first
+          return false unless model
 
           case member_type
-          when 'collection'
-            models.any? { |m| COLLECTION_MODELS.include?(m) }
-          when 'file_set'
-            models.any? { |m| FILE_SET_MODELS.include?(m) }
-          when 'work'
-            models.any? { |m| WORK_MODELS.call.include?(m) }
-          else
-            true
+          when 'collection' then collection_models.include?(model)
+          when 'file_set'   then file_set_models.include?(model)
+          when 'work'       then work_models.include?(model)
+          else true
           end
+        end
+
+        def collection_models
+          [Hyrax.config.collection_class.to_rdf_representation]
+        end
+
+        def file_set_models
+          [Hyrax.config.file_set_class.to_rdf_representation]
+        end
+
+        def work_models
+          Hyrax.config.curation_concerns.map(&:to_rdf_representation)
         end
       end
     end

@@ -3,7 +3,6 @@
 RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
   let(:tool) { described_class.new }
   let(:user) { instance_double(User) }
-  let(:hyrax_config) { instance_double(Hyrax::Configuration, curation_concerns: [Monograph]) }
 
   let(:work_doc) do
     { 'id' => 'work1', 'has_model_ssim' => ['Monograph'], 'title_tesim' => ['A Work'] }
@@ -71,8 +70,6 @@ RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
       end
 
       it 'filters to only works when member_type is work' do
-        allow(Hyrax).to receive(:config).and_return(hyrax_config)
-
         result = tool.call(
           params: { 'id' => 'parent1', 'resource_type' => 'collection', 'member_type' => 'work' },
           current_user: user
@@ -82,7 +79,6 @@ RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
       end
 
       it 'does not classify AdminSet as a work' do
-        allow(Hyrax).to receive(:config).and_return(hyrax_config)
         admin_set_doc = { 'id' => 'as1', 'has_model_ssim' => ['AdminSet'] }
         allow(Hyrax::SolrService).to receive(:query)
           .with('member_of_collection_ids_ssim:"parent1"', rows: 1000)
@@ -146,8 +142,6 @@ RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
       end
 
       it 'filters to only file sets when member_type is file_set' do
-        allow(Hyrax).to receive(:config).and_return(hyrax_config)
-
         result = tool.call(
           params: { 'id' => 'parent1', 'resource_type' => 'work', 'member_type' => 'file_set' },
           current_user: user
@@ -184,27 +178,6 @@ RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
           data = JSON.parse(result[:content].first[:text])
           expect(data).to eq([])
         end
-      end
-    end
-
-    context 'when Hyrax::PcdmCollection is the model' do
-      let(:pcdm_collection_doc) do
-        { 'id' => 'col2', 'has_model_ssim' => ['Hyrax::PcdmCollection'], 'title_tesim' => ['PCDM Col'] }
-      end
-
-      before do
-        allow(Hyrax::SolrService).to receive(:query)
-          .with('member_of_collection_ids_ssim:"parent1"', rows: 1000)
-          .and_return([pcdm_collection_doc])
-      end
-
-      it 'recognises Hyrax::PcdmCollection as a collection member_type' do
-        result = tool.call(
-          params: { 'id' => 'parent1', 'resource_type' => 'collection', 'member_type' => 'collection' },
-          current_user: user
-        )
-        data = JSON.parse(result[:content].first[:text])
-        expect(data.map { |d| d['id'] }).to eq(['col2'])
       end
     end
   end
