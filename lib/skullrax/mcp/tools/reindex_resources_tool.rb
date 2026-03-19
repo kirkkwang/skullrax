@@ -4,28 +4,30 @@ module Skullrax
   module Mcp
     module Tools
       class ReindexResourcesTool < Skullrax::Mcp::Tool
-        def self.tool_name
-          'reindex_resources'
-        end
+        class << self
+          def tool_name
+            'reindex_resources'
+          end
 
-        def self.description
-          'Reindexes Solr documents for one or more Hyrax resources by ID. Use when a record ' \
-            'exists in the persistence layer but its Solr document is missing or stale. ' \
-            'Returns per-resource status.'
-        end
+          def description
+            'Reindexes Solr documents for one or more Hyrax resources by ID. Use when a record ' \
+              'exists in the persistence layer but its Solr document is missing or stale. ' \
+              'Returns per-resource status.'
+          end
 
-        def self.input_schema # rubocop:disable Metrics/MethodLength
-          {
-            type: 'object',
-            properties: {
-              ids: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Array of resource IDs to reindex in Solr'
-              }
-            },
-            required: %w[ids]
-          }
+          def input_schema # rubocop:disable Metrics/MethodLength
+            {
+              type: 'object',
+              properties: {
+                ids: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Array of resource IDs to reindex in Solr'
+                }
+              },
+              required: %w[ids]
+            }
+          end
         end
 
         def call(params:, current_user:) # rubocop:disable Lint/UnusedMethodArgument

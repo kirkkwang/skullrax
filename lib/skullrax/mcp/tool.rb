@@ -3,28 +3,34 @@
 module Skullrax
   module Mcp
     class Tool
-      def self.tool_name
-        raise NotImplementedError, "#{name} must implement .tool_name"
-      end
+      class << self
+        def tool_name
+          raise NotImplementedError, "#{name} must implement .tool_name"
+        end
 
-      def self.description
-        raise NotImplementedError, "#{name} must implement .description"
-      end
+        def description
+          raise NotImplementedError, "#{name} must implement .description"
+        end
 
-      def self.input_schema
-        raise NotImplementedError, "#{name} must implement .input_schema"
-      end
+        def input_schema
+          raise NotImplementedError, "#{name} must implement .input_schema"
+        end
 
-      def self.descriptor
-        {
-          name: tool_name,
-          description:,
-          inputSchema: input_schema
-        }
+        def descriptor
+          {
+            name: tool_name,
+            description:,
+            inputSchema: input_schema
+          }
+        end
       end
 
       def call(params:, current_user:)
         raise NotImplementedError, "#{self.class.name} must implement #call"
+      end
+
+      def solr_rows
+        1_000
       end
 
       protected

@@ -6,32 +6,34 @@ module Skullrax
       class ValidateResourcesTool < Skullrax::Mcp::Tool
         include Skullrax::SchemaPropertyFilterConcern
 
-        def self.tool_name
-          'validate_resources'
-        end
+        class << self
+          def tool_name
+            'validate_resources'
+          end
 
-        def self.description
-          'Validates a list of work records against a Hyrax work type schema. Use when the user wants ' \
-            'to check or preview records before importing. Returns valid records and invalid records ' \
-            'with reasons. Does not persist anything.'
-        end
+          def description
+            'Validates a list of work records against a Hyrax work type schema. Use when the user wants ' \
+              'to check or preview records before importing. Returns valid records and invalid records ' \
+              'with reasons. Does not persist anything.'
+          end
 
-        def self.input_schema # rubocop:disable Metrics/MethodLength
-          {
-            type: 'object',
-            properties: {
-              model: {
-                type: 'string',
-                description: "The work type model name, e.g. 'Monograph'"
+          def input_schema # rubocop:disable Metrics/MethodLength
+            {
+              type: 'object',
+              properties: {
+                model: {
+                  type: 'string',
+                  description: "The work type model name, e.g. 'Monograph'"
+                },
+                records: {
+                  type: 'array',
+                  items: { type: 'object' },
+                  description: 'Array of work attribute hashes to validate'
+                }
               },
-              records: {
-                type: 'array',
-                items: { type: 'object' },
-                description: 'Array of work attribute hashes to validate'
-              }
-            },
-            required: %w[model records]
-          }
+              required: %w[model records]
+            }
+          end
         end
 
         def call(params:, current_user:) # rubocop:disable Lint/UnusedMethodArgument, Metrics/AbcSize, Metrics/MethodLength

@@ -4,44 +4,44 @@ module Skullrax
   module Mcp
     module Tools
       class FindResourcesTool < Skullrax::Mcp::Tool # rubocop:disable Metrics/ClassLength
-        SOLR_ROWS = 1_000
+        class << self
+          def tool_name
+            'find_resources'
+          end
 
-        def self.tool_name
-          'find_resources'
-        end
+          def description
+            'Finds Hyrax works or collections by ID, terms, or Solr query string. Provide ids ' \
+              '(array of resource IDs, uses Valkyrie query service for full attributes), terms ' \
+              '(array of related search terms matched across all descriptive text fields with ' \
+              'automatic field discovery), or query (Solr query string for catalog search, returns ' \
+              'indexed fields). Priority order: ids → terms → query.'
+          end
 
-        def self.description
-          'Finds Hyrax works or collections by ID, terms, or Solr query string. Provide ids ' \
-            '(array of resource IDs, uses Valkyrie query service for full attributes), terms ' \
-            '(array of related search terms matched across all descriptive text fields with ' \
-            'automatic field discovery), or query (Solr query string for catalog search, returns ' \
-            'indexed fields). Priority order: ids → terms → query.'
-        end
-
-        def self.input_schema # rubocop:disable Metrics/MethodLength
-          {
-            type: 'object',
-            properties: {
-              ids: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Array of resource IDs to fetch via Valkyrie query service'
-              },
-              terms: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Array of semantically related search terms to match across all ' \
-                  'descriptive text fields on indexed work and collection types. Before calling ' \
-                  'this tool with a natural language concept, expand it to related terms — e.g. ' \
-                  'for "france" pass ["france", "french", "paris", "parisian"]. The tool will ' \
-                  'OR these terms across all relevant indexed fields automatically.'
-              },
-              query: {
-                type: 'string',
-                description: 'Solr query string to search the catalog, e.g. "title:My Work"'
+          def input_schema # rubocop:disable Metrics/MethodLength
+            {
+              type: 'object',
+              properties: {
+                ids: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Array of resource IDs to fetch via Valkyrie query service'
+                },
+                terms: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Array of semantically related search terms to match across all ' \
+                    'descriptive text fields on indexed work and collection types. Before calling ' \
+                    'this tool with a natural language concept, expand it to related terms — e.g. ' \
+                    'for "france" pass ["france", "french", "paris", "parisian"]. The tool will ' \
+                    'OR these terms across all relevant indexed fields automatically.'
+                },
+                query: {
+                  type: 'string',
+                  description: 'Solr query string to search the catalog, e.g. "title:My Work"'
+                }
               }
             }
-          }
+          end
         end
 
         def call(params:, current_user:) # rubocop:disable Lint/UnusedMethodArgument
@@ -65,7 +65,7 @@ module Skullrax
         end
 
         def find_by_query(query)
-          docs = Hyrax::SolrService.query(query, rows: SOLR_ROWS)
+          docs = Hyrax::SolrService.query(query, rows: solr_rows)
           serialized = docs.map { |doc| serialize_solr_doc(doc) }
           text_response(serialized.to_json)
         end
@@ -77,7 +77,7 @@ module Skullrax
           terms_query = terms.join(' OR ')
           fields_query = fields.map { |field| "#{field}:(#{terms_query})" }.join(' OR ')
           query = "(#{model_filter}) AND (#{fields_query})"
-          docs = Hyrax::SolrService.query(query, rows: SOLR_ROWS, qt: 'search')
+          docs = Hyrax::SolrService.query(query, rows: solr_rows, qt: 'search')
           serialized = docs.map { |doc| serialize_solr_doc(doc) }
           text_response(serialized.to_json)
         end

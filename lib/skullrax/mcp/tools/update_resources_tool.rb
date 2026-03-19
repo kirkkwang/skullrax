@@ -4,47 +4,49 @@ module Skullrax
   module Mcp
     module Tools
       class UpdateResourcesTool < Skullrax::Mcp::Tool
-        def self.tool_name
-          'update_resources'
-        end
+        class << self
+          def tool_name
+            'update_resources'
+          end
 
-        def self.description
-          'Updates one or more existing Hyrax works, collections, or file sets. Each record must ' \
-            'include an id field identifying the resource to update, plus any attributes to change. ' \
-            'Array attributes (e.g. member_ids, keyword, creator) are replaced entirely — not merged — ' \
-            'so always include the full desired array when updating them. ' \
-            'To add a work or sub-collection to a collection, update the child with member_of_collection_ids. ' \
-            'To add a child work or file set to a parent work, update the PARENT work with member_ids. ' \
-            'Returns per-record status.'
-        end
+          def description
+            'Updates one or more existing Hyrax works, collections, or file sets. Each record must ' \
+              'include an id field identifying the resource to update, plus any attributes to change. ' \
+              'Array attributes (e.g. member_ids, keyword, creator) are replaced entirely — not merged — ' \
+              'so always include the full desired array when updating them. ' \
+              'To add a work or sub-collection to a collection, update the child with member_of_collection_ids. ' \
+              'To add a child work or file set to a parent work, update the PARENT work with member_ids. ' \
+              'Returns per-record status.'
+          end
 
-        def self.input_schema # rubocop:disable Metrics/MethodLength
-          {
-            type: 'object',
-            properties: {
-              resource_type: {
-                type: 'string',
-                enum: %w[work collection file_set],
-                description: "Type of resource to update: 'work', 'collection', or 'file_set'"
-              },
-              records: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string', description: 'ID of the resource to update' }
-                  },
-                  required: ['id']
+          def input_schema # rubocop:disable Metrics/MethodLength
+            {
+              type: 'object',
+              properties: {
+                resource_type: {
+                  type: 'string',
+                  enum: %w[work collection file_set],
+                  description: "Type of resource to update: 'work', 'collection', or 'file_set'"
                 },
-                description: 'Array of records with id and updated attributes. ' \
-                             'Array attributes are fully replaced on update — fetch the current value ' \
-                             'first if you need to append. ' \
-                             'Use member_of_collection_ids on the child to nest inside a collection. ' \
-                             'Use member_ids on the parent work to nest child works or file sets.'
-              }
-            },
-            required: %w[resource_type records]
-          }
+                records: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string', description: 'ID of the resource to update' }
+                    },
+                    required: ['id']
+                  },
+                  description: 'Array of records with id and updated attributes. ' \
+                               'Array attributes are fully replaced on update — fetch the current value ' \
+                               'first if you need to append. ' \
+                               'Use member_of_collection_ids on the child to nest inside a collection. ' \
+                               'Use member_ids on the parent work to nest child works or file sets.'
+                }
+              },
+              required: %w[resource_type records]
+            }
+          end
         end
 
         def call(params:, current_user:)

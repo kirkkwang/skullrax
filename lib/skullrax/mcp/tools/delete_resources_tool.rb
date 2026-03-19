@@ -4,36 +4,38 @@ module Skullrax
   module Mcp
     module Tools
       class DeleteResourcesTool < Skullrax::Mcp::Tool
-        def self.tool_name
-          'delete_resources'
-        end
+        class << self
+          def tool_name
+            'delete_resources'
+          end
 
-        def self.description
-          'Deletes one or more Hyrax works, collections, or file sets by ID. Respects Hyrax CanCan ' \
-            'permissions — the authenticated user must have delete access. Returns per-resource status.'
-        end
+          def description
+            'Deletes one or more Hyrax works, collections, or file sets by ID. Respects Hyrax CanCan ' \
+              'permissions — the authenticated user must have delete access. Returns per-resource status.'
+          end
 
-        def self.input_schema # rubocop:disable Metrics/MethodLength
-          {
-            type: 'object',
-            properties: {
-              resource_type: {
-                type: 'string',
-                enum: %w[work collection file_set],
-                description: "Type of resource to delete: 'work', 'collection', or 'file_set'"
+          def input_schema # rubocop:disable Metrics/MethodLength
+            {
+              type: 'object',
+              properties: {
+                resource_type: {
+                  type: 'string',
+                  enum: %w[work collection file_set],
+                  description: "Type of resource to delete: 'work', 'collection', or 'file_set'"
+                },
+                ids: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Array of resource IDs to delete'
+                },
+                confirm: {
+                  type: 'boolean',
+                  description: 'Must be true to confirm deletion. If false or omitted, deletion will not proceed.'
+                }
               },
-              ids: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Array of resource IDs to delete'
-              },
-              confirm: {
-                type: 'boolean',
-                description: 'Must be true to confirm deletion. If false or omitted, deletion will not proceed.'
-              }
-            },
-            required: %w[resource_type ids confirm]
-          }
+              required: %w[resource_type ids confirm]
+            }
+          end
         end
 
         def call(params:, current_user:)

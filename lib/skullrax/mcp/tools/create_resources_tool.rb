@@ -4,57 +4,59 @@ module Skullrax
   module Mcp
     module Tools
       class CreateResourcesTool < Skullrax::Mcp::Tool
-        def self.tool_name
-          'create_resources'
-        end
+        class << self
+          def tool_name
+            'create_resources'
+          end
 
-        def self.description
-          'Creates one or more Hyrax works or collections via Skullrax. Accepts an array of records ' \
-            'with work attributes and creates each one. Returns per-record status with IDs on success ' \
-            'or error messages on failure. Run validate_resources first to check records are valid. ' \
-            'To attach a file (local path or remote URL), include a file_paths key in the record — ' \
-            'in majority of cases, do not use import_url, which is a raw persistence field and ' \
-            'will not attach the file correctly.'
-        end
+          def description
+            'Creates one or more Hyrax works or collections via Skullrax. Accepts an array of records ' \
+              'with work attributes and creates each one. Returns per-record status with IDs on success ' \
+              'or error messages on failure. Run validate_resources first to check records are valid. ' \
+              'To attach a file (local path or remote URL), include a file_paths key in the record — ' \
+              'in majority of cases, do not use import_url, which is a raw persistence field and ' \
+              'will not attach the file correctly.'
+          end
 
-        def self.input_schema # rubocop:disable Metrics/MethodLength
-          {
-            type: 'object',
-            properties: {
-              resource_type: {
-                type: 'string',
-                enum: %w[work collection],
-                description: "Type of resource to create: 'work' or 'collection'"
-              },
-              model: {
-                type: 'string',
-                description: "Work type model name (required for works), e.g. 'Monograph'"
-              },
-              records: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    file_paths: {
-                      type: %w[string array],
-                      description: 'Local file path(s) or remote URL(s) to attach to the work. ' \
-                                   'Accepts a single string or an array of strings.'
-                    },
-                    file_set_params: {
-                      type: %w[object array],
-                      description: 'Metadata for each attached file set, in the same order as file_paths. ' \
-                                   'Accepts a single hash (applies to the first file) or an array of hashes ' \
-                                   '(one per file). Supported keys: title, description, keyword, creator, etc. ' \
-                                   'Example: [{ title: "Figure 1", description: "Chart showing results" }]'
-                    }
-                  }
+          def input_schema # rubocop:disable Metrics/MethodLength
+            {
+              type: 'object',
+              properties: {
+                resource_type: {
+                  type: 'string',
+                  enum: %w[work collection],
+                  description: "Type of resource to create: 'work' or 'collection'"
                 },
-                description: 'Array of attribute hashes for resources to create. Each hash may ' \
-                             'include any work attribute plus file_paths and file_set_params for file attachment.'
-              }
-            },
-            required: %w[resource_type records]
-          }
+                model: {
+                  type: 'string',
+                  description: "Work type model name (required for works), e.g. 'Monograph'"
+                },
+                records: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      file_paths: {
+                        type: %w[string array],
+                        description: 'Local file path(s) or remote URL(s) to attach to the work. ' \
+                                     'Accepts a single string or an array of strings.'
+                      },
+                      file_set_params: {
+                        type: %w[object array],
+                        description: 'Metadata for each attached file set, in the same order as file_paths. ' \
+                                     'Accepts a single hash (applies to the first file) or an array of hashes ' \
+                                     '(one per file). Supported keys: title, description, keyword, creator, etc. ' \
+                                     'Example: [{ title: "Figure 1", description: "Chart showing results" }]'
+                      }
+                    }
+                  },
+                  description: 'Array of attribute hashes for resources to create. Each hash may ' \
+                               'include any work attribute plus file_paths and file_set_params for file attachment.'
+                }
+              },
+              required: %w[resource_type records]
+            }
+          end
         end
 
         def call(params:, current_user:)

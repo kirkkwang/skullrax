@@ -6,27 +6,29 @@ module Skullrax
       class GetSchemaTool < Skullrax::Mcp::Tool
         include Skullrax::SchemaPropertyFilterConcern
 
-        def self.tool_name
-          'get_schema'
-        end
+        class << self
+          def tool_name
+            'get_schema'
+          end
 
-        def self.description
-          'Returns the schema for a Hyrax work type, including field names, types, required status, ' \
-            'and splittable status. Use this before validating or creating works to understand what ' \
-            'fields are expected and whether they accept multiple values.'
-        end
+          def description
+            'Returns the schema for a Hyrax work type, including field names, types, required status, ' \
+              'and splittable status. Use this before validating or creating works to understand what ' \
+              'fields are expected and whether they accept multiple values.'
+          end
 
-        def self.input_schema
-          {
-            type: 'object',
-            properties: {
-              model: {
-                type: 'string',
-                description: "The work type model name, e.g. 'Monograph' or 'GenericWork'"
-              }
-            },
-            required: ['model']
-          }
+          def input_schema
+            {
+              type: 'object',
+              properties: {
+                model: {
+                  type: 'string',
+                  description: "The work type model name, e.g. 'Monograph' or 'GenericWork'"
+                }
+              },
+              required: ['model']
+            }
+          end
         end
 
         def call(params:, current_user:) # rubocop:disable Lint/UnusedMethodArgument
