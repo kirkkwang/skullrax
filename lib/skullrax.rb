@@ -15,6 +15,7 @@ require_relative 'skullrax/handlers/visibility_handler'
 require_relative 'skullrax/handlers/based_near_handler'
 require_relative 'skullrax/handlers/controlled_vocabulary_handler'
 require_relative 'skullrax/handlers/file_attachment_handler'
+require_relative 'skullrax/handlers/derivatives_handler'
 
 require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/file_set_params_builder'
@@ -53,6 +54,7 @@ require_relative 'skullrax/mcp/tools/delete_resources_tool'
 require_relative 'skullrax/mcp/tools/reindex_resources_tool'
 require_relative 'skullrax/mcp/tools/delete_solr_documents_tool'
 require_relative 'skullrax/mcp/tools/find_members_tool'
+require_relative 'skullrax/mcp/tools/manage_derivatives_tool'
 
 module Skullrax
   class Error < StandardError; end
