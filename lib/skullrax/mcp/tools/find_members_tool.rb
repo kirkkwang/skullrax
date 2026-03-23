@@ -37,6 +37,12 @@ module Skullrax
                   enum: %w[work collection file_set any],
                   description: "Filter the type of members to return. Defaults to 'any'.",
                   default: 'any'
+                },
+                fields: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Solr fields to return for each member, e.g. ["id", "title_tesim"]. ' \
+                              'Defaults to all fields. Use to reduce response size for large collections.'
                 }
               },
               required: %w[id resource_type]
@@ -47,10 +53,11 @@ module Skullrax
         def call(params:, current_user:) # rubocop:disable Lint/UnusedMethodArgument
           id = params['id']
           member_type = params['member_type'] || 'any'
+          fields = params['fields'] || []
 
           docs = case params['resource_type']
-                 when 'collection' then find_collection_members(id)
-                 when 'work'       then find_work_members(id)
+                 when 'collection' then find_collection_members(id, fields)
+                 when 'work'       then find_work_members(id, fields)
                  end
 
           text_response(filter_by_member_type(docs, member_type).to_json)
@@ -58,24 +65,28 @@ module Skullrax
 
         private
 
-        def find_collection_members(id)
-          Hyrax::SolrService.query("member_of_collection_ids_ssim:\"#{id}\"", rows: solr_rows)
+        def find_collection_members(id, fields)
+          opts = { rows: solr_rows }
+          opts[:fl] = fields.join(',') if fields.any?
+          Hyrax::SolrService.query("member_of_collection_ids_ssim:\"#{id}\"", **opts)
                             .map { |doc| doc.to_h.compact }
         end
 
-        def find_work_members(id)
+        def find_work_members(id, fields)
           parent_doc = Hyrax::SolrService.query("id:#{id}", rows: 1).first
           return [] unless parent_doc
 
           member_ids = parent_doc['member_ids_ssim'] || []
           return [] if member_ids.empty?
 
-          fetch_docs_by_ids(member_ids)
+          fetch_docs_by_ids(member_ids, fields)
         end
 
-        def fetch_docs_by_ids(ids)
+        def fetch_docs_by_ids(ids, fields)
           quoted = ids.map { |id| "\"#{id}\"" }.join(' OR ')
-          Hyrax::SolrService.query("id:(#{quoted})", rows: ids.size)
+          opts = { rows: ids.size }
+          opts[:fl] = fields.join(',') if fields.any?
+          Hyrax::SolrService.query("id:(#{quoted})", **opts)
                             .map { |doc| doc.to_h.compact }
         end
 

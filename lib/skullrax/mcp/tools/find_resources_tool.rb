@@ -38,6 +38,13 @@ module Skullrax
                 query: {
                   type: 'string',
                   description: 'Solr query string to search the catalog, e.g. "title:My Work"'
+                },
+                fields: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  description: 'Solr fields to return for each result, e.g. ["id", "title_tesim"]. ' \
+                              'Defaults to all fields. Use to reduce response size for large result sets. ' \
+                              'Does not apply when using ids, which fetches full attributes via Valkyrie.'
                 }
               }
             }
@@ -45,12 +52,14 @@ module Skullrax
         end
 
         def call(params:, current_user:) # rubocop:disable Lint/UnusedMethodArgument
+          fields = params['fields'] || []
+
           if params['ids'].present?
             find_by_ids(params['ids'])
           elsif params['terms'].present?
-            find_by_terms(params['terms'])
+            find_by_terms(params['terms'], fields)
           elsif params['query'].present?
-            find_by_query(params['query'])
+            find_by_query(params['query'], fields)
           else
             text_response({ error: "One of 'ids', 'terms', or 'query' must be provided" }.to_json)
           end
@@ -64,20 +73,24 @@ module Skullrax
           text_response(serialized.to_json)
         end
 
-        def find_by_query(query)
-          docs = Hyrax::SolrService.query(query, rows: solr_rows)
+        def find_by_query(query, fields = [])
+          opts = { rows: solr_rows }
+          opts[:fl] = fields.join(',') if fields.any?
+          docs = Hyrax::SolrService.query(query, **opts)
           serialized = docs.map { |doc| serialize_solr_doc(doc) }
           text_response(serialized.to_json)
         end
 
-        def find_by_terms(terms)
-          fields = descriptive_tesim_fields
-          return text_response({ error: 'No searchable fields found' }.to_json) if fields.empty?
+        def find_by_terms(terms, fields = []) # rubocop:disable Metrics/AbcSize
+          solr_fields = descriptive_tesim_fields
+          return text_response({ error: 'No searchable fields found' }.to_json) if solr_fields.empty?
 
           terms_query = terms.join(' OR ')
-          fields_query = fields.map { |field| "#{field}:(#{terms_query})" }.join(' OR ')
+          fields_query = solr_fields.map { |field| "#{field}:(#{terms_query})" }.join(' OR ')
           query = "(#{model_filter}) AND (#{fields_query})"
-          docs = Hyrax::SolrService.query(query, rows: solr_rows, qt: 'search')
+          opts = { rows: solr_rows, qt: 'search' }
+          opts[:fl] = fields.join(',') if fields.any?
+          docs = Hyrax::SolrService.query(query, **opts)
           serialized = docs.map { |doc| serialize_solr_doc(doc) }
           text_response(serialized.to_json)
         end

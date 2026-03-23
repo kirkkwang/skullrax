@@ -45,6 +45,13 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
       expect(schema[:properties]).to have_key(:terms)
       expect(schema[:properties][:terms][:type]).to eq('array')
     end
+
+    it 'includes fields as an optional array property' do
+      fields_schema = described_class.input_schema.dig(:properties, :fields)
+
+      expect(fields_schema[:type]).to eq('array')
+      expect(fields_schema[:items][:type]).to eq('string')
+    end
   end
 
   describe '#call' do
@@ -70,6 +77,12 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
 
         expect(Hyrax.query_service).to have_received(:find_many_by_ids)
         expect(Hyrax::SolrService).not_to have_received(:query)
+      end
+
+      it 'ignores fields when ids are provided' do
+        tool.call(params: { 'ids' => ['abc123'], 'fields' => ['id'] }, current_user: user)
+
+        expect(Hyrax.query_service).to have_received(:find_many_by_ids)
       end
     end
 
@@ -111,6 +124,28 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
 
         expect(data.first['id']).to eq('abc123')
         expect(data.first['title_tesim']).to eq(['My Work'])
+      end
+
+      context 'when fields are provided' do
+        before do
+          allow(Hyrax::SolrService).to receive(:query)
+            .with('title:test', rows: 1_000, fl: 'id,title_tesim')
+            .and_return([solr_doc])
+        end
+
+        it 'passes fl to the Solr query' do
+          tool.call(params: { 'query' => 'title:test', 'fields' => %w[id title_tesim] }, current_user: user)
+
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with('title:test', rows: 1_000, fl: 'id,title_tesim')
+        end
+
+        it 'does not pass fl when fields is empty' do
+          tool.call(params: { 'query' => 'title:test', 'fields' => [] }, current_user: user)
+
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with('title:test', rows: 1_000)
+        end
       end
     end
 
@@ -241,6 +276,30 @@ RSpec.describe Skullrax::Mcp::Tools::FindResourcesTool do
         # description is Array-typed but absent from Luke, so it must not appear in the query
         expect(Hyrax::SolrService).not_to have_received(:query)
           .with(include('description_tesim'), anything)
+      end
+
+      context 'when fields are provided' do
+        before do
+          allow(Hyrax::SolrService).to receive(:query)
+            .with(anything, hash_including(fl: 'id,title_tesim'))
+            .and_return([solr_doc])
+        end
+
+        it 'passes fl to the Solr query' do
+          tool.call(params: { 'terms' => ['france'], 'fields' => %w[id title_tesim] }, current_user: user)
+
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with(anything, hash_including(fl: 'id,title_tesim'))
+        end
+
+        it 'does not pass fl when fields is empty' do
+          tool.call(params: { 'terms' => ['france'], 'fields' => [] }, current_user: user)
+
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with(anything, hash_including(qt: 'search'))
+          expect(Hyrax::SolrService).not_to have_received(:query)
+            .with(anything, hash_including(fl: anything))
+        end
       end
 
       context 'when Hyku is defined' do

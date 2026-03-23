@@ -35,6 +35,12 @@ RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
       enum = described_class.input_schema.dig(:properties, :member_type, :enum)
       expect(enum).to contain_exactly('work', 'collection', 'file_set', 'any')
     end
+
+    it 'includes fields as an optional array property' do
+      fields_schema = described_class.input_schema.dig(:properties, :fields)
+      expect(fields_schema[:type]).to eq('array')
+      expect(fields_schema[:items][:type]).to eq('string')
+    end
   end
 
   describe '#call' do
@@ -109,6 +115,32 @@ RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
         data = JSON.parse(result[:content].first[:text])
         expect(data.map { |d| d['id'] }).to eq(['fs1'])
       end
+
+      context 'when fields are provided' do
+        before do
+          allow(Hyrax::SolrService).to receive(:query)
+            .with('member_of_collection_ids_ssim:"parent1"', rows: 1000, fl: 'id,title_tesim')
+            .and_return([work_doc, collection_doc])
+        end
+
+        it 'passes fl to the Solr query' do
+          tool.call(
+            params: { 'id' => 'parent1', 'resource_type' => 'collection', 'fields' => %w[id title_tesim] },
+            current_user: user
+          )
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with('member_of_collection_ids_ssim:"parent1"', rows: 1000, fl: 'id,title_tesim')
+        end
+
+        it 'does not pass fl when fields is empty' do
+          tool.call(
+            params: { 'id' => 'parent1', 'resource_type' => 'collection', 'fields' => [] },
+            current_user: user
+          )
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with('member_of_collection_ids_ssim:"parent1"', rows: 1000)
+        end
+      end
     end
 
     context 'when resource_type is work' do
@@ -148,6 +180,32 @@ RSpec.describe Skullrax::Mcp::Tools::FindMembersTool do
         )
         data = JSON.parse(result[:content].first[:text])
         expect(data.map { |d| d['id'] }).to eq(['fs1'])
+      end
+
+      context 'when fields are provided' do
+        before do
+          allow(Hyrax::SolrService).to receive(:query)
+            .with('id:("work1" OR "fs1")', rows: 2, fl: 'id,title_tesim')
+            .and_return([work_doc, file_set_doc])
+        end
+
+        it 'passes fl to the member fetch query' do
+          tool.call(
+            params: { 'id' => 'parent1', 'resource_type' => 'work', 'fields' => %w[id title_tesim] },
+            current_user: user
+          )
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with('id:("work1" OR "fs1")', rows: 2, fl: 'id,title_tesim')
+        end
+
+        it 'does not pass fl when fields is empty' do
+          tool.call(
+            params: { 'id' => 'parent1', 'resource_type' => 'work', 'fields' => [] },
+            current_user: user
+          )
+          expect(Hyrax::SolrService).to have_received(:query)
+            .with('id:("work1" OR "fs1")', rows: 2)
+        end
       end
 
       context 'when the parent work has no members' do
