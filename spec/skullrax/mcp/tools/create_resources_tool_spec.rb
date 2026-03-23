@@ -127,5 +127,48 @@ RSpec.describe Skullrax::Mcp::Tools::CreateResourcesTool do
         expect(data.all? { |r| r['status'] == 'created' }).to be true
       end
     end
+
+    context 'when defaults are provided' do
+      let(:defaults) { { 'creator' => ['Default Creator'], 'visibility' => 'open' } }
+      let(:record) { { 'title' => ['My Work'] } }
+
+      before do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(generator)
+      end
+
+      it 'merges defaults into each record' do
+        tool.call(
+          params: { 'resource_type' => 'work', 'model' => 'Monograph', 'defaults' => defaults, 'records' => [record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(creator: ['Default Creator'], visibility: 'open', title: ['My Work']))
+      end
+
+      it 'allows record-level values to override defaults' do
+        overriding_record = { 'title' => ['My Work'], 'creator' => ['Override Creator'] }
+
+        tool.call(
+          params: { 'resource_type' => 'work', 'model' => 'Monograph', 'defaults' => defaults,
+                    'records' => [overriding_record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(creator: ['Override Creator']))
+      end
+
+      it 'applies defaults to every record in the batch' do
+        tool.call(
+          params: { 'resource_type' => 'work', 'model' => 'Monograph', 'defaults' => defaults,
+                    'records' => [record, record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(creator: ['Default Creator'])).twice
+      end
+    end
   end
 end

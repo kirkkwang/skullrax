@@ -31,6 +31,10 @@ module Skullrax
                   type: 'string',
                   description: "Work type model name (required for works), e.g. 'Monograph'"
                 },
+                defaults: {
+                  type: 'object',
+                  description: 'Attributes merged into every record. Record-level values take precedence.'
+                },
                 records: {
                   type: 'array',
                   items: {
@@ -63,8 +67,11 @@ module Skullrax
           resource_type = params['resource_type'] || 'work'
           model_name = params['model']
           records = params['records'] || []
+          defaults = params['defaults'] || {}
 
-          results = records.map { |record| create_resource(record, resource_type, model_name, current_user) }
+          results = records.map do |record|
+            create_resource(defaults.merge(record), resource_type, model_name, current_user)
+          end
           text_response(results.to_json)
         end
 

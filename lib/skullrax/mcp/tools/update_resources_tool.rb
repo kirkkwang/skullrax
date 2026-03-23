@@ -28,12 +28,19 @@ module Skullrax
                   enum: %w[work collection file_set],
                   description: "Type of resource to update: 'work', 'collection', or 'file_set'"
                 },
+                defaults: {
+                  type: 'object',
+                  description: 'Attributes merged into every record. Record-level values take precedence.'
+                },
                 records: {
                   type: 'array',
                   items: {
                     type: 'object',
                     properties: {
-                      id: { type: 'string', description: 'ID of the resource to update' }
+                      id: { type: 'string', description: 'ID of the resource to update' },
+                      model: { type: 'string',
+                               description: 'Work type model name, e.g. "Monograph". Optional — used when ' \
+                                            'the generator needs the model to perform the update.' }
                     },
                     required: ['id']
                   },
@@ -52,8 +59,9 @@ module Skullrax
         def call(params:, current_user:)
           resource_type = params['resource_type'] || 'work'
           records = params['records'] || []
+          defaults = params['defaults'] || {}
 
-          results = records.map { |record| update_resource(record, resource_type, current_user) }
+          results = records.map { |record| update_resource(defaults.merge(record), resource_type, current_user) }
           text_response(results.to_json)
         end
 

@@ -133,5 +133,46 @@ RSpec.describe Skullrax::Mcp::Tools::UpdateResourcesTool do
         expect(data.first['errors']).to include('Creator is required')
       end
     end
+
+    context 'when defaults are provided' do
+      let(:defaults) { { 'visibility' => 'open', 'publisher' => ['Default Publisher'] } }
+      let(:record) { { 'id' => 'abc123', 'title' => ['Updated Title'] } }
+
+      before do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(generator)
+      end
+
+      it 'merges defaults into each record' do
+        tool.call(
+          params: { 'resource_type' => 'work', 'defaults' => defaults, 'records' => [record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(visibility: 'open', publisher: ['Default Publisher'], title: ['Updated Title']))
+      end
+
+      it 'allows record-level values to override defaults' do
+        overriding_record = { 'id' => 'abc123', 'title' => ['Updated Title'], 'publisher' => ['Override Publisher'] }
+
+        tool.call(
+          params: { 'resource_type' => 'work', 'defaults' => defaults, 'records' => [overriding_record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(publisher: ['Override Publisher']))
+      end
+
+      it 'applies defaults to every record in the batch' do
+        tool.call(
+          params: { 'resource_type' => 'work', 'defaults' => defaults, 'records' => [record, record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(visibility: 'open')).twice
+      end
+    end
   end
 end
