@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
 
   # Uncomment to register a new dependency of your gem
   spec.add_dependency 'doorkeeper', '>= 5.6'
+  spec.add_dependency 'dry-monads', '~> 1.6'
   spec.add_dependency 'hyrax', '>= 5.0.5'
   spec.add_dependency 'view_component', '>= 2.74'
 

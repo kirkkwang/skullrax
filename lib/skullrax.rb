@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'doorkeeper'
+require 'dry/monads'
+
 require_relative 'skullrax/version'
 require_relative 'skullrax/configuration'
 require_relative 'skullrax/engine'
