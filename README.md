@@ -1053,7 +1053,7 @@ When `autofill: true` is enabled in generate mode, Skullrax will populate all pr
 
 Skullrax includes an optional MCP (Model Context Protocol) server that lets AI clients like Claude Desktop or Claude.ai drive Hyrax work and collection CRUD conversationally.
 
-### Installation
+### MCP Installation
 
 After installing Skullrax, run the MCP installer:
 
@@ -1069,16 +1069,22 @@ This:
 
 ### Connecting Claude Desktop
 
-1. Make sure Node 18+ is installed `source ~/.nvm/nvm.sh && nvm install 20`
-2. Note what version was installed, such as `Now using node v20.20.1 (npm v10.8.2)`
-3. Set the alias `nvm alias default v20.20.1`
-4. Clear the npx cache `rm -rf ~/.npm/_npx`
-5. `code ~/Library/Application\ Support/Claude/claude_desktop_config.json`
-6. add:
-  ```json
+1. Make sure Node 18+ is installed. Run `node -v` to check if it's already installed.
+   - **If not installed**, install nvm first: https://github.com/nvm-sh/nvm, then run:
+```
+     source ~/.nvm/nvm.sh && nvm install 20 # choosing version 20 for example
+     nvm alias default v20
+```
+2. Find your full `npx` path by running `which npx` in your terminal. You'll need this in step 5.
+   - nvm users: typically `/Users/<your-user>/.nvm/versions/node/v20.x.x/bin/npx`
+   - Homebrew users: typically `/opt/homebrew/bin/npx`
+3. Clear the npx cache `rm -rf ~/.npm/_npx`
+4. `code ~/Library/Application\ Support/Claude/claude_desktop_config.json`
+5. add:
+```json
     "mcpServers": {
       "skullrax": {
-        "command": "/Users/kirkkwang/.nvm/versions/node/v20.20.1/bin/npx",
+        "command": "<your-npx-path-from-step-2>",
         "args": [
           "-y",
           "mcp-remote",
@@ -1089,10 +1095,9 @@ This:
         }
       }
     }
-  ```
-7. NOTE: `"command": "/Users/kirkkwang/.nvm/versions/node/v20.20.1/bin/npx"` but substitute your version from step 2
-8. NOTE: the "NODE_TLS_REJECT_UNAUTHORIZED": "0" is needed in local dev
-9. restart Claude Desktop
+```
+6. NOTE: the `"NODE_TLS_REJECT_UNAUTHORIZED": "0"` is needed in local dev
+7. restart Claude Desktop
 
 On first connection, mcp-remote auto-registers an OAuth client via the `/register` endpoint, then opens a browser tab for OAuth login. After you authenticate with your Hyrax credentials and approve access, Claude Desktop stores the token and connects automatically on subsequent launches.
 
