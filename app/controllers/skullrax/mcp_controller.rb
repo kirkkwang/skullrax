@@ -18,7 +18,8 @@ module Skullrax
       Skullrax::Mcp::Tools::DeleteSolrDocumentsTool,
       Skullrax::Mcp::Tools::FindMembersTool,
       Skullrax::Mcp::Tools::ManageDerivativesTool,
-      Skullrax::Mcp::Tools::RecalculateChecksumTool
+      Skullrax::Mcp::Tools::RecalculateChecksumTool,
+      Skullrax::Mcp::Tools::FindOrphanedFileSetsTool
     ].freeze
 
     def handle

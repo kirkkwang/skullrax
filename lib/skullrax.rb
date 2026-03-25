@@ -59,6 +59,7 @@ require_relative 'skullrax/mcp/tools/delete_solr_documents_tool'
 require_relative 'skullrax/mcp/tools/find_members_tool'
 require_relative 'skullrax/mcp/tools/manage_derivatives_tool'
 require_relative 'skullrax/mcp/tools/recalculate_checksum_tool'
+require_relative 'skullrax/mcp/tools/find_orphaned_file_sets_tool'
 
 module Skullrax
   class Error < StandardError; end
