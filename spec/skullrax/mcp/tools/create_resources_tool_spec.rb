@@ -170,5 +170,38 @@ RSpec.describe Skullrax::Mcp::Tools::CreateResourcesTool do
           .with(hash_including(creator: ['Default Creator'])).twice
       end
     end
+
+    context 'when no visibility is specified' do
+      before do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(generator)
+      end
+
+      it 'defaults to restricted visibility' do
+        tool.call(
+          params: { 'resource_type' => 'work', 'model' => 'Monograph', 'records' => [record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(visibility: 'restricted'))
+      end
+    end
+
+    context 'when visibility is explicitly provided' do
+      before do
+        allow(Skullrax::ValkyrieWorkGenerator).to receive(:new).and_return(generator)
+      end
+
+      it 'allows the caller to override the default' do
+        tool.call(
+          params: { 'resource_type' => 'work', 'model' => 'Monograph',
+                    'defaults' => { 'visibility' => 'open' }, 'records' => [record] },
+          current_user: user
+        )
+
+        expect(Skullrax::ValkyrieWorkGenerator).to have_received(:new)
+          .with(hash_including(visibility: 'open'))
+      end
+    end
   end
 end

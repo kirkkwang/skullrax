@@ -9,13 +9,18 @@ module Skullrax
             'create_resources'
           end
 
-          def description
+          def description # rubocop:disable Metrics/MethodLength
             'Creates one or more Hyrax works or collections via Skullrax. Accepts an array of records ' \
               'with work attributes and creates each one. Returns per-record status with IDs on success ' \
               'or error messages on failure. Run validate_resources first to check records are valid. ' \
               'To attach a file (local path or remote URL), include a file_paths key in the record — ' \
               'in majority of cases, do not use import_url, which is a raw persistence field and ' \
-              'will not attach the file correctly.'
+              'will not attach the file correctly. ' \
+              'VISIBILITY RULE: Only include a visibility value if the user explicitly stated one in ' \
+              'their current message. Do not infer it, carry it over from prior turns, or default it ' \
+              'to anything — omit the key entirely and let the server apply "restricted" by default. ' \
+              'BAD EXAMPLE: user said "public" two turns ago → do NOT include visibility: "open" now. ' \
+              'GOOD EXAMPLE: user says nothing about visibility → omit the key from both defaults and every record.'
           end
 
           def input_schema # rubocop:disable Metrics/MethodLength
@@ -33,7 +38,10 @@ module Skullrax
                 },
                 defaults: {
                   type: 'object',
-                  description: 'Attributes merged into every record. Record-level values take precedence.'
+                  description: 'Attributes merged into every record. Record-level values take precedence. ' \
+                               'NEVER include visibility here unless the user explicitly stated it in this message. ' \
+                               'Carrying visibility forward from a prior turn via defaults is a violation of ' \
+                               'the visibility rule.'
                 },
                 records: {
                   type: 'array',
@@ -67,7 +75,7 @@ module Skullrax
           resource_type = params['resource_type'] || 'work'
           model_name = params['model']
           records = params['records'] || []
-          defaults = params['defaults'] || {}
+          defaults = { 'visibility' => 'restricted' }.merge(params['defaults'] || {})
 
           results = records.map do |record|
             create_resource(defaults.merge(record), resource_type, model_name, current_user)
