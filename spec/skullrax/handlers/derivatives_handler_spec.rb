@@ -256,6 +256,15 @@ RSpec.describe Skullrax::DerivativesHandler do
           .to raise_error(Skullrax::ArgumentError, /not compatible with mime type/)
       end
     end
+
+    context 'when derivative_type is a known alias' do
+      it 'passes validation and enqueues the job with the original derivative_type' do
+        manager.create('tif', 'image/tiff')
+
+        expect(Skullrax::CreateSpecificDerivativeJob).to have_received(:perform_later)
+          .with('original-001', 'tif', 'image/tiff')
+      end
+    end
   end
 
   describe '#delete' do

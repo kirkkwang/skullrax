@@ -40,7 +40,7 @@ module Skullrax
       }
     end
 
-    def create(derivative_type, mime_type) # rubocop:disable Metrics/MethodLength
+    def create(derivative_type, mime_type) # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
       file_set = find_file_set
       original = find_original_file(file_set)
       source_mime = Array(original.mime_type).first
@@ -50,7 +50,8 @@ module Skullrax
               "Derivative type '#{derivative_type}' is not compatible with mime type '#{source_mime}'"
       end
 
-      unless imagemagick_writable_formats.include?(derivative_type.upcase)
+      normalized = format_aliases.fetch(derivative_type.downcase, derivative_type.upcase)
+      unless imagemagick_writable_formats.include?(normalized)
         raise Skullrax::ArgumentError,
               "Unsupported format: '#{derivative_type}'. Not a writable ImageMagick format."
       end
@@ -155,6 +156,13 @@ module Skullrax
 
       Hyrax.persister.save(resource: file_set) if derivatives.any?
       Hyrax.index_adapter.save(resource: file_set) if derivatives.any?
+    end
+
+    # ImageMagick registers 'TIFF' but not 'TIF' as a writable format name
+    def format_aliases
+      {
+        'tif' => 'TIFF'
+      }
     end
   end
 end
