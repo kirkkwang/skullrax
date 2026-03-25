@@ -10,8 +10,11 @@ module Skullrax
           end
 
           def description
-            'Deletes one or more Hyrax works, collections, or file sets by ID. Respects Hyrax CanCan ' \
-              'permissions — the authenticated user must have delete access. Returns per-resource status.'
+            'Deletes one or more Hyrax works, collections, or file sets by ID. ' \
+            'IMPORTANT: Always ask the user to confirm before calling this tool. ' \
+            'Only pass confirm: true if the user has explicitly agreed. ' \
+            'Respects Hyrax CanCan permissions — the authenticated user must have delete access. ' \
+            'Returns per-resource status.'
           end
 
           def input_schema # rubocop:disable Metrics/MethodLength
@@ -30,7 +33,10 @@ module Skullrax
                 },
                 confirm: {
                   type: 'boolean',
-                  description: 'Must be true to confirm deletion. If false or omitted, deletion will not proceed.'
+                  description: 'Must be true to proceed. IMPORTANT: Never set this to true on your own. ' \
+                               'You must first show the user the IDs to be deleted and ask ' \
+                               'for explicit confirmation. ' \
+                               'Only pass confirm: true after the user has affirmatively agreed in the conversation.'
                 }
               },
               required: %w[resource_type ids confirm]
