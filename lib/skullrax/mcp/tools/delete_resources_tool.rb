@@ -58,6 +58,7 @@ module Skullrax
         private
 
         def delete_resource(id, resource_type, user)
+          delete_child_file_sets(id, user) if resource_type == 'work'
           generator = build_generator(resource_type, id, user)
           result = generator.destroy
 
@@ -68,6 +69,13 @@ module Skullrax
           end
         rescue StandardError => e
           { id:, status: 'failed', errors: [e.message] }
+        end
+
+        def delete_child_file_sets(work_id, user)
+          work = Hyrax.query_service.find_by(id: work_id)
+          Hyrax.custom_queries.find_child_file_sets(resource: work).each do |file_set|
+            Skullrax::ValkyrieFileSetGenerator.new(user:, id: file_set.id.to_s).destroy
+          end
         end
 
         def build_generator(resource_type, id, user)
