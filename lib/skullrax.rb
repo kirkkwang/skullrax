@@ -19,6 +19,7 @@ require_relative 'skullrax/handlers/controlled_vocabulary_handler'
 require_relative 'skullrax/handlers/file_attachment_handler'
 require_relative 'skullrax/handlers/derivatives_handler'
 require_relative 'skullrax/handlers/checksum_handler'
+require_relative 'skullrax/handlers/recharacterization_handler'
 
 require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/file_set_params_builder'
@@ -59,6 +60,7 @@ require_relative 'skullrax/mcp/tools/delete_solr_documents_tool'
 require_relative 'skullrax/mcp/tools/find_members_tool'
 require_relative 'skullrax/mcp/tools/manage_derivatives_tool'
 require_relative 'skullrax/mcp/tools/recalculate_checksum_tool'
+require_relative 'skullrax/mcp/tools/recharacterize_file_sets_tool'
 require_relative 'skullrax/mcp/tools/find_orphaned_file_sets_tool'
 
 module Skullrax

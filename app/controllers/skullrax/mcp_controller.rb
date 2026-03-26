@@ -19,7 +19,8 @@ module Skullrax
       Skullrax::Mcp::Tools::FindMembersTool,
       Skullrax::Mcp::Tools::ManageDerivativesTool,
       Skullrax::Mcp::Tools::RecalculateChecksumTool,
-      Skullrax::Mcp::Tools::FindOrphanedFileSetsTool
+      Skullrax::Mcp::Tools::FindOrphanedFileSetsTool,
+      Skullrax::Mcp::Tools::RecharacterizeFileSetsTool
     ].freeze
 
     def handle
