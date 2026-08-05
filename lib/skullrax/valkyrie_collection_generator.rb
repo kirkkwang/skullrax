@@ -92,7 +92,7 @@ module Skullrax
           update_banner_file_ids: [], banner_unchanged_indicator: true
         },
         'collection_resource.save_collection_logo' => {
-          update_logo_file_ids: [], alttext_values: [], linkurl_values: [], logo_unchanged_indicator: false
+          update_logo_file_ids: [], alttext_values: [], linkurl_values: [], logo_unchanged_indicator: true
         }
       }
     end
