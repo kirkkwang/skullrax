@@ -6,6 +6,10 @@ module Skullrax
       @menu = menu
     end
 
+    def render?
+      helpers.respond_to?(:skullrax)
+    end
+
     def call
       menu.nav_link(skullrax_path, class: 'nav-link', onclick: 'dontChangeAccordion(event);') do
         link_content
