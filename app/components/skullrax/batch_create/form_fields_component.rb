@@ -8,7 +8,7 @@ module Skullrax
         @form_builder = form_builder
       end
 
-      def render_field(term)
+      def render_field(term) # rubocop:disable Metrics/MethodLength
         # Override based_near to use simple input (no autocomplete widget)
         if term == :based_near
           render_field_input(term:, hint: I18n.t('skullrax.dashboard.batch_create.hints.based_near'))
@@ -17,6 +17,8 @@ module Skullrax
           render_field_input(term:, multi: false, required: false, hint: id_hint, label: 'ID', pattern: id_pattern)
         elsif required_file_set_term?(term)
           render_field_input(term:, required: false)
+        elsif term == :transcript_ids
+          nil
         else
           render_edit_field_partial(term, f: form_builder, curation_concern: form.model_class)
         end

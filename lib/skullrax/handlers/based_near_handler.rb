@@ -16,7 +16,8 @@ module Skullrax
       end
 
       def process(values)
-        Array.wrap(values).flat_map { |value| lookup_or_return(value) }.compact
+        urls = Array.wrap(values).flat_map { |value| lookup_or_return(value) }.compact
+        urls.each_with_index.to_h { |url, i| [i.to_s, { 'id' => url, '_destroy' => 'false' }] }
       end
 
       private

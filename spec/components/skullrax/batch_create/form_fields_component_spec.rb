@@ -6,6 +6,14 @@ RSpec.describe Skullrax::BatchCreate::FormFieldsComponent do
     let(:form) { Hyrax::Forms::ResourceForm.for(resource:) }
     let(:form_builder) { SimpleForm::FormBuilder.new(form.model_name.param_key, form, nil, {}) }
 
+    context 'when term is transcript_ids' do
+      it 'skips rendering because the partial requires a persisted file set' do
+        component = described_class.new(form:, form_builder:)
+        expect(component).not_to receive(:render_edit_field_partial)
+        expect(component.render_field(:transcript_ids)).to be_nil
+      end
+    end
+
     context 'when term is a regular field' do
       it 'renders the edit field partial' do
         component = described_class.new(form:, form_builder:)

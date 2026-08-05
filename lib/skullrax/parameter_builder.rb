@@ -60,7 +60,9 @@ module Skullrax
     def add_custom_attributes(hash)
       kwargs.each do |key, value|
         validate_existence(value) if relationship_key?(key)
-        hash[key] = process_attribute(key, value)
+        processed = process_attribute(key, value)
+        key = based_near_handler.param_key if based_near_handler.handles?(key.to_s)
+        hash[key] = processed
       end
     end
 
