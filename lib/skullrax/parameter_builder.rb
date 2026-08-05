@@ -62,7 +62,7 @@ module Skullrax
         validate_existence(value) if relationship_key?(key)
 
         if compound_handler.handles?(model, key)
-          hash[compound_handler.param_key(key)] = compound_handler.process(value)
+          hash[compound_handler.param_key(key)] = compound_handler.process(key, value)
         else
           processed = process_attribute(key, value)
           key = based_near_handler.param_key if based_near_handler.handles?(key.to_s)

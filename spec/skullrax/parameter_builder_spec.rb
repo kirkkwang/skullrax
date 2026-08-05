@@ -72,6 +72,7 @@ RSpec.describe Skullrax::ParameterBuilder do
     let(:compound_schema) { double('compound_schema', compound_names: [:participants]) }
 
     before do
+      Skullrax::CompoundHandler.instance_variable_set(:@compound_names, nil)
       allow(Hyrax::CompoundSchema).to receive(:for).with(model).and_return(compound_schema)
     end
 

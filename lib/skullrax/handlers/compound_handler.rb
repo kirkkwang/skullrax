@@ -11,20 +11,39 @@ module Skullrax
         "#{property.to_s.delete_suffix('_attributes')}_attributes"
       end
 
-      def process(value)
+      def process(property, value)
         rows = fragment?(value) ? value.values : Array.wrap(value)
+        unless rows.all?(Hash)
+          raise Skullrax::ArgumentError,
+                I18n.t('skullrax.errors.invalid_compound_value', property:, value: value.inspect)
+        end
+
         rows.each_with_index.to_h { |row, index| [index.to_s, row.to_h.stringify_keys] }
       end
 
       def compound_names(model)
         return [] unless defined?(Hyrax::CompoundSchema) && model
 
-        Hyrax::CompoundSchema.for(model).compound_names.map(&:to_s)
+        if flexible?
+          names_for(model)
+        else
+          @compound_names ||= {}
+          @compound_names[model.to_s] ||= names_for(model)
+        end
       rescue StandardError
         []
       end
 
       private
+
+      def flexible?
+        Hyrax.config.respond_to?(:flexible?) && Hyrax.config.flexible?
+      end
+
+      def names_for(model)
+        target = model.respond_to?(:new) ? model.new : model
+        Hyrax::CompoundSchema.for(target).compound_names.map(&:to_s)
+      end
 
       def fragment?(value)
         value.is_a?(Hash) && value.values.all?(Hash)

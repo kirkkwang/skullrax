@@ -5,6 +5,7 @@ RSpec.describe Skullrax::CompoundHandler do
   let(:compound_schema) { double('compound_schema', compound_names: %i[participants identifiers]) }
 
   before do
+    described_class.instance_variable_set(:@compound_names, nil)
     allow(Hyrax::CompoundSchema).to receive(:for).with(model).and_return(compound_schema)
   end
 
@@ -46,14 +47,14 @@ RSpec.describe Skullrax::CompoundHandler do
     it 'converts an array of rows into an indexed fragment' do
       rows = [{ name: 'Ada', role: 'Author' }, { name: 'Grace', role: 'Editor' }]
 
-      expect(described_class.process(rows)).to eq(
+      expect(described_class.process(:participants, rows)).to eq(
         '0' => { 'name' => 'Ada', 'role' => 'Author' },
         '1' => { 'name' => 'Grace', 'role' => 'Editor' }
       )
     end
 
     it 'converts a single row hash into an indexed fragment' do
-      expect(described_class.process(name: 'Ada', role: 'Author')).to eq(
+      expect(described_class.process(:participants, { name: 'Ada', role: 'Author' })).to eq(
         '0' => { 'name' => 'Ada', 'role' => 'Author' }
       )
     end
@@ -61,10 +62,15 @@ RSpec.describe Skullrax::CompoundHandler do
     it 'reindexes an already-indexed fragment and stringifies row keys' do
       fragment = { '0' => { name: 'Ada' }, '1' => { name: 'Grace' } }
 
-      expect(described_class.process(fragment)).to eq(
+      expect(described_class.process(:participants, fragment)).to eq(
         '0' => { 'name' => 'Ada' },
         '1' => { 'name' => 'Grace' }
       )
+    end
+
+    it 'raises Skullrax::ArgumentError for values that are not rows of hashes' do
+      expect { described_class.process(:participants, 'Ada;Grace') }
+        .to raise_error(Skullrax::ArgumentError, /participants/)
     end
   end
 end

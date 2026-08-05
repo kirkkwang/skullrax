@@ -98,9 +98,24 @@ module Skullrax
 
     def merge_attributes
       existing_attrs = deserialized_resource_attributes
+      new_attrs = params_hash.transform_keys(&:to_sym)
+      merge_compound_attributes!(existing_attrs, new_attrs) if merge
 
-      @merged_kwargs = existing_attrs.merge(params_hash.transform_keys(&:to_sym)) do |_, old_val, new_val|
+      @merged_kwargs = existing_attrs.merge(new_attrs) do |_, old_val, new_val|
         should_append?(old_val) ? old_val + new_val : new_val
+      end
+    end
+
+    def merge_compound_attributes!(existing_attrs, new_attrs) # rubocop:disable Metrics/AbcSize
+      new_attrs.each_key do |key|
+        bare = key.to_s.delete_suffix('_attributes').to_sym
+        next if bare == key.to_sym || !Skullrax::CompoundHandler.handles?(model, bare)
+
+        old_rows = Array(existing_attrs[bare]).map { |row| row.to_h.stringify_keys }
+        next if old_rows.empty?
+
+        combined = old_rows + new_attrs[key].values
+        new_attrs[key] = combined.each_with_index.to_h { |row, index| [index.to_s, row] }
       end
     end
 

@@ -30,7 +30,11 @@ module Skullrax
 
     def process(row)
       instantiate_generator(row).tap do |generator|
-        perform_action(generator)
+        begin
+          perform_action(generator)
+        rescue Skullrax::ArgumentError => e
+          generator.errors << e.message
+        end
         capture_errors(generator, row.number) if generator.errors.present?
       end
     end
