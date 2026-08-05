@@ -6,6 +6,9 @@ de:
           one: "%{count} Ressource erfolgreich importiert"
           other: "%{count} Ressourcen erfolgreich importiert"
     errors:
+      branding_failed: "%{role} konnte nicht angewendet werden: %{message}"
+      invalid_compound_value: "Ungültiger Wert für zusammengesetztes Feld %{property}: %{value}. Zeilen mit Schlüssel/Wert-Paaren erwartet."
+      thumbnail_unsupported: Sammlungs-Thumbnails erfordern Hyku (UploadedCollectionThumbnailPathService nicht gefunden).
       object_not_found:
         one: "Aktion nicht möglich - 1 ID nicht gefunden: %{ids}"
         other: "Aktion nicht möglich - %{count} IDs nicht gefunden: %{ids}"

@@ -6,6 +6,9 @@ es:
           one: "Se importó correctamente %{count} recurso"
           other: "Se importaron correctamente %{count} recursos"
     errors:
+      branding_failed: "No se pudo aplicar %{role}: %{message}"
+      invalid_compound_value: "Valor no válido para el campo compuesto %{property}: %{value}. Se esperaban filas de pares clave/valor."
+      thumbnail_unsupported: "Las miniaturas de colecciones requieren Hyku (no se encontró UploadedCollectionThumbnailPathService)."
       object_not_found:
         one: "No se puede realizar la acción - 1 ID no encontrado: %{ids}"
         other: "No se puede realizar la acción - %{count} IDs no encontrados: %{ids}"

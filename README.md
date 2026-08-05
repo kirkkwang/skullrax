@@ -1006,6 +1006,50 @@ Skullrax::ValkyrieCollectionGenerator.new(
 ).generate(autofill: true, except: :hide_from_catalog_search)
 ```
 
+### Collection Branding (Thumbnail, Banner, Logo)
+
+Collections can be branded with a thumbnail, banner, and logo, each with optional alt text. Sources can be local file paths or remote URLs, just like work file attachments:
+
+```ruby
+Skullrax::ValkyrieCollectionGenerator.new(
+  title: ['My Collection'],
+  thumbnail: 'https://example.com/thumb.jpg',
+  thumbnail_alt_text: 'A descriptive alt text',
+  banner: '/path/on/disk/banner.jpg',
+  banner_alt_text: 'Banner alt text',
+  logo: 'https://example.com/logo.png',
+  logo_alt_text: 'Logo alt text'
+).generate
+```
+
+The same keys work when updating an existing collection (existing branding for a role is replaced):
+
+```ruby
+Skullrax::ValkyrieCollectionGenerator.new(
+  id: 'collection-123',
+  thumbnail: 'https://example.com/new-thumb.jpg',
+  thumbnail_alt_text: 'Updated alt text'
+).update
+```
+
+They are also available as CSV columns and YML keys on collection rows:
+
+```yaml
+resources:
+  - model: CollectionResource
+    title: ["My Collection"]
+    thumbnail: https://example.com/thumb.jpg
+    thumbnail_alt_text: "A descriptive alt text"
+    banner: images/banner.jpg
+    banner_alt_text: "Banner alt text"
+```
+
+Notes:
+- Banner and logo use Hyrax's `CollectionBrandingInfo` and work in any Hyrax app.
+- Thumbnails additionally write the resized card/thumbnail JPGs Hyku serves from `public/uploads/uploaded_collection_thumbnails/`; in a non-Hyku app the thumbnail option reports an error and is skipped.
+- Any image format ImageMagick can read is accepted; thumbnails are converted to JPG (animated GIFs use their first frame).
+- Branding sources are validated (local existence or remote HEAD) during dry runs and before save.
+
 ### Collection Features
 
 Collections support the same features as works:

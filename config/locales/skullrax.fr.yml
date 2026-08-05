@@ -6,6 +6,9 @@ fr:
           one: "%{count} ressource importée avec succès"
           other: "%{count} ressources importées avec succès"
     errors:
+      branding_failed: "Échec de l’application de %{role} : %{message}"
+      invalid_compound_value: "Valeur non valide pour le champ composé %{property} : %{value}. Des lignes de paires clé/valeur étaient attendues."
+      thumbnail_unsupported: "Les vignettes de collection nécessitent Hyku (UploadedCollectionThumbnailPathService introuvable)."
       object_not_found:
         one: "Action impossible - 1 ID introuvable: %{ids}"
         other: "Action impossible - %{count} IDs introuvables: %{ids}"

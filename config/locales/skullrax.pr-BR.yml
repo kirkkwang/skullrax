@@ -6,6 +6,9 @@ pt-BR:
           one: "Importado com sucesso %{count} recurso"
           other: "Importados com sucesso %{count} recursos"
     errors:
+      branding_failed: "Falha ao aplicar %{role}: %{message}"
+      invalid_compound_value: "Valor inválido para o campo composto %{property}: %{value}. Eram esperadas linhas de pares chave/valor."
+      thumbnail_unsupported: "Miniaturas de coleção exigem Hyku (UploadedCollectionThumbnailPathService não encontrado)."
       object_not_found:
         one: "Não é possível realizar a ação - 1 ID não encontrado: %{ids}"
         other: "Não é possível realizar a ação - %{count} IDs não encontrados: %{ids}"

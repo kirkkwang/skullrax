@@ -25,7 +25,7 @@ module Skullrax
       end
     end
 
-    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
     def transform_resource(resource)
       {}.tap do |transformed|
         resource.each do |key, value|
@@ -36,13 +36,15 @@ module Skullrax
             transformed['filesets'] = transform_nested(value, :fileset)
           when 'file', 'files', 'remote_file', 'remote_files'
             transformed[key] = resolve_paths(value)
+          when 'thumbnail', 'banner', 'logo'
+            transformed[key] = resolve_path(Array.wrap(value).first.to_s) if value.present?
           else
             transformed[key] = value
           end
         end
       end
     end
-    # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
 
     def transform_nested(resources, type)
       {}.tap do |nested|

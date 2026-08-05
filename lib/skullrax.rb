@@ -21,6 +21,7 @@ require_relative 'skullrax/handlers/derivatives_handler'
 require_relative 'skullrax/handlers/checksum_handler'
 require_relative 'skullrax/handlers/recharacterization_handler'
 require_relative 'skullrax/handlers/compound_handler'
+require_relative 'skullrax/handlers/collection_branding_handler'
 
 require_relative 'skullrax/parameter_builder'
 require_relative 'skullrax/file_set_params_builder'

@@ -12,6 +12,9 @@ en:
           one: "Successfully imported %{count} resource"
           other: "Successfully imported %{count} resources"
     errors:
+      branding_failed: "Failed to apply %{role}: %{message}"
+      invalid_compound_value: "Invalid value for compound field %{property}: %{value}. Expected rows of key/value pairs."
+      thumbnail_unsupported: Collection thumbnails require Hyku (UploadedCollectionThumbnailPathService not found).
       object_not_found:
         one: "Cannot action - 1 ID not found: %{ids}"
         other: "Cannot action - %{count} IDs not found: %{ids}"

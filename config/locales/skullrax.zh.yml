@@ -6,6 +6,9 @@ zh:
           one: "成功导入 %{count} 个资源"
           other: "成功导入 %{count} 个资源"
     errors:
+      branding_failed: "无法应用%{role}：%{message}"
+      invalid_compound_value: "复合字段%{property}的值无效：%{value}。应为键/值对的行。"
+      thumbnail_unsupported: "馆藏缩略图需要 Hyku（未找到 UploadedCollectionThumbnailPathService）。"
       object_not_found:
         one: "无法执行操作 - 未找到 1 个 ID: %{ids}"
         other: "无法执行操作 - 未找到 %{count} 个 ID: %{ids}"

@@ -8,6 +8,7 @@ module Skullrax
       @resource = nil
       @kwargs = kwargs
       @id = kwargs.delete(:id)
+      @branding = CollectionBrandingHandler.extract(kwargs)
       @errors = []
       @user = user
     end
@@ -20,6 +21,16 @@ module Skullrax
 
     private
 
+    def validate_form
+      form_valid = super
+      branding_errors = branding_handler.validate
+      return form_valid if branding_errors.empty?
+
+      @errors ||= []
+      @errors.concat(branding_errors)
+      false
+    end
+
     def perform_create_action
       form.validate(params)
 
@@ -28,7 +39,7 @@ module Skullrax
         .with_step_args(**create_step_args)
         .call(form)
 
-      result.success? ? handle_success(result) : handle_failure(result)
+      result.success? ? handle_success_with_branding(result) : handle_failure(result)
     end
 
     def perform_update_action
@@ -38,7 +49,20 @@ module Skullrax
                .with_step_args(**update_step_args)
                .call(form)
 
-      result.success? ? handle_success(result) : handle_failure(result)
+      result.success? ? handle_success_with_branding(result) : handle_failure(result)
+    end
+
+    def handle_success_with_branding(result)
+      handle_success(result)
+      return result if @branding.empty?
+
+      @errors.concat(branding_handler.apply(resource))
+      Hyrax.index_adapter.save(resource:)
+      result
+    end
+
+    def branding_handler
+      @branding_handler ||= CollectionBrandingHandler.new(branding: @branding)
     end
 
     def perform_destroy_action
