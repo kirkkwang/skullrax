@@ -46,7 +46,7 @@ module Skullrax
     end
 
     def parameter_builder
-      ParameterBuilder.new(model:, fill_mode:, except:, **kwargs)
+      ParameterBuilder.new(model:, fill_mode:, except:, skip_existence_check: dry_run?, **kwargs)
     end
 
     private

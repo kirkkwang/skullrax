@@ -4,14 +4,15 @@ module Skullrax
   class ParameterBuilder
     include SchemaPropertyFilterConcern
 
-    attr_reader :model, :fill_mode, :except, :kwargs
+    attr_reader :model, :fill_mode, :except, :skip_existence_check, :kwargs
 
     include Skullrax::ObjectNotFound
 
-    def initialize(model:, fill_mode: :required, except: [], **kwargs)
+    def initialize(model:, fill_mode: :required, except: [], skip_existence_check: false, **kwargs)
       @model = model
       @fill_mode = fill_mode
       @except = Array.wrap(except).map(&:to_s)
+      @skip_existence_check = skip_existence_check
       @kwargs = kwargs
     end
 
@@ -59,7 +60,7 @@ module Skullrax
 
     def add_custom_attributes(hash) # rubocop:disable Metrics/AbcSize
       kwargs.each do |key, value|
-        validate_existence(value) if relationship_key?(key)
+        validate_existence(value) if relationship_key?(key) && !skip_existence_check
 
         if compound_handler.handles?(model, key)
           hash[compound_handler.param_key(key)] = compound_handler.process(key, value)
