@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Skullrax
-  class CsvParser
+  class CsvParser # rubocop:disable Metrics/ClassLength
     include SchemaPropertyFilterConcern
 
     attr_reader :found_resources
@@ -68,7 +68,22 @@ module Skullrax
     def normalize_hash!(hash)
       hash[:model] = normalize_and_constantize(hash[:model])
       hash.compact!
+      parse_compound_values!(hash)
       split_delimited_values!(hash)
+    end
+
+    def parse_compound_values!(hash)
+      hash.each do |key, value|
+        next unless compound_value?(hash[:model], key, value)
+
+        hash[key] = JSON.parse(value)
+      rescue JSON::ParserError
+        next
+      end
+    end
+
+    def compound_value?(model, key, value)
+      value.is_a?(String) && value.start_with?('[{') && Skullrax::CompoundHandler.handles?(model, key)
     end
 
     def split_delimited_values!(hash)

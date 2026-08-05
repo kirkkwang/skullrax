@@ -79,7 +79,10 @@ module Skullrax
     end
 
     def format_value(value)
-      Array.wrap(value).join(delimiter)
+      values = Array.wrap(value)
+      return values.to_json if values.any?(Hash)
+
+      values.join(delimiter)
     end
 
     def generate_csv

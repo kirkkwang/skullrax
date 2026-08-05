@@ -35,8 +35,8 @@ module Skullrax
     def properties
       case fill_mode
       when :none then []
-      when :required then (required_properties - except)
-      when :all then (settable_properties - except)
+      when :required then (required_properties - except - compound_properties)
+      when :all then (settable_properties - except - compound_properties)
       end
     end
 
@@ -57,12 +57,17 @@ module Skullrax
       [resolve_test_value(property)]
     end
 
-    def add_custom_attributes(hash)
+    def add_custom_attributes(hash) # rubocop:disable Metrics/AbcSize
       kwargs.each do |key, value|
         validate_existence(value) if relationship_key?(key)
-        processed = process_attribute(key, value)
-        key = based_near_handler.param_key if based_near_handler.handles?(key.to_s)
-        hash[key] = processed
+
+        if compound_handler.handles?(model, key)
+          hash[compound_handler.param_key(key)] = compound_handler.process(value)
+        else
+          processed = process_attribute(key, value)
+          key = based_near_handler.param_key if based_near_handler.handles?(key.to_s)
+          hash[key] = processed
+        end
       end
     end
 
@@ -70,6 +75,10 @@ module Skullrax
       return based_near_handler.process(value) if based_near_handler.handles?(key.to_s)
 
       Array.wrap(value)
+    end
+
+    def compound_properties
+      compound_handler.compound_names(model)
     end
 
     def controlled_property?(property)
@@ -100,6 +109,10 @@ module Skullrax
 
     def based_near_handler
       Skullrax::BasedNearHandler
+    end
+
+    def compound_handler
+      Skullrax::CompoundHandler
     end
   end
 end

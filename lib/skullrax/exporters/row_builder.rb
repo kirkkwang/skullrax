@@ -45,7 +45,10 @@ module Skullrax
     end
 
     def joined_values(row)
-      row.transform_values { |value| Array.wrap(value).join(delimiter) }
+      row.transform_values do |value|
+        values = Array.wrap(value)
+        values.any?(Hash) ? values.map(&:to_h).to_json : values.join(delimiter)
+      end
     end
   end
 end

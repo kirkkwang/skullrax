@@ -66,4 +66,40 @@ RSpec.describe Skullrax::ParameterBuilder do
       expect(result).to eq(['global fallback'])
     end
   end
+
+  describe '#add_custom_attributes (compound properties)' do
+    let(:model) { double('model', to_s: 'Monograph') }
+    let(:compound_schema) { double('compound_schema', compound_names: [:participants]) }
+
+    before do
+      allow(Hyrax::CompoundSchema).to receive(:for).with(model).and_return(compound_schema)
+    end
+
+    it 'converts a bare compound kwarg into an _attributes fragment' do
+      builder = described_class.new(model:, fill_mode: :none, participants: [{ 'name' => 'Ada', 'role' => 'Author' }])
+
+      result = builder.build
+
+      expect(result['participants_attributes']).to eq('0' => { 'name' => 'Ada', 'role' => 'Author' })
+      expect(result).not_to have_key(:participants)
+    end
+
+    it 'normalizes an _attributes kwarg without array-wrapping it' do
+      builder = described_class.new(
+        model:, fill_mode: :none, participants_attributes: { '0' => { name: 'Ada', role: 'Author' } }
+      )
+
+      result = builder.build
+
+      expect(result['participants_attributes']).to eq('0' => { 'name' => 'Ada', 'role' => 'Author' })
+    end
+
+    it 'leaves non-compound kwargs untouched' do
+      builder = described_class.new(model:, fill_mode: :none, title: 'My Work')
+
+      result = builder.build
+
+      expect(result[:title]).to eq(['My Work'])
+    end
+  end
 end
