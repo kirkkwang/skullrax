@@ -40,12 +40,17 @@ module Skullrax
       end
     end
 
-    def validate_remote_url(url)
+    def validate_remote_url(url, redirects = 3) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+      return I18n.t('skullrax.errors.remote_file_unreachable', code: 'too many redirects', url:) if redirects.zero?
+
       uri = URI.parse(url)
       response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https', open_timeout: 2) do |http|
         http.head(uri.request_uri)
       end
 
+      if response.is_a?(Net::HTTPRedirection) && response['location']
+        return validate_remote_url(URI.join(url, response['location']).to_s, redirects - 1)
+      end
       return nil if response.is_a?(Net::HTTPSuccess)
 
       I18n.t('skullrax.errors.remote_file_unreachable', code: response.code, url:)
@@ -61,23 +66,31 @@ module Skullrax
       Hyrax::UploadedFile.create(file:, user:)
     end
 
-    def download_file(url)
+    def download_file(url, redirects = 3) # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
       uri = URI.parse(url)
+      response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+        http.request_get(uri.request_uri)
+      end
+
+      if response.is_a?(Net::HTTPRedirection) && response['location'] && redirects.positive?
+        begin
+          location = URI.join(url, response['location']).to_s
+        rescue URI::InvalidURIError
+          raise Skullrax::ArgumentError, I18n.t('skullrax.errors.invalid_url_format', url: response['location'])
+        end
+        return download_file(location, redirects - 1)
+      end
+
+      unless response.is_a?(Net::HTTPSuccess)
+        raise Skullrax::ArgumentError, I18n.t('skullrax.errors.remote_file_unreachable', code: response.code, url:)
+      end
+
       tempfile = Tempfile.new('skullrax')
       tempfile.binmode
-
-      response = fetch_remote_file(uri, tempfile)
+      tempfile.write(response.body)
       tempfile.rewind
 
       wrap_with_filename(tempfile, uri, response)
-    end
-
-    def fetch_remote_file(uri, tempfile)
-      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
-        response = http.request_get(uri.path)
-        tempfile.write(response.body)
-        response
-      end
     end
 
     def wrap_with_filename(tempfile, uri, response)
